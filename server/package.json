@@ -1,0 +1,18 @@
+{
+    "name": "Dakiya Api Server",
+    "version": "1.0.0",
+    "description": "This application is Backend Api server For Dakiya",
+    "private": true,
+    "scripts": {
+        "link": "rm -rf node_modules && ln -s ../node_modules node_modules",
+        "build": "rm -rf dist && tsc",
+        "build:prod": "rm -rf dist && tsc --project ./tsconfig-prod.json",
+        "webpack": "rm -rf dist && webpack",
+        "webpack:prod": "rm -rf dist && webpack --mode=production",
+        "prestart": "npm run webpack",
+        "start": "node ./dist",
+        "start:debug": "node ./watch.js --debug",
+        "start:dev": "node ./watch.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    }
+}

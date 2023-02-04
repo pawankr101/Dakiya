@@ -1,0 +1,70 @@
+{
+  "name": "dakiya",
+  "version": "1.0.0",
+  "description": "this is a chat app which provide end to end communication solution.",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "engine-strict": true,
+  "scripts": {
+    "client:link": "cd ./client && npm run link",
+    "client:build": "cd ./client && npm run webpack",
+    "client:build:prod": "cd ./client && npm run webpack:prod",
+    "client:start": "cd ./client && npm start",
+    "server:link": "cd ./server && npm run link",
+    "server:build": "cd ./server && npm run build",
+    "server:build:prod": "cd ./server && npm run build:prod",
+    "server:start": "cd ./server && npm start",
+    "server:start:dev": "cd ./server && npm run start:dev",
+    "server:start:debug": "cd ./server && npm run start:debug",
+    "link": "concurrently --kill-others \"npm run server:link\" \"npm run client:link\"",
+    "build": "concurrently --kill-others \"npm run server:build\" \"npm run client:build\"",
+    "build:prod": "concurrently --kill-others \"npm run server:build:prod\" \"npm run client:build\"",
+    "start": "concurrently --kill-others \"npm run server:start\" \"npm run client:start\""
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.0",
+    "@types/node": "^18.11.18",
+    "@types/react": "^18.0.26",
+    "@types/react-dom": "^18.0.10",
+    "colors": "^1.4.0",
+    "concurrently": "^7.6.0",
+    "css-loader": "^6.7.3",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.5.0",
+    "node-watch": "^0.7.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "style-loader": "^3.3.1",
+    "ts-loader": "^9.4.2",
+    "typescript": "^4.9.4",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1",
+    "webpack-node-externals": "^3.0.0"
+  },
+  "keywords": [
+    "chat",
+    "call"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pawankr101/Dakiya.git"
+  },
+  "homepage": "https://github.com/pawankr101/Dakiya#readme",
+  "bugs": {
+    "url": "https://github.com/pawankr101/Dakiya/issues"
+  },
+  "author": {
+    "name": "Akshay Kumar",
+    "email": "pawan.akshaykr@gmail.com"
+  },
+  "contributors": [{
+      "name": "Akshay Kumar",
+      "email": "pawan.akshaykr@gmail.com"
+  }],
+  "license": "ISC"
+}
