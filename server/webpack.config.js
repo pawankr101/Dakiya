@@ -5,7 +5,16 @@ module.exports = module.exports = (env, argv) => {
     const config = {
         target: 'node',
         mode: argv.mode || 'development',
-        entry: resolve(__dirname, 'src', 'index.ts'),
+        entry: {
+            index: {
+                import: resolve(__dirname, 'src', 'index.ts'),
+                filename: 'index.js',
+            },
+            workers: {
+                import: resolve(__dirname, 'src', 'workers', 'index.ts'),
+                filename: 'workers/index.js',
+            }
+        },
         output: {
             path: resolve(__dirname, 'dist'),
             filename: 'index.js'
