@@ -9,10 +9,9 @@
         "build:prod": "rm -rf dist && tsc --project ./tsconfig-prod.json",
         "webpack": "rm -rf dist && webpack",
         "webpack:prod": "rm -rf dist && webpack --mode=production",
-        "prestart": "npm run webpack",
-        "start": "node ./dist",
-        "start:debug": "node ./watch.js --debug",
-        "start:dev": "node ./watch.js",
+        "start": "npm run webpack && node ./dist",
+        "start:debug": "node ../bin/runner.js --server --debug",
+        "start:dev": "node --inspect ../bin/runner.js --server",
         "test": "echo \"Error: no test specified\" && exit 1"
     }
 }
