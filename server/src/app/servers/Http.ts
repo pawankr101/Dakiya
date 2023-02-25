@@ -23,10 +23,10 @@ const locals: {
     httpVer: null, httpSec: null, serverOptions: null, server: null,
     createServer<hv extends HttpVer,hs extends HttpSec>(httpVer: hv, httpSec: hs, options: ServerOptions<hv,hs>, listener: RequestListener<hv>) {
         let server = (httpVer==='http1')
-            ? ((httpSec==='https')
+            ? ((httpSec==='http')
                 ? createHttpServer(options as ServerOptions<'http1', 'http'>, listener as RequestListener<'http1'>)
                 :  createHttpsServer(options as ServerOptions<'http1', 'https'>, listener as RequestListener<'http1'>))
-            : ((httpSec==='https')
+            : ((httpSec==='http')
                 ? createHttp2Server(options as ServerOptions<'http2', 'http'>, listener as RequestListener<'http2'>)
                 : createHttps2Server(options as ServerOptions<'http2', 'https'>, listener as RequestListener<'http2'>));
         return server as Server<hv,hs>;
