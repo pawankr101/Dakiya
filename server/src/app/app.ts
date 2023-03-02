@@ -1,7 +1,7 @@
 import { SERVER_CONFIG } from '../config';
 import express, {Express} from 'express';
 import {resolve} from 'path';
-import { Http, RequestListener } from './servers/Http';
+import { Http, RequestListener } from './servers/http';
 declare global {
     var APP: Express
 }

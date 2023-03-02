@@ -1,5 +1,15 @@
 
-import { isMainThread } from 'worker_threads';
 import { App } from './app';
+import { ENV } from './config';
 
-if(isMainThread) new App().start();
+function setupEnv() {
+    for(var key in ENV) {
+        process.env[key] = ENV[key];
+    }
+}
+
+function start() {
+    setupEnv();
+    new App().start();
+}
+start();

@@ -1,4 +1,4 @@
-import { HttpSec, HttpVer } from "./app/servers/Http"
+import { HttpSec, HttpVer } from "./app/servers/http"
 
 export const APP_CONFIG = {
     name: 'Dakiya',
@@ -17,4 +17,9 @@ export const SERVER_CONFIG: {httpVer: HttpVer, httpSec: HttpSec, host: string, p
     host: process.env['HOST'] || '127.0.0.1',
     port: parseInt(process.env['PORT']) || 4000,
     basePath: '/api',
+}
+
+export const ENV = {
+    WS_NO_BUFFER_UTIL: true,
+    WS_NO_UTF_8_VALIDATE: true
 }

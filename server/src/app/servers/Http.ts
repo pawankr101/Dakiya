@@ -2,6 +2,7 @@ import {Server as HttpServer, ServerOptions as HttpServerOptions, IncomingMessag
 import {Server as HttpsServer, ServerOptions as HttpsServerOptions, createServer as createHttpsServer} from 'https';
 import {Http2Server, Http2SecureServer, ServerOptions as Http2ServerOptions, SecureServerOptions as Http2SecureServerOptions, Http2ServerRequest, Http2ServerResponse, createServer as createHttp2Server, createSecureServer as createHttps2Server} from 'http2';
 import { ListenOptions } from 'net';
+import { upgradeToWebSocket } from './Websocket';
 
 /*** TYPES ****************************************************************/
 type ObjectOf<T=any> = {[x: string]: T};
@@ -29,6 +30,13 @@ const locals: {
             : ((httpSec==='http')
                 ? createHttp2Server(options as ServerOptions<'http2', 'http'>, listener as RequestListener<'http2'>)
                 : createHttps2Server(options as ServerOptions<'http2', 'https'>, listener as RequestListener<'http2'>));
+        server.on('upgrade', (request, socket, head) => {
+            socket.on('error', (err) => {
+                console.error(err);
+            });
+            // authencate()
+            // upgradeToWebSocket(request, socket, head);
+        })
         return server as Server<hv,hs>;
     }
 }

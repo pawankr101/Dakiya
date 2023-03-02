@@ -14,7 +14,7 @@
     "client:start": "cd ./client && npm start",
     "server:link": "cd ./server && npm run link",
     "server:build": "cd ./server && npm run webpack",
-    "server:build:prod": "cd ./server && npm run build:prod",
+    "server:build:prod": "cd ./server && npm run webpack:prod",
     "server:start": "cd ./server && npm start",
     "server:start:dev": "cd ./server && npm run start:dev",
     "server:start:debug": "cd ./server && npm run start:debug",
@@ -24,8 +24,11 @@
     "start": "concurrently --kill-others \"npm run server:start\" \"npm run client:start\""
   },
   "dependencies": {
+    "bufferutil": "^4.0.7",
     "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.0"
+    "jsonwebtoken": "^9.0.0",
+    "utf-8-validate": "^6.0.3",
+    "ws": "^8.12.1"
   },
   "devDependencies": {
     "@types/express": "^4.17.17",
@@ -34,6 +37,7 @@
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.10",
     "@types/webpack-node-externals": "^2.5.3",
+    "@types/ws": "^8.5.4",
     "colors": "^1.4.0",
     "concurrently": "^7.6.0",
     "css-loader": "^6.7.3",
