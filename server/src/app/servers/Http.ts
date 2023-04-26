@@ -2,7 +2,6 @@ import {Server as HttpServer, ServerOptions as HttpServerOptions, IncomingMessag
 import {Server as HttpsServer, ServerOptions as HttpsServerOptions, createServer as createHttpsServer} from 'https';
 import {Http2Server, Http2SecureServer, ServerOptions as Http2ServerOptions, SecureServerOptions as Http2SecureServerOptions, Http2ServerRequest, Http2ServerResponse, createServer as createHttp2Server, createSecureServer as createHttps2Server} from 'http2';
 import { ListenOptions } from 'net';
-import { upgradeToWebSocket } from './Websocket';
 
 /*** TYPES ****************************************************************/
 type ObjectOf<T=any> = {[x: string]: T};

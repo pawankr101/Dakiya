@@ -1,0 +1,14 @@
+openssl req -new -newkey rsa:2048 -days 3650 -extensions v3_ca -subj "/C=IN/ST=Bihar/L=Patna/O=Akshay/OU=Pawan/CN=127.0.0.1" -nodes -x509 -sha256 -set_serial 0 -keyout localhost.ca.key -out localhost.ca.cer
+
+openssl req -newkey rsa:2048 -subj "/C=IN/ST=Bihar/L=Patna/O=Akshay/OU=Pawan/CN=127.0.0.1" -nodes -sha256 -keyout localhost.csr.key -out localhost.csr.csr -config localhost.ssl.conf
+
+openssl x509 -req -sha256 -CAcreateserial -in localhost.csr.csr -days 3650 -CA localhost.ca.cer -CAkey localhost.ca.key -out localhost.ss.ca.cer
+
+
+
+/// https://www.youtube.com/watch?v=qoS4bLmstlk
+
+openssl genrsa -out localhost.private.key 2048
+openssl req -new -x509 -days 3650 -nodes -key localhost.private.key -sha256 -out localhost.ca.cer
+openssl req -new -nodes -out localhost.csr -keyout localhost.key -config localhost.ssl.conf
+openssl x509 -req -in localhost.csr -CA localhost.ca.cer -CAkey localhost.private.key -CAcreateserial -out localhost.crt -days 3650 -extfile localhost_v3.ext

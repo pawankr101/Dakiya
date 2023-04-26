@@ -1,0 +1,126 @@
+import { SERVER_CONFIG } from '../config';
+import express, {Express} from 'express';
+import {resolve} from 'path';
+import { Http, RequestListener } from './servers/http';
+declare global {
+    var APP: Express
+}
+global.APP = express()
+
+// const createServerOption: ServerOptions<'http2', 'https'> = {
+//     cert: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.cert')),
+//     key: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.key')),
+//     allowHTTP1: true
+// }
+import { SERVER_CONFIG } from '../config';
+import express, {Express} from 'express';
+import {resolve} from 'path';
+import { Http, RequestListener } from './servers/http';
+declare global {
+    var APP: Express
+}
+global.APP = express()
+
+// const createServerOption: ServerOptions<'http2', 'https'> = {
+//     cert: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.cert')),
+//     key: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.key')),
+//     allowHTTP1: true
+// }
+import { SERVER_CONFIG } from '../config';
+import express, {Express} from 'express';
+import {resolve} from 'path';
+import { Http, RequestListener } from './servers/http';
+declare global {
+    var APP: Express
+}
+global.APP = express()
+
+// const createServerOption: ServerOptions<'http2', 'https'> = {
+//     cert: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.cert')),
+//     key: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.key')),
+//     allowHTTP1: true
+// }
+import { SERVER_CONFIG } from '../config';
+import express, {Express} from 'express';
+import {resolve} from 'path';
+import { Http, RequestListener } from './servers/http';
+declare global {
+    var APP: Express
+}
+global.APP = express()
+
+// const createServerOption: ServerOptions<'http2', 'https'> = {
+//     cert: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.cert')),
+//     key: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.key')),
+//     allowHTTP1: true
+// }
+import { SERVER_CONFIG } from '../config';
+import express, {Express} from 'express';
+import {resolve} from 'path';
+import { Http, RequestListener } from './servers/http';
+declare global {
+    var APP: Express
+}
+global.APP = express()
+
+// const createServerOption: ServerOptions<'http2', 'https'> = {
+//     cert: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.cert')),
+//     key: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.key')),
+//     allowHTTP1: true
+// }
+import { SERVER_CONFIG } from '../config';
+import express, {Express} from 'express';
+import {resolve} from 'path';
+import { Http, RequestListener } from './servers/http';
+declare global {
+    var APP: Express
+}
+global.APP = express()
+
+// const createServerOption: ServerOptions<'http2', 'https'> = {
+//     cert: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.cert')),
+//     key: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.key')),
+//     allowHTTP1: true
+// }
+import { SERVER_CONFIG } from '../config';
+import express, {Express} from 'express';
+import {resolve} from 'path';
+import { Http, RequestListener } from './servers/http';
+declare global {
+    var APP: Express
+}
+global.APP = express()
+
+// const createServerOption: ServerOptions<'http2', 'https'> = {
+//     cert: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.cert')),
+//     key: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.key')),
+//     allowHTTP1: true
+// }
+import { SERVER_CONFIG } from '../config';
+import express, {Express} from 'express';
+import {resolve} from 'path';
+import { Http, RequestListener } from './servers/http';
+declare global {
+    var APP: Express
+}
+global.APP = express()
+
+// const createServerOption: ServerOptions<'http2', 'https'> = {
+//     cert: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.cert')),
+//     key: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.key')),
+//     allowHTTP1: true
+// }
+import { SERVER_CONFIG } from '../config';
+import express, {Express} from 'express';
+import {resolve} from 'path';
+import { Http, RequestListener } from './servers/http';
+declare global {
+    var APP: Express
+}
+global.APP = express()
+
+// const createServerOption: ServerOptions<'http2', 'https'> = {
+//     cert: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.cert')),
+//     key: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.key')),
+//     allowHTTP1: true
+// }

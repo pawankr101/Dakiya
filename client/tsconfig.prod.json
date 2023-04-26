@@ -1,0 +1,17 @@
+{
+  "$schema" : "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "target": "ES6",
+    "module": "ESNEXT",
+    "lib": ["ESNEXT", "DOM"],
+    "jsx": "react",
+    "moduleResolution": "Node",
+    "removeComments": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": ["../node_modules/@types"]
+  }
+}

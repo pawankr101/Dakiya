@@ -1,0 +1,16 @@
+@font-face {
+    font-family: "OpenSans";
+    src: url("./assets/fonts/OpenSans.ttf") format("ttf"), url("./assets/fonts/OpenSans-Italic.ttf") format("ttf");
+}
+
+* {
+    font-family: "OpenSans";
+}
+
+body {
+    background-color: antiquewhite;
+}
+
+.app {
+    font-size: larger;
+}

@@ -1,0 +1,18 @@
+{
+  "$schema" : "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "target": "ES6",
+    "module": "ESNEXT",
+    "lib": ["ESNEXT", "ES2022", "DOM", "WebWorker"],
+    "jsx": "react",
+    "moduleResolution": "Node",
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": ["../node_modules/@types"]
+  }
+}
