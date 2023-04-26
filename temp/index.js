@@ -1,22 +1,26 @@
 const {createSecureServer} = require('http2');
 const {readFileSync} = require('fs');
 const {resolve} = require('path');
-// let app = require('express')();
-// app.use((req,response, next) => {
-//     response.header('Access-Control-Allow-Origin', '*');
-//     response.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, X-Custom-Header, Accept, Authorization');
-//     response.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-//     response.header('Access-Control-Allow-Credentials', true);
-//     response.header('Access-Control-Max-Age', '86400');
-//     next();
-// })
-// app.get('/', (req, res) => {
-//     res.json({a:'a'})
-// })
-// app.listen(4000, () => {
-//     console.log('server started');
-// })
+const express = require('express');
 
+let app = express();
+
+app.use((req,response, next) => {
+    response.header('Access-Control-Allow-Origin', '*');
+    response.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, X-Custom-Header, Accept, Authorization');
+    response.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    response.header('Access-Control-Allow-Credentials', true);
+    response.header('Access-Control-Max-Age', '86400');
+    next();
+})
+app.use('/page', express.static(resolve(__dirname, './public')));
+
+app.listen(4000, () => {
+    console.log('server started');
+})
+
+
+/* // http2
 let server = createSecureServer({key: readFileSync(resolve('temp/localhost.key')),cert: readFileSync(resolve('temp/localhost.crt'))});
 server.on('stream', (s, h, f) => {
     if(h[':path']='/') {
@@ -45,3 +49,4 @@ server.on('stream', (s, h, f) => {
 server.listen(4000, 'localhost', ()=> {
     console.log('server started on port 4000');
 })
+*/

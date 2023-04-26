@@ -24,10 +24,8 @@
     "start": "concurrently --kill-others \"npm run server:start\" \"npm run client:start\""
   },
   "dependencies": {
-    "bufferutil": "^4.0.7",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.0",
-    "utf-8-validate": "^6.0.3",
     "ws": "^8.12.1"
   },
   "devDependencies": {
