@@ -68,7 +68,7 @@ Run the following commands in your terminal:
 
 ### Usage
 
-* install `localhost.ca.cer` as trusted ca certificate in local system.
+* install `localhost.ca.cer` as trusted CA Certificate in local system.
 * Use the `localhost.key` and `localhost.crt` files in your local server SSL/TLS configuration.
 
 ### Note
