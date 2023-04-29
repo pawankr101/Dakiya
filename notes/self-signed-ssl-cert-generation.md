@@ -30,7 +30,7 @@ Run the following commands in your terminal:
     # Generate a certificate signing request (CSR)
     openssl req -new -nodes -out localhost.csr -keyout localhost.key -config localhost.ssl.conf
     ```
-    * Note: Sample Configuration file `localhost.ssl.conf`:
+    * Note: Sample `localhost.ssl.conf`:
         ```
             [req]
             distinguished_name = dn
@@ -54,19 +54,19 @@ Run the following commands in your terminal:
     # Generate Self Signed X.509 SSL/TLS certificate
     openssl x509 -req -in localhost.csr -CA localhost.ca.cer -CAkey localhost.private.key -CAcreateserial -out localhost.crt -days 3650 -extfile localhost_v3.ext
     ```
-    * Note: Sample Configuration file `localhost_v3.ext`:
-    ```
-    authorityKeyIdentifier=keyid,issuer
-    basicConstraints=CA:FALSE
-    keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
-    subjectAltName = @alt_names
+    * Note: Sample `localhost_v3.ext`:
+        ```
+            authorityKeyIdentifier=keyid,issuer
+            basicConstraints=CA:FALSE
+            keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+            subjectAltName = @alt_names
 
-    [alt_names]
-    DNS.1   = localhost
-    IP.1   = 127.0.0.1
-    ```
+            [alt_names]
+            DNS.1   = localhost
+            IP.1   = 127.0.0.1
+        ```
 
-## Usage
+### Usage
 
 * install `localhost.ca.cer` as trusted ca certificate in local system.
 * Use the `localhost.key` and `localhost.crt` files in your local server SSL/TLS configuration.
