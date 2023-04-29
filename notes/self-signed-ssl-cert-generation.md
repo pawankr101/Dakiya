@@ -73,7 +73,7 @@ Run the following commands in your terminal:
 
 ### Note
 
-Make sure to replace localhost in the above commands with the appropriate domain or IP address for your local development environment. . Self-signed certificates are not recommended for production use.
+Make sure to replace `localhost` in the above commands with the appropriate domain or IP address for your local development environment. . Self-signed certificates are not recommended for production use.
 
 ## Conclusion
 
