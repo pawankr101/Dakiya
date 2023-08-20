@@ -2,6 +2,7 @@ const {createSecureServer} = require('http2');
 const {readFileSync} = require('fs');
 const {resolve} = require('path');
 const express = require('express');
+const mongo = require('mongodb');
 
 let app = express();
 
@@ -15,6 +16,11 @@ app.use((req,response, next) => {
 })
 app.use('/page', express.static(resolve(__dirname, './public')));
 
+app.all('/', (req, res) => {
+    
+})
+
+mongo.
 app.listen(4000, () => {
     console.log('server started');
 })
