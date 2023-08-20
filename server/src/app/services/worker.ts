@@ -21,6 +21,6 @@ function executeTaskInWorker(method: string, arg?: any) {
         let taskId = `${worker.threadId}${method}${Date.now()}`;
         tasks[taskId] = {method: {name: method, arg: arg}, onSuccess: resolve, onError: reject};
         worker.postMessage({taskId, method, arg});
-    })
+    });
 }
-export {executeTaskInWorker};
+export { executeTaskInWorker };

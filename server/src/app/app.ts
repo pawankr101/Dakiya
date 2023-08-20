@@ -1,7 +1,6 @@
-import { SERVER_CONFIG } from '../config';
-import express, {Express} from 'express';
-import {resolve} from 'path';
-import { Http, RequestListener } from './servers/index';
+import { SERVER_CONFIG } from '../config.js';
+import express, { Express } from 'express';
+import { Http, RequestListener } from './servers/index.js';
 declare global {
     var APP: Express
 }
@@ -18,7 +17,7 @@ export class App {
     start() {
         this.httpServer.addRequestListener(APP as RequestListener<'http1'>)
         .start({port: SERVER_CONFIG.port, host: SERVER_CONFIG.host}, {
-            onError: (error)=>{
+            onError: (error) => {
                 console.log(`  [S] Api Server stopped.`);
                 console.log(`      ERROR: ${error['code'] == 'EADDRINUSE' ? `Port No.: ${SERVER_CONFIG.port} is already occupied.` : error.message}`);
                 process.exit();

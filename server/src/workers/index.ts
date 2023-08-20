@@ -1,5 +1,5 @@
 import { parentPort } from 'worker_threads';
-import methods from './methods';
+import methods from './methods.js';
 
 type WorkerInput = {taskId: string, method: string, arg?: any}
 

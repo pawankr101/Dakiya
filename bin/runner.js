@@ -4,7 +4,7 @@ const watch = require('node-watch');
 const {resolve} = require('path');
 let watcher=null;
 const config = {
-    app: null,
+    app: 'server',
     client: {
         preRunCommand: 'npm run webpack',
         buildDir: resolve(__dirname, '..', 'client', './dist'),
@@ -16,7 +16,7 @@ const config = {
     },
     server: {
         execArgv: process.argv.includes('--debug') ? ['--inspect'] : [],
-        preRunCommand: 'npm run webpack',
+        preRunCommand: 'npm run build',
         buildFile: resolve(__dirname, '..', 'server', './dist/index.js'),
         sourceDir: resolve(__dirname, '..', 'server', './src'),
         cwd: resolve(__dirname, '..', 'server'),
@@ -42,10 +42,10 @@ function startPreRunner(app=config.app) {
 
 function runServer() {
     startPreRunner('server');
-    app_process = fork(config.server.buildFile, {
+    config.devSever.server = fork(config.server.buildFile, {
         cwd: config.server.cwd,
         execArgv: config.server.execArgv,
-        env: {HOST : config.server.host, PORT: config.server.port},
+        env: {HOST: config.server.host, PORT: config.server.port},
     }).on('message', console.log).on('error', (err) => {
         console.error(err);
         process.kill(config.devSever.server.pid);
@@ -65,4 +65,4 @@ function run() {
         config.app==='client' ? null : runServer();
     });
 }
-setTimeout(run, 15000);
+setTimeout(run, 1000);

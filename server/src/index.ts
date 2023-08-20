@@ -1,6 +1,6 @@
 
-import { App } from './app';
-import { ENV } from './config';
+import { App } from './app/index.js';
+import { ENV } from './config.js';
 
 function setupEnv() {
     for(var key in ENV) {
@@ -12,4 +12,4 @@ function start() {
     setupEnv();
     new App().start();
 }
-start();
+// start();

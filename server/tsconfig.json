@@ -10,7 +10,7 @@
     "composite": true,
     "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
     "downlevelIteration": true,
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "typeRoots": ["../node_modules/@types"],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

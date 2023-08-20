@@ -1,4 +1,4 @@
-import { REGEXP } from '../config';
+import { REGEXP } from '../config.js';
 
 export enum ShortMonth {
     'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'
@@ -21,6 +21,9 @@ const locals = {
     currentYear: new Date().getFullYear(),
     availableDateFormats: ['dd-mm-yyyy', 'yyyy-mm-dd', 'dd/mm/yyyy', 'yyyy/mm/dd', 'dd mmm yyyy', 'mmm dd yyyy', 'day mmm dd yyyy', 'mmmm dd, yyyy']
 };
+export enum LoopControl {
+    break='__BREAK_LOOP', continue='__CONTINUE_LOOP'
+}
 
 export class Utility {
     /**
@@ -158,7 +161,7 @@ export class Utility {
 
     /**
      * #### Get List of Week days
-     * @param is_short boolean
+     * @param {boolean} is_short boolean
      */
     static getWeekDaysList(is_short?: boolean): string[] {
         const week: string[] = [];
@@ -288,15 +291,15 @@ export class Utility {
     /**
      * #### Loop through an Array or object.
      * @param model Array or object
-     * @param callback function that define specific task with each element while iteration.
-     * user can return __CONTINUE_LOOP or __BREAK_LOOP keyword string from callback function to
+     * @param callback Function that define specific task with each element while iteration.
+     * user can return `__CONTINUE_LOOP` or `__BREAK_LOOP` keyword string from callback function to
      * skip the current iteration or break the whole loop at any point of time while iteration.
      */
-    static forLoop<T>(model: { [x: string]: T } | T[], callback: (value: T, key?: any) => void | '__CONTINUE_LOOP' | '__BREAK_LOOP') {
+    static forLoop<T>(model: { [x: string]: T } | T[], callback: (value: T, key?: any) => void | LoopControl) {
         if(this.isArray(model)) {
             let index = 0, len = model.length;
             while(index<len) {
-                if(callback(model[index], index) === '__BREAK_LOOP') break;
+                if(callback(model[index], index) === LoopControl.break) break;
                 index++;
             }
         } else if(model instanceof Object) {
@@ -304,7 +307,7 @@ export class Utility {
             let index = 0, len = keys.length, key: string;
             while(index<len) {
                 key = keys[index];
-                if(callback(model[key], key) === '__BREAK_LOOP') break;
+                if(callback(model[key], key) === LoopControl.break) break;
                 index++;
             }
         }
@@ -399,5 +402,23 @@ export class Utility {
         var i = Math.floor(Math.log(bytes) / Math.log(1024)),
         sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
         return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
+    }
+
+    static clone<T>(data: T, toJsonObject?: boolean): T {
+        const keysCollector = toJsonObject ? Object.keys : Object.getOwnPropertyNames;
+        const copyObj = <TT>(obj: TT): TT => {
+            const o=Array.isArray(obj) ? [] : Object.assign(null), k:(string|symbol)[]=keysCollector(obj);
+            Object.setPrototypeOf(o, Object.getPrototypeOf(obj));
+            if(!toJsonObject) k.push(...Object.getOwnPropertySymbols(obj));
+            for(let i=0, l=k.length; i<l; i++) {
+                let v = obj[k[i]];
+                if(typeof(v)!=='function' || !toJsonObject){
+                    if(typeof(v)==='object') v = copyObj(v);
+                    Object.defineProperty(o, k[i], Object.assign({}, Object.getOwnPropertyDescriptor(obj, k[i]), {value: v}));
+                }
+            }
+            return o;
+        }
+        return (typeof(data)!=='object') ? data : copyObj(data);
     }
 }

@@ -1,4 +1,6 @@
-import { HttpSec, HttpVer } from "./app/servers/http"
+import { fileURLToPath } from "url"
+import { HttpSec, HttpVer } from "./app/servers/http.js"
+import { resolve } from "path"
 
 export const APP_CONFIG = {
     name: 'Dakiya',
@@ -22,4 +24,9 @@ export const SERVER_CONFIG: {httpVer: HttpVer, httpSec: HttpSec, host: string, p
 export const ENV = {
     WS_NO_BUFFER_UTIL: true,
     WS_NO_UTF_8_VALIDATE: true
+}
+
+const ROOT_DIR = fileURLToPath(new URL('.', import.meta.url));
+export const PATHS = {
+    workersIndex: resolve(ROOT_DIR, 'workers', 'index.js')
 }
