@@ -17,5 +17,13 @@
     "sourceRoot": "./src",
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
-  }
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/node_modules",
+    "**/*.test.ts"
+  ]
 }
