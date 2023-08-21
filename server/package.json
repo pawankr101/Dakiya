@@ -11,7 +11,6 @@
         "start": "npm run webpack && node ./dist",
         "start:debug": "node ../bin/runner.js --server --debug",
         "start:dev": "node --inspect ../bin/runner.js --server",
-        "test": "jest",
-        "res": "node ./dist/"
+        "test": "jest"
     }
 }
