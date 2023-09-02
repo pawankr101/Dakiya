@@ -41,25 +41,26 @@ export class Thread {
     static #staticHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
     static #maxThreadsCount = cpus().length;
     static #threads: Mapper<Thread> = new Mapper<Thread>();
-    static #maxTasksPerThread = 20; static #defaultTerminationTimeoutInMS = 60000;
+    static #maxTasksPerThread = 20; static #workerIdleTimeInMS = 60000;
 
-    #worker: Worker; #tasks: Mapper<Task> = new Mapper<Task>(); #terminationTimeout: NodeJS.Timeout = null;
+    #worker: Worker; #tasks: Mapper<Task>; #terminationTimeout: NodeJS.Timeout = null;
 
     _id:string;
 
     #buildWorker(workerFilePath: string) {
         this.#worker = new Worker(workerFilePath);
+        this.#tasks = new Mapper<Task>();
         this.#worker.on('message', (res: WorkerResult) => {
             let task  = this.#tasks.get(res.taskId);
-            if(task) {
-                this.#tasks.delete(res.taskId);
-                if(res.error) task.onError(res.error);
-                else if(res.result) task.onSuccess(res.result);
-            }
+            if(task) this.#tasks.delete(res.taskId);
             if(!this.#tasks.count) {
                 this.#terminationTimeout = setTimeout(() => {
                     this.stop();
-                }, Thread.#defaultTerminationTimeoutInMS);
+                }, Thread.#workerIdleTimeInMS);
+            }
+            if(task) {
+                if(res.error) task.onError(res.error);
+                else if(res.result) task.onSuccess(res.result);
             }
         }).on('error', console.error).on('messageerror', console.error);
     }
@@ -102,7 +103,7 @@ export class Thread {
                 thread = th;
             }
         });
-        if((minTaskCount > this.#maxTasksPerThread) && (this.#threads.count<this.#maxThreadsCount)) return null;
+        if((minTaskCount >= this.#maxTasksPerThread) && (this.#threads.count < this.#maxThreadsCount)) return null;
         return thread;
     }
 

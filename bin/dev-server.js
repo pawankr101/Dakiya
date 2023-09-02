@@ -41,12 +41,18 @@ const Utils = (function() {
             const file = files[i], filePath = resolve(dirPath, file.name);
             if(file.isDirectory()) collectFilePaths(filePath, exts, fileChangeHandler);
             else if(file.isFile() && isRequiredFile(file.name, exts)) {
-                watchFile(filePath, {interval: 2000}, (curr, prev) => {
+                watchFile(filePath, {interval: Utils.watcherDelay}, (curr, prev) => {
                     if(curr.mtimeMs != prev.mtimeMs) fileChangeHandler(filePath);
                 });
             }
         }
     }
+
+    /**
+     * ### Delay Time in Millisecond between two consecutive fileChangeHandler trigger.
+     * @type {number}
+     */
+    Utils.watcherDelay = 3000;
 
     /**
      * ### Add `fileChangeHandler` to all the files matching `requiredExtensions` in given directory(`dirPath`)
@@ -133,8 +139,8 @@ const StaticServer = (function() {
                     response.end(err.message);
                 });
             }).on('error', console.error).listen(port, host, () => {
-                console.log(`  [C] Client Application Started:`);
-                console.log(`  [C] Client Application listening at: => http://${host}:${port}`);
+                console.log(`\u001b[32m  [C] Client Application Started:`);
+                console.log(`\u001b[32m  [C] Client Application listening at: => \u001b[34mhttp://${host}:${port}`);
             });
     }
     
@@ -143,7 +149,7 @@ const StaticServer = (function() {
 
 /**
  * ### Start static Dev Server.
- * @typedef {{host?: string, preStartCommand?: string, watch?: boolean, watchDir?: string, fileExtensionsToWatch?: [string], cwd?: string, outputForPreRunCommand?: boolean}} StaticServerOptions
+ * @typedef {{host?: string, preStartCommand?: string, watch?: boolean, watchDir?: string, fileExtensionsToWatch?: [string], watcherDelay?: number, cwd?: string, outputForPreRunCommand?: boolean}} StaticServerOptions
  * @param {string} publicDir
  * @param {number} port
  * @param {StaticServerOptions} [options]
@@ -155,9 +161,9 @@ function startStaticDevServer(publicDir, port, options) {
     if(options.preStartCommand) Utils.runCommand(command[0], command.slice(1), (options.cwd || __dirname), options.outputForPreRunCommand);
     ss.start(publicDir, port, options.host);
     if(options.watch && options.watchDir) {
-        // need to stop very frequent restart.
+        if(options.watcherDelay) Utils.watcherDelay = options.watcherDelay;
         Utils.addAnyFileChangeHandler(options.watchDir, options.fileExtensionsToWatch || [], (file) => {
-            console.log(`  [M] Changes found. Restarting the server...`);
+            console.log(`\u001b[33m  [C] Changes found. Restarting the server...`);
             if(options.preStartCommand) Utils.runCommand(command[0], command.slice(1), (options.cwd || __dirname), options.outputForPreRunCommand);
             ss.start(publicDir, port, options.host);
         })
