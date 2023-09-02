@@ -128,7 +128,8 @@ const StaticServer = (function() {
      * @param {string} [host='localhost']
      */
     StaticServer.prototype.start = function(publicDir, port, host='localhost') {
-        if(this.server) this.server.close();
+        return new Promise((res, rej) => {
+            if(this.server) this.server.close();
             this.server = createServer((request, response) => {
                 const filePath = resolve(publicDir, request.url==='/'? 'index.html' : (request.url[0]==='/' ? request.url.slice(1) : request.url));
                 response.setHeader('Content-Type', mimeType[extname(filePath)]);
@@ -138,10 +139,12 @@ const StaticServer = (function() {
                     response.writeHead(500, 'Internal Server Error.', {'Content-Type': 'text/plain'});
                     response.end(err.message);
                 });
-            }).on('error', console.error).listen(port, host, () => {
-                console.log(`\u001b[32m  [C] Client Application Started:`);
-                console.log(`\u001b[32m  [C] Client Application listening at: => \u001b[34mhttp://${host}:${port}`);
+            }).on('error', rej).listen(port, host, () => {
+                console.log(`\u001b[32m  [C] Client Application Started.`);
+                console.log(`\u001b[32m  [C] Client Application listening at => \u001b[34mhttp://${host}:${port}`);
+                res();
             });
+        });
     }
     
     return StaticServer;
@@ -159,15 +162,17 @@ function startStaticDevServer(publicDir, port, options) {
     options = options || {};
     const command = (options.preStartCommand||'').trim().split(' ');
     if(options.preStartCommand) Utils.runCommand(command[0], command.slice(1), (options.cwd || __dirname), options.outputForPreRunCommand);
-    ss.start(publicDir, port, options.host);
-    if(options.watch && options.watchDir) {
-        if(options.watcherDelay) Utils.watcherDelay = options.watcherDelay;
-        Utils.addAnyFileChangeHandler(options.watchDir, options.fileExtensionsToWatch || [], (file) => {
-            console.log(`\u001b[33m  [C] Changes found. Restarting the server...`);
-            if(options.preStartCommand) Utils.runCommand(command[0], command.slice(1), (options.cwd || __dirname), options.outputForPreRunCommand);
-            ss.start(publicDir, port, options.host);
-        })
-    }
+    ss.start(publicDir, port, options.host).catch(console.error).then(() => {
+        if(options.watch && options.watchDir) {
+            console.log(`\u001b[33m  [C] Watch mode: ON`);
+            if(options.watcherDelay) Utils.watcherDelay = options.watcherDelay;
+            Utils.addAnyFileChangeHandler(options.watchDir, options.fileExtensionsToWatch || [], (file) => {
+                console.log(`\u001b[33m  [C] Changes found. Restarting the server...`);
+                if(options.preStartCommand) Utils.runCommand(command[0], command.slice(1), (options.cwd || __dirname), options.outputForPreRunCommand);
+                ss.start(publicDir, port, options.host);
+            })
+        }
+    });
 }
 
 module.exports = { startStaticDevServer };
