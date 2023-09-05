@@ -1,0 +1,39 @@
+Dakiya:
+    * Login
+        => Email/Username/mobile + Password Login
+        => OTP Login
+        => Third Party Login(google, facebook, linkedin, github, +2more)
+    * Dashboard
+        => Chats List
+        => Call History
+        => Link to Profile
+        => Link to Settings
+        => Link to Logout
+    * Communication Module:
+        <=> ONE-TO-ONE
+            ==> Chat
+                => Online Status
+                => Read Receipts
+                => Text
+                => Picture
+                => Audio
+                => Video
+                => File (PDF, DOCX, etc...)
+            ==> Calling - (Audio Call/Video Call)
+                => duplex Audio/Video Stream
+                => disconnection problem handling
+                => Call Receiver call screen
+                => Call notification and acknowledgement.
+                => Call Record.
+        <=> Group (MENY-TO-MENY)
+            ==> Chat (Group Chat)
+            ==> Calling (Group Calling)
+    * Profile:
+        ==> User Registration
+        ==> Profile
+        ==> Contacts Management
+        ==> New Contacts Suggestion
+    * Settings 
+        ==> Privacy Control.
+        ==> Data Control
+        ==> Account Control
