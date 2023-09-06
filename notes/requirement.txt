@@ -34,6 +34,6 @@ Dakiya:
         ==> Contacts Management
         ==> New Contacts Suggestion
     * Settings 
-        ==> Privacy Control.
+        ==> Privacy Control
         ==> Data Control
         ==> Account Control
