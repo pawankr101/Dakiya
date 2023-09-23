@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "incremental": true,
-    "target":"ES2022",
-    "module": "ES2022",
-    "lib": ["ES2022"],
+    "target":"ESNext",
+    "module": "NodeNext",
+    "lib": ["ESNext"],
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",

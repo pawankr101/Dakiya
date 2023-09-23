@@ -8,7 +8,7 @@
         "link": "rm -rf node_modules && ln -s ../node_modules node_modules",
         "build": "rm -rf dist && tsc",
         "build:prod": "rm -rf dist && tsc --project ./tsconfig-prod.json",
-        "start": "npm run webpack && node ./dist",
+        "start": "npm run build && node ./dist",
         "start:debug": "node ../bin/runner.js --server --debug",
         "start:dev": "node --inspect ../bin/runner.js --server",
         "test": "jest"

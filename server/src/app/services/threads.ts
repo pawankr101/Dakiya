@@ -1,6 +1,6 @@
 import { Worker } from "worker_threads";
 import { cpus } from 'os';
-import { PATHS } from "../../config.js";
+import { THREADING } from "../../config.js";
 import { Exception } from "../../exceptions/exception.js";
 import { Utility } from "./utility.js";
 
@@ -39,9 +39,10 @@ export class Mapper<T> {
 
 export class Thread {
     static #staticHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
-    static #maxThreadsCount = cpus().length;
+    static #maxThreadsCount = THREADING.maxThreadsAllowed || cpus().length;
+    static #maxTasksPerThread = THREADING.maxThreadsAllowed || 20;
+    static #workerIdleTimeInMS = THREADING.maxThreadsAllowed || 60000;
     static #threads: Mapper<Thread> = new Mapper<Thread>();
-    static #maxTasksPerThread = 20; static #workerIdleTimeInMS = 60000;
 
     #worker: Worker; #tasks: Mapper<Task>; #terminationTimeout: NodeJS.Timeout = null;
 
@@ -110,7 +111,7 @@ export class Thread {
     static #getThread(): Thread {
         let thread = this.#availableThread();
         if(!thread) {
-            thread = new Thread(PATHS.workersIndex, Thread.#staticHash);
+            thread = new Thread(THREADING.workersIndex, Thread.#staticHash);
             return this.#threads.set(thread._id, thread);
         }
         return thread;

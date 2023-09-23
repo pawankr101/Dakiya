@@ -1,5 +1,5 @@
 
-import { App } from './app/index.js';
+import { Application } from './app/index.js';
 import { ENV } from './config.js';
 
 function setupEnv() {
@@ -10,6 +10,6 @@ function setupEnv() {
 
 function start() {
     setupEnv();
-    new App().start();
+    Application.start();
 }
-// start();
+start();

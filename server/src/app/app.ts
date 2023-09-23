@@ -1,31 +1,33 @@
 import { SERVER_CONFIG } from '../config.js';
-import express, { Express } from 'express';
-import { Http, RequestListener } from './servers/index.js';
-declare global {
-    var APP: Express
-}
-global.APP = express()
+import { HttpServer, Server } from './servers/index.js';
+import Fastify from 'fastify';
 
-// const createServerOption: ServerOptions<'http2', 'https'> = {
-//     cert: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.cert')),
-//     key: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.key')),
-//     allowHTTP1: true
-// }
+export class Application {
+    static httpServer = new HttpServer(SERVER_CONFIG.httpVersion, SERVER_CONFIG.httpSecurity, {allowHTTP1: true});
+    static app = Fastify({ serverFactory: (requestHandler) => {
+        this.httpServer.addRequestListener(requestHandler);
+        return <Server>this.httpServer.server;
+    } });
 
-export class App {
-    httpServer = new Http(SERVER_CONFIG.httpVer, SERVER_CONFIG.httpSec);
-    start() {
-        this.httpServer.addRequestListener(APP as RequestListener<'http1'>)
-        .start({port: SERVER_CONFIG.port, host: SERVER_CONFIG.host}, {
-            onError: (error) => {
-                console.log(`  [S] Api Server stopped.`);
-                console.log(`      ERROR: ${error['code'] == 'EADDRINUSE' ? `Port No.: ${SERVER_CONFIG.port} is already occupied.` : error.message}`);
+    static async start() {
+        this.app.ready((appError) => {
+            if(appError) {
+                console.log(`  [S] Api Server Could not get started.`);
+                console.log(`      ERROR: ${appError.message}`);
                 process.exit();
-            },
-            listener: () => {
-                console.log(`  [S] Server Started:`);
-                console.log(`  [S] Server info:\n      Base Route: ${SERVER_CONFIG.httpSec}://${SERVER_CONFIG.host}:${SERVER_CONFIG.port}${SERVER_CONFIG.basePath}\n      Process id: ${process.pid}`);
-            }
-        });
+            } else {
+                this.httpServer.start({port: SERVER_CONFIG.port, host: SERVER_CONFIG.host}, {
+                    onError: (error) => {
+                        console.log(`  [S] Api Server stopped.`);
+                        console.log(`      ERROR: ${error['code'] == 'EADDRINUSE' ? `Port No.: ${SERVER_CONFIG.port} is already occupied.` : error.message}`);
+                        process.exit();
+                    },
+                    listener: () => {
+                        console.log(`  [S] Server Started:`);
+                        console.log(`  [S] Server info:\n      Base Route: ${SERVER_CONFIG.httpSecurity}://${SERVER_CONFIG.host}:${SERVER_CONFIG.port}\n      Process id: ${process.pid}`);
+                    }
+                });
+            } 
+        })
     }
 }

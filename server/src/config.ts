@@ -1,6 +1,7 @@
-import { fileURLToPath } from "url"
-import { HttpSec, HttpVer } from "./app/servers/http.js"
-import { resolve } from "path"
+import { fileURLToPath } from "url";
+import { resolve } from "path";
+import { HttpSecurity, HttpVersion } from "./app/servers/index.js";
+const ROOT_DIR = fileURLToPath(new URL('.', import.meta.url));
 
 export const APP_CONFIG = {
     name: 'Dakiya',
@@ -8,17 +9,15 @@ export const APP_CONFIG = {
     documentation: {
         title: 'ContextCP Hedge Funds',
         description: 'Api description for ContextCP Fund manager App',
-        version: '0.0.1',
-        basePath: '/api'
+        version: '0.0.1'
     }
 }
 
-export const SERVER_CONFIG: {httpVer: HttpVer, httpSec: HttpSec, host: string, port: number, basePath: string} = {
-    httpVer: 'http1',
-    httpSec: 'http',
+export const SERVER_CONFIG: {httpVersion: HttpVersion, httpSecurity: HttpSecurity, host: string, port: number} = {
+    httpVersion: 'http2',
+    httpSecurity: 'http',
     host: process.env['HOST'] || '127.0.0.1',
-    port: parseInt(process.env['PORT']) || 4000,
-    basePath: '/api',
+    port: parseInt(process.env['PORT']) || 4000
 }
 
 export const ENV = {
@@ -26,7 +25,9 @@ export const ENV = {
     WS_NO_UTF_8_VALIDATE: true
 }
 
-const ROOT_DIR = fileURLToPath(new URL('.', import.meta.url));
-export const PATHS = {
-    workersIndex: resolve(ROOT_DIR, 'workers', 'index.js')
+export const THREADING = {
+    workersIndex: resolve(ROOT_DIR, 'workers', 'index.js'),
+    maxThreadsAllowed: 0,
+    maxTasksAllowedPerThread: 0,
+    maxThreadIdleTimeInMS: 60000
 }
