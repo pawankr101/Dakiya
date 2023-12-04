@@ -37,3 +37,5 @@ Dakiya:
         ==> Privacy Control
         ==> Data Control
         ==> Account Control
+    * Speech Recognition and Contacts Suggestion (Future Improvement)
+    * Decentralization (Future Improvement)

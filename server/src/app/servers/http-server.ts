@@ -35,7 +35,7 @@ export class HttpServer<hv extends HttpVersion, hs extends HttpSecurity> {
         this.server = this.#buildServer(httpVer, httpSec, options);
     }
 
-    addRequestListener(requestListener:RequestListener<hv>) {
+    addRequestListener(requestListener: RequestListener<hv>) {
         this.server.addListener('request', requestListener);
         return this;
     }

@@ -1,4 +1,5 @@
 import { SERVER_CONFIG } from '../config.js';
+import { AppRoutes } from './app.route.js';
 import { HttpServer, Server } from './servers/index.js';
 import Fastify from 'fastify';
 
@@ -9,7 +10,12 @@ export class Application {
         return <Server>this.httpServer.server;
     } });
 
+    static async setupApplication() {
+        this.app.register(AppRoutes);
+    }
+
     static async start() {
+        await this.setupApplication();
         this.app.ready((appError) => {
             if(appError) {
                 console.log(`  [S] Api Server Could not get started.`);
