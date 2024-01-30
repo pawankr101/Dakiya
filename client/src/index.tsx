@@ -1,7 +1,7 @@
 import React from 'react';
-import { render } from 'react-dom';
-import './index.css';
+import { createRoot } from 'react-dom/client';
+import './index.scss';
 import { App } from './app';
-import { callWorkerMethod } from './app/services';
 
-render(<App/>, document.getElementById('root'));
+const ROOT = createRoot(document.getElementById('root'));
+ROOT.render(<App/>);

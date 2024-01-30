@@ -5,6 +5,7 @@
     "module": "NodeNext",
     "lib": ["ESNext"],
     "sourceMap": true,
+    "sourceRoot": "./src",
     "outDir": "./dist",
     "rootDir": "./src",
     "composite": true,
@@ -14,7 +15,6 @@
     "typeRoots": ["../node_modules/@types"],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
-    "sourceRoot": "./src",
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },

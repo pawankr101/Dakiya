@@ -1,7 +1,8 @@
 import { SERVER_CONFIG } from '../config.js';
 import { AppRoutes } from './app.route.js';
-import { HttpServer, Server } from './servers/index.js';
+import { HttpServer, Request, Response, Server } from './servers/index.js';
 import Fastify from 'fastify';
+import { test } from './services/threads.js';
 
 export class Application {
     static httpServer = new HttpServer(SERVER_CONFIG.httpVersion, SERVER_CONFIG.httpSecurity, {allowHTTP1: true});
@@ -11,7 +12,11 @@ export class Application {
     } });
 
     static async setupApplication() {
-        this.app.register(AppRoutes);
+        this.app.get('/', async (request, response) => {
+            await test();
+            response.header('Content-Type', 'application/json').send({done: true});
+        })
+        // this.app.register(AppRoutes);
     }
 
     static async start() {

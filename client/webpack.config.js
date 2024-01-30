@@ -45,15 +45,15 @@ module.exports = (env, argv) => {
                 exclude: [/node_modules/],
                 loader: 'ts-loader'
             },{
-                test: /\.css$/i,
-                use: ['style-loader', 'css-loader'],
+                test: /\.s?css$/i,
+                use: ['style-loader', 'css-loader', 'sass-loader']
             },{
                 test: /\.(png|jpg|jpeg|svg|gif|ico|woff|woff2|eot|ttf|otf)$/i,
                 loader: 'file-loader',
-                type: 'asset/source',
+                type: 'asset/source'
             }]
         },
-        resolve: {extensions: ['.html', '.css', '.js', '.ts', '.tsx', '.json']},
+        resolve: {extensions: ['.html', '.css', '.scss', '.js', '.ts', '.tsx', '.json']},
         plugins:[new HtmlWebPackPlugin({
             template: resolve(__dirname, 'src', 'index.html'),
             favicon: resolve(__dirname, 'src', 'assets', 'favicon.ico')

@@ -14,7 +14,7 @@ export const APP_CONFIG = {
 }
 
 export const SERVER_CONFIG: {httpVersion: HttpVersion, httpSecurity: HttpSecurity, host: string, port: number} = {
-    httpVersion: 'http2',
+    httpVersion: 'http1',
     httpSecurity: 'http',
     host: process.env['HOST'] || '127.0.0.1',
     port: parseInt(process.env['PORT']) || 4000
@@ -26,8 +26,8 @@ export const ENV = {
 }
 
 export const THREADING = {
-    workersIndex: resolve(ROOT_DIR, 'workers', 'index.js'),
-    maxThreadsAllowed: 0,
-    maxTasksAllowedPerThread: 0,
-    maxThreadIdleTimeInMS: 60000
+    workersIndexFile: resolve(ROOT_DIR, 'workers', 'index.js'),
+    maxThreadsAllowed: 4,
+    maxTasksAllowedPerThread: 5,
+    maxThreadIdleTimeInMS: 600000
 }

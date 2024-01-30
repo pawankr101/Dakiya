@@ -1,21 +1,22 @@
-import { parentPort } from 'worker_threads';
+import { MessagePort, parentPort, workerData } from 'worker_threads';
 import methods from './methods.js';
+import { Utility } from '../app/services/utility.js';
 
-type WorkerInput = {taskId: string, method: string, arg?: any}
+type WorkerInput = {taskId: string, method: string, arg?: any[]}
 
-parentPort.on('message', (data: WorkerInput) => {
-    if(data) callMethod(data);
-})
+const messageChannelPort: MessagePort = Utility.getValue(workerData, 'messageChannelPort', parentPort);
+messageChannelPort.on('message', (data: WorkerInput) => onMessageAtMessageChannelPort(data));
 
-function callMethod(data: WorkerInput) {
-    if(methods[data.method]) {
-        let result = methods[data.method](data.arg);
-        if(result instanceof Promise) {
-            result.then(res => {
-                parentPort.postMessage({taskId: data.taskId, result: res});
-            }).catch(err => {
-                parentPort.postMessage({taskId: data.taskId, error: err});
-            })
-        } else parentPort.postMessage({taskId: data.taskId, result: result});
-    }
+function onMessageAtMessageChannelPort(data: WorkerInput) {
+    const method: Function = Utility.getValue(methods, data.method, () => {
+        return Promise.reject('Method not found');
+    })
+    let result = method(...data.arg);
+    if(result instanceof Promise) {
+        result.then(res => {
+            messageChannelPort.postMessage({taskId: data.taskId, result: res});
+        }).catch(err => {
+            messageChannelPort.postMessage({taskId: data.taskId, error: err});
+        })
+    } else messageChannelPort.postMessage({taskId: data.taskId, result: result});
 }

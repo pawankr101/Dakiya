@@ -9,7 +9,7 @@
         "build:prod": "rm -rf dist && tsc --project ./tsconfig-build.json",
         "webpack": "rm -rf dist && webpack",
         "webpack:prod": "rm -rf dist && webpack --mode=production",
-        "start": "node ./watch.js",
+        "start": "node ../bin/runner.js --client",
         "test": "echo \"Error: no test specified\" && exit 1"
     }
 }

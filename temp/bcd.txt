@@ -124,3 +124,22 @@ global.APP = express()
 //     key: readFileSync(resolve(__dirname, '..', '..', '..', 'keys', 'localhost.key')),
 //     allowHTTP1: true
 // }
+
+1.) Full Cycle<1000>: 492.884ms
+2.) Full Cycle<1000>: 485.004ms
+3.) Full Cycle<1000>: 476.476ms
+4.) Full Cycle<1000>: 453.514ms
+
+1.) Full Cycle<100000>: 1.477s
+2.) Full Cycle<100000>: 1.810s
+3.) Full Cycle<100000>: 2.419s
+4.) Full Cycle<100000>: 2.659s
+8.) Full Cycle<100000>: 2.832s
+16.) Full Cycle<100000>: 3.204s
+
+1.) Full Cycle<1000000>: 15.951s
+2.) Full Cycle<1000000>: 20.848s
+3.) Full Cycle<1000000>: 27.239s
+4.) Full Cycle<1000000>: 28.410s
+8.) Full Cycle<1000000>: 30.596s
+16.) Full Cycle<1000000>: 34.092s

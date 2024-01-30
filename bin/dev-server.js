@@ -52,7 +52,7 @@ const Utils = (function() {
      * ### Delay Time in Millisecond between two consecutive fileChangeHandler trigger.
      * @type {number}
      */
-    Utils.watcherDelay = 3000;
+    Utils.watcherDelay = 2000;
 
     /**
      * ### Add `fileChangeHandler` to all the files matching `requiredExtensions` in given directory(`dirPath`)
@@ -111,6 +111,9 @@ const StaticServer = (function() {
         /** @type {Server} */
         this.server = null;
         instance = this;
+
+        /** @type {boolean} */
+        this.serverStarted = false;
     }
     
     /** @type {StaticServer} */
@@ -140,8 +143,9 @@ const StaticServer = (function() {
                     response.end(err.message);
                 });
             }).on('error', rej).listen(port, host, () => {
-                console.log(`\u001b[32m  [C] Client Application Started.`);
+                console.log(`\u001b[32m  [C] Client Application ${this.serverStarted ? 'Restarted' : 'Started'}.`);
                 console.log(`\u001b[32m  [C] Client Application listening at => \u001b[34mhttp://${host}:${port}`);
+                if(this.serverStarted) this.serverStarted = true;
                 res();
             });
         });

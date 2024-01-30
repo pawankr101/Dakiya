@@ -2,6 +2,7 @@ require('colors');
 const {fork, spawnSync} = require('child_process');
 const watch = require('node-watch');
 const {resolve} = require('path');
+const { startStaticDevServer } = require('./dev-server');
 let watcher=null;
 const config = {
     app: 'server',
@@ -59,10 +60,16 @@ function run() {
         return;
     }
     console.log(`\n*** Starting ${config.app==='client' ? 'Web App Client' : 'Api Server'} ***`.cyan);
-    watcher = watch(config[config.app].sourceDir, {recursive:true}, () => {
-        console.log('\n*** Change(s) detected in codebase ***'.yellow);
-        console.log('*** Rebuilding and Restarting Application ***'.cyan);
-        config.app==='client' ? null : runServer();
+    // watcher = watch(config[config.app].sourceDir, {recursive:true}, () => {
+    //     console.log('\n*** Change(s) detected in codebase ***'.yellow);
+    //     console.log('*** Rebuilding and Restarting Application ***'.cyan);
+    //     config.app==='client' ? null : runServer();
+    // });
+    if(config.app) startStaticDevServer(config.client.buildDir, config.client.port, {
+        cwd: config.client.cwd,
+        watch: true,
+        watchDir: config.client.sourceDir,
+        preStartCommand: config.client.preRunCommand
     });
 }
 setTimeout(run, 1000);
