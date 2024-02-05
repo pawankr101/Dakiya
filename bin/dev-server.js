@@ -1,11 +1,32 @@
 // dependencies
 const { resolve, extname } = require("path");
-const { readdirSync, watchFile, createReadStream } = require('fs');
+const { readdir, watchFile, readFile } = require('fs');
 const { createServer, Server } = require('http');
-const { spawnSync } = require('child_process');
+const { exec } = require('child_process');
 
 /** @class Utils */
-const Utils = (function() {  
+const Utils = (function() { 
+    const mimeType = {
+        '.html': 'text/html',
+        '.js': 'text/javascript',
+        '.css': 'text/css',
+        '.json': 'application/json',
+        '.ico': 'image/x-icon',
+        '.png': 'image/png',
+        '.jpg': 'image/jpg',
+        '.gif': 'image/gif',
+        '.svg': 'image/svg+xml',
+        '.wav': 'audio/wav',
+        '.mp3': 'audio/mpeg',
+        '.mp4': 'video/mp4',
+        '.woff': 'application/font-woff',
+        '.ttf': 'application/font-ttf',
+        '.eot': 'application/vnd.ms-fontobject',
+        '.otf': 'application/font-otf',
+        '.wasm': 'application/wasm',
+        '.pdf': 'application/pdf',
+        '.doc': 'application/msword'
+    }
 
     /** @constructor */
     function Utils(){}
@@ -36,16 +57,20 @@ const Utils = (function() {
      * @param {(file: string)=>void} fileChangeHandler 
      */
     const collectFilePaths = (dirPath, exts, fileChangeHandler) => {
-        const files = readdirSync(dirPath, {withFileTypes:true});
-        for(var i=files.length-1;i>=0;i--) {
-            const file = files[i], filePath = resolve(dirPath, file.name);
-            if(file.isDirectory()) collectFilePaths(filePath, exts, fileChangeHandler);
-            else if(file.isFile() && isRequiredFile(file.name, exts)) {
-                watchFile(filePath, {interval: Utils.watcherDelay}, (curr, prev) => {
-                    if(curr.mtimeMs != prev.mtimeMs) fileChangeHandler(filePath);
-                });
+        readdir(dirPath, {withFileTypes:true}, (err, files) => {
+            if(err) console.log(err);
+            else {
+                for(var i=files.length-1;i>=0;i--) {
+                    const file = files[i], filePath = resolve(dirPath, file.name);
+                    if(file.isDirectory()) collectFilePaths(filePath, exts, fileChangeHandler);
+                    else if(file.isFile() && isRequiredFile(file.name, exts)) {
+                        watchFile(filePath, {interval: Utils.watcherDelay}, (curr, prev) => {
+                            if(curr.mtimeMs != prev.mtimeMs) fileChangeHandler(filePath);
+                        });
+                    }
+                }
             }
-        }
+        });
     }
 
     /**
@@ -70,38 +95,133 @@ const Utils = (function() {
      * @param {string[]} args 
      * @param {string} cwd 
      * @param {boolean} [consoleOut=false] 
+     * @returns {Promise<void>}
      */
-    Utils.runCommand = function(command, args, cwd, consoleOut=false) {
-        spawnSync(command, args, {cwd: cwd, stdio: consoleOut ? 'inherit' : 'ignore', stderr: consoleOut ? 'inherit' : 'ignore'});
+    Utils.runCommand = function(command, cwd, consoleOut=false) {
+        return new Promise((res) => {
+            if(command) {
+                exec(command, {cwd: cwd}, (error, stdOut, stdErr) => {
+                    if(error) console.error(error);
+                    else if(consoleOut) {
+                        if(stdOut) console.log(`\u001b[36m ${stdOut}`);
+                        if(stdErr) console.log(`\u001b[31m ${stdErr}`);
+                    }
+                    res();
+                });
+            } else res();
+        });
+    }
+
+    /**
+     * ### Get Mime Type for file extension.
+     * @param {string} fileExt 
+     * @returns {string}
+     */
+    Utils.getMimeType = function(fileExt) {
+        return mimeType[fileExt] || 'text/plain';
     }
     
     return Utils;
 })();
 
+/**
+ * @class `StaticDataSource`
+ * @typedef { { publicDir: string, isFileAvailable(filename: string): boolean, getFileStream(filename: string): Promise<Buffer> } } StaticDataSource
+ * @typedef { { new () => StaticDataSource, build(publicDir: string): Promise<StaticDataSource> } } StaticDataSourceConstructor
+ * @type { StaticDataSourceConstructor }
+ */
+const StaticDataSource = (function() {
+    const staticHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
+
+    /**
+     * @typedef { {[filename: string]: Buffer} } DataSource
+    */
+
+    /**
+     * 
+     * @param {string} publicDir 
+     * @param {DataSource} dataSource 
+     * @returns {Promise<void>}
+     */
+    const buildDataSource = function(publicDir, dataSource) {
+        return new Promise((res, rej) => {
+            readdir(publicDir, { withFileTypes: true }, (err, files) => {
+                if(err) rej(err);
+                else {
+                    for(var i=files.length-1;i>=0;i--) {
+                        const file = files[i];
+                        if(file.isFile()) dataSource[file.name] = null;
+                    }
+                    res();
+                }
+            });
+        });
+    }
+
+    /** 
+     * @constructor `StaticDataSource`
+     * @param { string } publicDir 
+     * @returns { StaticDataSource }
+     */
+    function StaticDataSource(publicDir) {
+        if(!new.target || (new.target && arguments[1]!==staticHash)) throw new Error('Use `StaticDataSource.build` method to create Object.');
+
+        /**  @type { string } */
+        this.publicDir = publicDir;
+
+        /**  @type { DataSource } */
+        this.dataSource = Object.create(null);
+    }
+
+    /**
+     * 
+     * @param { string } filename 
+     * @returns { boolean }
+     */
+    StaticDataSource.prototype.isFileAvailable = function(filename) {
+        if(this.dataSource[filename] || this.dataSource[filename] === null) return true;
+        return false;
+    }
+
+    /**
+     * 
+     * @param {string} filename 
+     * @returns {Promise<Buffer>}
+     */
+    StaticDataSource.prototype.getFileStream = function(filename) {
+        return new Promise((res, rej) => {
+            if(this.dataSource[filename]) {
+                res(this.dataSource[filename]);
+            } else if(this.dataSource[filename] === null) {
+                readFile(resolve(this.publicDir, filename), (err, data) => {
+                    if(err) rej(err);
+                    else {
+                        this.dataSource[filename] = data;
+                        res(this.dataSource[filename]);
+                    }
+                });
+            } else rej(new Error(`File '${filename}' is not available.`));
+        });
+    }
+
+    /**
+     * 
+     * @param { string } publicDir 
+     * @returns { Promise<StaticDataSource> }
+     */
+    StaticDataSource.build = function(publicDir) {
+        return new Promise((res, rej) => {
+            const staticDataSource = new StaticDataSource(publicDir, staticHash);
+            buildDataSource(publicDir, staticDataSource.dataSource).then(() => res(staticDataSource)).catch(rej);
+        });
+    }
+
+    return StaticDataSource;
+})();
+
 /** @class StaticServer */
 const StaticServer = (function() {
     const staticHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
-    const mimeType = {
-        '.html': 'text/html',
-        '.js': 'text/javascript',
-        '.css': 'text/css',
-        '.json': 'application/json',
-        '.ico': 'image/x-icon',
-        '.png': 'image/png',
-        '.jpg': 'image/jpg',
-        '.gif': 'image/gif',
-        '.svg': 'image/svg+xml',
-        '.wav': 'audio/wav',
-        '.mp3': 'audio/mpeg',
-        '.mp4': 'video/mp4',
-        '.woff': 'application/font-woff',
-        '.ttf': 'application/font-ttf',
-        '.eot': 'application/vnd.ms-fontobject',
-        '.otf': 'application/font-otf',
-        '.wasm': 'application/wasm',
-        '.pdf': 'application/pdf',
-        '.doc': 'application/msword'
-    }
 
     /** @constructor */
     function StaticServer() {
@@ -111,9 +231,6 @@ const StaticServer = (function() {
         /** @type {Server} */
         this.server = null;
         instance = this;
-
-        /** @type {boolean} */
-        this.serverStarted = false;
     }
     
     /** @type {StaticServer} */
@@ -129,25 +246,31 @@ const StaticServer = (function() {
      * @param {string} publicDir Absolute path for public directory
      * @param {number} port
      * @param {string} [host='localhost']
+     * @returns {Promise<void>}
      */
     StaticServer.prototype.start = function(publicDir, port, host='localhost') {
         return new Promise((res, rej) => {
-            if(this.server) this.server.close();
-            this.server = createServer((request, response) => {
-                const filePath = resolve(publicDir, request.url==='/'? 'index.html' : (request.url[0]==='/' ? request.url.slice(1) : request.url));
-                response.setHeader('Content-Type', mimeType[extname(filePath)]);
-                const fileStream = createReadStream(filePath);
-                fileStream.pipe(response);
-                fileStream.on('error', (err) => {
-                    response.writeHead(500, 'Internal Server Error.', {'Content-Type': 'text/plain'});
-                    response.end(err.message);
+            StaticDataSource.build(publicDir).then((dataSource) => {
+                const server = createServer((request, response) => {
+                    let path = request.url.split('?')[0];
+                    path = path==='/'? 'index.html' : (path[0]==='/' ? path.slice(1) : path);
+                    if(!dataSource.isFileAvailable(path)) path = 'index.html';
+                    dataSource.getFileStream(path).then((fileBuffer) => {
+                        response.setHeader('Content-Type', Utils.getMimeType(extname(path)));
+                        response.end(fileBuffer);
+                    }).catch((err) => {
+                        response.writeHead(500, 'Internal Server Error.', {'Content-Type': 'text/plain'});
+                        response.end(err.message);
+                    });
+                }).on('error', rej);
+                if(this.server) this.server.close();
+                this.server = server;
+                this.server.listen(port, host, () => {
+                    console.log(`\u001b[32m  [C] Client Application Started.`);
+                    console.log(`\u001b[32m  [C] Client Application listening at => \u001b[34mhttp://${host}:${port}`);
+                    res();
                 });
-            }).on('error', rej).listen(port, host, () => {
-                console.log(`\u001b[32m  [C] Client Application ${this.serverStarted ? 'Restarted' : 'Started'}.`);
-                console.log(`\u001b[32m  [C] Client Application listening at => \u001b[34mhttp://${host}:${port}`);
-                if(this.serverStarted) this.serverStarted = true;
-                res();
-            });
+            }).catch(rej);
         });
     }
     
@@ -164,19 +287,20 @@ const StaticServer = (function() {
 function startStaticDevServer(publicDir, port, options) {
     const ss = StaticServer.create();
     options = options || {};
-    const command = (options.preStartCommand||'').trim().split(' ');
-    if(options.preStartCommand) Utils.runCommand(command[0], command.slice(1), (options.cwd || __dirname), options.outputForPreRunCommand);
-    ss.start(publicDir, port, options.host).catch(console.error).then(() => {
-        if(options.watch && options.watchDir) {
-            console.log(`\u001b[33m  [C] Watch mode: ON`);
-            if(options.watcherDelay) Utils.watcherDelay = options.watcherDelay;
-            Utils.addAnyFileChangeHandler(options.watchDir, options.fileExtensionsToWatch || [], (file) => {
-                console.log(`\u001b[33m  [C] Changes found. Restarting the server...`);
-                if(options.preStartCommand) Utils.runCommand(command[0], command.slice(1), (options.cwd || __dirname), options.outputForPreRunCommand);
-                ss.start(publicDir, port, options.host);
-            })
-        }
+    Utils.runCommand(options.preStartCommand, (options.cwd || __dirname), options.outputForPreRunCommand).then(() => {
+        ss.start(publicDir, port, options.host).catch(console.error).then(() => {
+            if(options.watch && options.watchDir) {
+                console.log(`\u001b[33m  [C] Watch mode: ON`);
+                if(options.watcherDelay) Utils.watcherDelay = options.watcherDelay;
+                Utils.addAnyFileChangeHandler(options.watchDir, options.fileExtensionsToWatch || [], () => {
+                    console.log(`\u001b[33m  [C] Changes found. Restarting the server...`);
+                    Utils.runCommand(options.preStartCommand, (options.cwd || __dirname), options.outputForPreRunCommand)
+                        .then(() => ss.start(publicDir, port, options.host));
+                })
+            }
+        });
     });
+    
 }
 
 module.exports = { startStaticDevServer };

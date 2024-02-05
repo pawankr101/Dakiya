@@ -69,7 +69,9 @@ function run() {
         cwd: config.client.cwd,
         watch: true,
         watchDir: config.client.sourceDir,
-        preStartCommand: config.client.preRunCommand
+        watcherDelay: 3000,
+        preStartCommand: config.client.preRunCommand,
+        outputForPreRunCommand: config.client.buildStatus
     });
 }
 setTimeout(run, 1000);
