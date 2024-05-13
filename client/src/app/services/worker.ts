@@ -8,7 +8,7 @@ type WorkerMessageDataOutput<T=any> = {
     error: Exception,
     output: T
 }
-const worker = new Worker(new URL("../../workers/index", import.meta.url), {name: 'worker'});
+const worker = new Worker('worker.js', {name: 'worker'});
 
 export async function callWorkerMethod<T>(method: string, arg: any[]) {
     return new Promise((resolve: (v: T)=>void, reject) => {

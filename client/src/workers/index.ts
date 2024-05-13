@@ -23,5 +23,5 @@ worker.onmessage = async (event: MessageEvent<WorkerMessageDataInput>) => {
 }
 
 async function processData<T=any>(method: string, arg: any[]): Promise<WorkerMessageDataOutput<T>> {
-    return <WorkerMessageDataOutput><unknown>{data: arg[0]};
+    return <WorkerMessageDataOutput><unknown>{method: method, data: arg[0]};
 }

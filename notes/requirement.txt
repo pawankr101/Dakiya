@@ -19,6 +19,7 @@ Dakiya:
                 => Audio
                 => Video
                 => File (PDF, DOCX, etc...)
+                => message notification
             ==> Calling - (Audio Call/Video Call)
                 => duplex Audio/Video Stream
                 => disconnection problem handling
@@ -34,8 +35,8 @@ Dakiya:
         ==> Contacts Management
         ==> New Contacts Suggestion
     * Settings 
-        ==> Privacy Control
-        ==> Data Control
+        ==> Privacy and Data Control
+        ==> Password and security Control
         ==> Account Control
     * Speech Recognition and Contacts Suggestion (Future Improvement)
     * Decentralization (Future Improvement)

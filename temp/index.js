@@ -6,7 +6,7 @@ const mongo = require('mongodb');
 
 let app = express();
 
-app.use((req,response, next) => {
+app.use((request, response, next) => {
     response.header('Access-Control-Allow-Origin', '*');
     response.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, X-Custom-Header, Accept, Authorization');
     response.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
@@ -20,14 +20,14 @@ app.all('/', (req, res) => {
     
 })
 
-mongo.
+
 app.listen(4000, () => {
     console.log('server started');
 })
 
 
-/* // http2
-let server = createSecureServer({key: readFileSync(resolve('temp/localhost.key')),cert: readFileSync(resolve('temp/localhost.crt'))});
+/* http2
+let server = createSecureServer({key: readFileSync(resolve('temp/localhost.key')), cert: readFileSync(resolve('temp/localhost.crt'))});
 server.on('stream', (s, h, f) => {
     if(h[':path']='/') {
         // s.pushStream({':path': 'abc.txt'}, (e,st) => {

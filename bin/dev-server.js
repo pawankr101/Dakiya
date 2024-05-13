@@ -1,10 +1,21 @@
 // dependencies
-const { resolve, extname } = require("path");
-const { readdir, watchFile, readFile } = require('fs');
-const { createServer, Server } = require('http');
-const { exec } = require('child_process');
+import { resolve, extname } from 'path';
+import { readdir, watchFile, rm } from 'fs';
+import { createServer, Server } from 'http';
+import { exec } from 'child_process';
+import { build } from 'esbuild';
 
-/** @class Utils */
+/**
+ * @class `Utils`
+ * @typedef { {} } Utils
+ * @typedef { { 
+ *    new () => Utils, watcherDelay: number,
+ *    addAnyFileChangeHandler(dirPath: string, requiredExtensions: string[], fileChangeHandler: (file: string) => void): void,
+ *    runCommand(command: string, cwd: string, consoleOut?: boolean): Promise<void>,
+ *    getMimeType(fileExt: string): string
+ *  } } UtilsConstructor
+ * @type { UtilsConstructor }
+ */
 const Utils = (function() { 
     const mimeType = {
         '.html': 'text/html',
@@ -53,7 +64,7 @@ const Utils = (function() {
      * ### Collect all paths of files inside the directory(`dirPath`), into `filePaths`
      * @private
      * @param {string} dirPath absolute path
-     * @param {[string]} exts each ext should be in lower case
+     * @param {string[]} exts each ext should be in lower case
      * @param {(file: string)=>void} fileChangeHandler 
      */
     const collectFilePaths = (dirPath, exts, fileChangeHandler) => {
@@ -92,7 +103,6 @@ const Utils = (function() {
     /**
      * ### Execute a command synchronously.
      * @param {string} command 
-     * @param {string[]} args 
      * @param {string} cwd 
      * @param {boolean} [consoleOut=false] 
      * @returns {Promise<void>}
@@ -126,100 +136,75 @@ const Utils = (function() {
 
 /**
  * @class `StaticDataSource`
- * @typedef { { publicDir: string, isFileAvailable(filename: string): boolean, getFileStream(filename: string): Promise<Buffer> } } StaticDataSource
- * @typedef { { new () => StaticDataSource, build(publicDir: string): Promise<StaticDataSource> } } StaticDataSourceConstructor
+ * @typedef { { isFileAvailable(filename: string): boolean, getFile(filename: string): Uint8Array, addFile(filename: string, file: Uint8Array): void, removeAllFiles(): void } } StaticDataSource
+ * @typedef { { new () => StaticDataSource, create(): StaticDataSource } } StaticDataSourceConstructor
  * @type { StaticDataSourceConstructor }
  */
 const StaticDataSource = (function() {
     const staticHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
+    /** @type {StaticDataSource} */
+    let instance;
 
     /**
-     * @typedef { {[filename: string]: Buffer} } DataSource
+     * @typedef { {[filename: string]: Uint8Array} } DataSource
     */
-
-    /**
-     * 
-     * @param {string} publicDir 
-     * @param {DataSource} dataSource 
-     * @returns {Promise<void>}
-     */
-    const buildDataSource = function(publicDir, dataSource) {
-        return new Promise((res, rej) => {
-            readdir(publicDir, { withFileTypes: true }, (err, files) => {
-                if(err) rej(err);
-                else {
-                    for(var i=files.length-1;i>=0;i--) {
-                        const file = files[i];
-                        if(file.isFile()) dataSource[file.name] = null;
-                    }
-                    res();
-                }
-            });
-        });
-    }
 
     /** 
      * @constructor `StaticDataSource`
-     * @param { string } publicDir 
      * @returns { StaticDataSource }
      */
-    function StaticDataSource(publicDir) {
-        if(!new.target || (new.target && arguments[1]!==staticHash)) throw new Error('Use `StaticDataSource.build` method to create Object.');
-
-        /**  @type { string } */
-        this.publicDir = publicDir;
+    function StaticDataSource() {
+        if(!new.target || (new.target && arguments[0]!==staticHash)) throw new Error('Use `StaticDataSource.create` method to create Object.');
+        if(instance) return instance;
 
         /**  @type { DataSource } */
         this.dataSource = Object.create(null);
+
+        instance = this;
     }
 
     /**
-     * 
      * @param { string } filename 
      * @returns { boolean }
      */
     StaticDataSource.prototype.isFileAvailable = function(filename) {
-        if(this.dataSource[filename] || this.dataSource[filename] === null) return true;
-        return false;
+        return this.dataSource[filename];
     }
 
     /**
      * 
      * @param {string} filename 
-     * @returns {Promise<Buffer>}
+     * @returns {Uint8Array}
      */
-    StaticDataSource.prototype.getFileStream = function(filename) {
-        return new Promise((res, rej) => {
-            if(this.dataSource[filename]) {
-                res(this.dataSource[filename]);
-            } else if(this.dataSource[filename] === null) {
-                readFile(resolve(this.publicDir, filename), (err, data) => {
-                    if(err) rej(err);
-                    else {
-                        this.dataSource[filename] = data;
-                        res(this.dataSource[filename]);
-                    }
-                });
-            } else rej(new Error(`File '${filename}' is not available.`));
-        });
+    StaticDataSource.prototype.getFile = function(filename) {
+        return this.dataSource[filename];
     }
 
     /**
-     * 
-     * @param { string } publicDir 
-     * @returns { Promise<StaticDataSource> }
+     * @param {string} filename 
+     * @param {Uint8Array} file
      */
-    StaticDataSource.build = function(publicDir) {
-        return new Promise((res, rej) => {
-            const staticDataSource = new StaticDataSource(publicDir, staticHash);
-            buildDataSource(publicDir, staticDataSource.dataSource).then(() => res(staticDataSource)).catch(rej);
-        });
+    StaticDataSource.prototype.addFile = function(filename, file) {
+        this.dataSource[filename] = file;
+    }
+
+    StaticDataSource.prototype.removeAllFiles = function() {
+        this.dataSource = Object.create(null);
+    }
+
+    StaticDataSource.create = function() {
+        return new StaticDataSource(staticHash)
     }
 
     return StaticDataSource;
 })();
 
-/** @class StaticServer */
+/**
+ * @class `StaticDataSource`
+ * @typedef { { start(port: number, host?: string): Promise<void> } } StaticServer
+ * @typedef { { new () => StaticServer, create(): StaticServer } } StaticServerConstructor
+ * @type { StaticServerConstructor }
+ */
 const StaticServer = (function() {
     const staticHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
 
@@ -248,29 +233,29 @@ const StaticServer = (function() {
      * @param {string} [host='localhost']
      * @returns {Promise<void>}
      */
-    StaticServer.prototype.start = function(publicDir, port, host='localhost') {
+    StaticServer.prototype.start = function(port, host='localhost') {
         return new Promise((res, rej) => {
-            StaticDataSource.build(publicDir).then((dataSource) => {
-                const server = createServer((request, response) => {
-                    let path = request.url.split('?')[0];
-                    path = path==='/'? 'index.html' : (path[0]==='/' ? path.slice(1) : path);
-                    if(!dataSource.isFileAvailable(path)) path = 'index.html';
-                    dataSource.getFileStream(path).then((fileBuffer) => {
-                        response.setHeader('Content-Type', Utils.getMimeType(extname(path)));
-                        response.end(fileBuffer);
-                    }).catch((err) => {
-                        response.writeHead(500, 'Internal Server Error.', {'Content-Type': 'text/plain'});
-                        response.end(err.message);
-                    });
-                }).on('error', rej);
-                if(this.server) this.server.close();
-                this.server = server;
-                this.server.listen(port, host, () => {
-                    console.log(`\u001b[32m  [C] Client Application Started.`);
-                    console.log(`\u001b[32m  [C] Client Application listening at => \u001b[34mhttp://${host}:${port}`);
-                    res();
-                });
-            }).catch(rej);
+            const dataSource = StaticDataSource.create();
+            const server = createServer((request, response) => {
+                let path = request.url.split('?')[0];
+                path = path==='/'? 'index.html' : (path[0]==='/' ? path.slice(1) : path);
+                let file = dataSource.getFile(path);
+                if(!file) file = dataSource.getFile(path = 'index.html');
+                if(!file) {
+                    response.writeHead(500, 'Internal Server Error.', {'Content-Type': 'text/plain'});
+                    response.end(err.message);
+                } else {
+                    response.setHeader('Content-Type', Utils.getMimeType(extname(path)));
+                    response.end(file);
+                }
+            }).on('error', rej);
+            if(this.server) this.server.close();
+            this.server = server;
+            this.server.listen(port, host, () => {
+                console.log(`\u001b[32m  [C] Client Application Started.`);
+                console.log(`\u001b[32m  [C] Client Application listening at => \u001b[34mhttp://${host}:${port}`);
+                res();
+            });
         });
     }
     
@@ -278,29 +263,155 @@ const StaticServer = (function() {
 })();
 
 /**
+ * @class `Builder`
+ * @typedef { import('esbuild').BuildOptions } BuildOptions
+ * @typedef { { builderOptions: BuildOptions, addEntry(srcFile: string, outputFile: string): Builder, build(): Promise<void>, prodBuild(publicDir: string, tsconfig: string, consoleOut?: boolean): Promise<void> } } Builder
+ * @typedef { { new(builderOptions: BuildOptions): Builder, create(srcDir: string, publicDir: string, tsconfig: string, entryPoints?: {in: string, out: string}[]): Builder } } BuilderConstructor
+ * @type { BuilderConstructor }
+ */
+const Builder = (function() {
+    const staticHash = Date.now().toString(36) + Math.random().toString(36).substring(2);
+
+    /** @type {Builder} */
+    let instance;
+
+    /** @type {BuildOptions} */
+    const defaultBuilderOptions = {
+        bundle: true,
+        platform: 'browser',
+        loader: {
+            '.ts': 'ts',
+            '.tsx': 'tsx',
+            '.css': 'css',
+            '.json': 'json',
+            '.html': 'copy',
+            '.ttf': 'file',
+            '.ico': 'file',
+        }
+    };
+
+    /**
+     * @constructor `Builder`
+     * @param {BuildOptions} builderOptions
+     */
+    function Builder(builderOptions) {
+        if(!new.target || (new.target && arguments[1]!==staticHash)) throw new Error('Use `Builder.create` method to create Object.');
+        if(instance) return instance;
+
+        if(!buildOptions.entryPoints) buildOptions.entryPoints = [];
+
+        /** @type {BuildOptions} */
+        this.builderOptions = Object.assign(defaultBuilderOptions, builderOptions);
+        instance = this;
+    }
+
+    /**
+     * @param {string} srcFile 
+     * @param {string} outputFile 
+     * @returns {Builder}
+     */
+    Builder.prototype.addEntry = function(srcFile, outputFile) {
+        this.builderOptions.entryPoints.push({ in: srcFile, out: outputFile });
+        return this;
+    }
+
+    /**
+     * @param {boolean} [consoleOut = false] 
+     * @returns {Promise<void>}
+     */
+    Builder.prototype.build = function() {
+        return new Promise((resolve) => {
+            const dataSource = StaticDataSource.create();
+            let option = Object.assign(this.builderOptions, { sourcemap: 'inline', write: false });
+            build(option).then((res) => {
+                if(res.outputFiles) {
+                    dataSource.removeAllFiles();
+                    res.outputFiles.forEach(file => {
+                        let i = file.path.lastIndexOf('/');
+                        if(i>-1) dataSource.addFile(file.path.slice(i+1), file.contents);
+                    });
+                }
+                if(res.warnings && res.warnings.length) console.log(res.warnings);
+                if(res.errors && res.errors.length) console.log(res.errors);
+                resolve();
+            }).catch((err) => {
+                console.error(err);
+                resolve()
+            });
+        });
+    }
+
+    Builder.prototype.prodBuild = function(publicDir, tsconfig, consoleOut=false) {
+        return new Promise((resolve) => {
+            /** @type {BuildOptions} */
+            let option = Object.assign(this.builderOptions, {outdir: publicDir, tsconfig: tsconfig, sourcemap: undefined, write: true, minify: true, treeShaking: true,});
+            rm(publicDir, {recursive: true, force: true}, () => {
+                build(option).then((res) => {
+                    if(consoleOut) console.log(res);
+                    resolve();
+                }).catch((err) => {
+                    console.error(err);
+                    resolve()
+                });
+            })
+        });
+    }
+
+    /**
+     * Create `Builder` instance
+     * @param {string} srcDir
+     * @param {string} publicDir
+     * @param {string} tsconfig
+     * @param {[{in: string, out: string}]} [entryPoints={}]
+     * @returns {Builder}
+     */
+    Builder.create = function(srcDir, publicDir, tsconfig, entryPoints) {
+        return new Builder({
+            outdir: publicDir,
+            tsconfig: tsconfig,
+            entryPoints: (entryPoints || []).map(e => {
+                return { in: resolve(srcDir, e.in), out: e.out };
+            })
+        }, staticHash);
+    }
+
+    return Builder;
+
+})();
+
+
+/**
  * ### Start static Dev Server.
- * @typedef {{host?: string, preStartCommand?: string, watch?: boolean, watchDir?: string, fileExtensionsToWatch?: [string], watcherDelay?: number, cwd?: string, outputForPreRunCommand?: boolean}} StaticServerOptions
- * @param {string} publicDir
+ * @typedef {{host?: string, fileExtensionsToWatch?: [string], watcherDelay?: number, tsconfig?: string, entryPoints?: [{in: string, out: string}]}} StaticServerOptions
  * @param {number} port
+ * @param {string} srcDir
+ * @param {string} publicDir
  * @param {StaticServerOptions} [options]
  */
-function startStaticDevServer(publicDir, port, options) {
-    const ss = StaticServer.create();
+export function startStaticDevServer(port, srcDir, publicDir, options) {
     options = options || {};
-    Utils.runCommand(options.preStartCommand, (options.cwd || __dirname), options.outputForPreRunCommand).then(() => {
-        ss.start(publicDir, port, options.host).catch(console.error).then(() => {
-            if(options.watch && options.watchDir) {
-                console.log(`\u001b[33m  [C] Watch mode: ON`);
-                if(options.watcherDelay) Utils.watcherDelay = options.watcherDelay;
-                Utils.addAnyFileChangeHandler(options.watchDir, options.fileExtensionsToWatch || [], () => {
-                    console.log(`\u001b[33m  [C] Changes found. Restarting the server...`);
-                    Utils.runCommand(options.preStartCommand, (options.cwd || __dirname), options.outputForPreRunCommand)
-                        .then(() => ss.start(publicDir, port, options.host));
-                })
-            }
+    const ss = StaticServer.create();
+    const builder = Builder.create(srcDir, publicDir, options.tsconfig, options.entryPoints);
+    builder.build().then(() => {
+        ss.start(port, options.host).catch(console.error).then(() => {
+            if(options.watcherDelay) Utils.watcherDelay = options.watcherDelay;
+            Utils.addAnyFileChangeHandler(srcDir, options.fileExtensionsToWatch || [], () => {
+                console.log(`\u001b[33m  [C] Changes found. Restarting the server...`);
+                builder.build().then(() => ss.start(port, options.host));
+            })
         });
     });
-    
 }
 
-module.exports = { startStaticDevServer };
+const buildOptions = {
+    entryPoints: [
+        { in: 'index.tsx', out: 'main' },
+        { in: 'workers/index.ts', out: 'worker' },
+        { in: 'index.html', out: 'index' }
+    ],
+    tsconfig: '',
+    tsconfigProd:'',
+    publicDir: '',
+    srcDir: '',
+    watcherDelay: 10
+}

@@ -3,72 +3,75 @@
   "version": "1.0.0",
   "description": "this is a chat app which provide end to end communication solution.",
   "private": true,
+  "type": "module",
   "engine-strict": true,
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "client:link": "cd ./client && npm run link",
-    "client:build": "cd ./client && npm run webpack",
-    "client:build:prod": "cd ./client && npm run webpack:prod",
+    "client:symlink": "cd ./client && npm run symlink",
+    "client:build": "cd ./client && npm run builder",
+    "client:build:prod": "cd ./client && npm run builder:prod",
     "client:start": "cd ./client && npm start",
-    "server:link": "cd ./server && npm run link",
+    "server:symlink": "cd ./server && npm run symlink",
     "server:build": "cd ./server && npm run build",
     "server:build:prod": "cd ./server && npm run build:prod",
     "server:start": "cd ./server && npm start",
     "server:start:dev": "cd ./server && npm run start:dev",
     "server:start:debug": "cd ./server && npm run start:debug",
     "server:test": "cd ./server && npm run test",
-    "link": "npm run client:link && npm run server:link",
+    "symlink": "npm run client:symlink && npm run server:symlink",
     "build": "concurrently --kill-others \"npm run server:build\" \"npm run client:build\"",
     "build:prod": "concurrently --kill-others \"npm run server:build:prod\" \"npm run client:build\"",
     "start": "concurrently --kill-others \"npm run server:start\" \"npm run client:start\"",
-    "reinstall": "rm -rf node_modules && rm -f ./package-lock.json && npm install && npm run link"
+    "reinstall": "rm -rf node_modules && rm -f package-lock.json && npm install && npm run symlink",
+    "es": "cd ./client && npm run es"
   },
   "dependencies": {
-    "fastify": "^4.25.2",
+    "fastify": "^4.26.2",
     "jws": "^4.0.0",
     "mime": "^4.0.1",
-    "mongodb": "^6.3.0",
-    "nodemailer": "^6.9.8",
-    "react-router-dom": "^6.21.3",
+    "mongodb": "^6.5.0",
+    "nodemailer": "^6.9.13",
+    "react-router-dom": "^6.22.3",
     "ws": "^8.16.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.11",
-    "@types/jws": "^3.2.9",
-    "@types/mime": "^3.0.4",
-    "@types/node": "^20.11.10",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@mui/icons-material": "^5.15.15",
+    "@mui/material": "^5.15.15",
+    "@types/jest": "^29.5.12",
+    "@types/jws": "^3.2.10",
+    "@types/node": "^20.12.7",
     "@types/nodemailer": "^6.4.14",
-    "@types/react": "^18.2.48",
-    "@types/react-dom": "^18.2.18",
+    "@types/react": "^18.2.76",
+    "@types/react-dom": "^18.2.25",
     "@types/webpack-node-externals": "^3.0.4",
     "@types/ws": "^8.5.10",
     "colors": "^1.4.0",
     "concurrently": "^8.2.2",
-    "css-loader": "^6.9.1",
+    "css-loader": "^7.1.1",
+    "esbuild": "0.20.2",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.6.0",
     "jest": "^29.7.0",
     "node-watch": "^0.7.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "sass": "^1.70.0",
-    "sass-loader": "^14.0.0",
-    "style-loader": "^3.3.4",
+    "sass": "^1.74.1",
+    "sass-loader": "^14.2.0",
+    "style-loader": "^4.0.0",
     "ts-jest": "^29.1.2",
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
-    "typedoc": "^0.25.7",
-    "typescript": "^5.3.3",
-    "webpack": "^5.90.0",
+    "typedoc": "^0.25.13",
+    "typescript": "^5.4.5",
+    "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4",
     "webpack-node-externals": "^3.0.0"
   },
-  "keywords": [
-    "chat",
-    "call"
-  ],
+  "keywords": [ "chat", "call" ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pawankr101/Dakiya.git"
@@ -81,11 +84,9 @@
     "name": "Akshay Kumar",
     "email": "pawan.akshaykr@gmail.com"
   },
-  "contributors": [
-    {
-      "name": "Akshay Kumar",
-      "email": "pawan.akshaykr@gmail.com"
-    }
-  ],
+  "contributors": [{
+    "name": "Akshay Kumar",
+    "email": "pawan.akshaykr@gmail.com"
+  }],
   "license": "ISC"
 }

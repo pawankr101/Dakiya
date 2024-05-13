@@ -1,15 +1,17 @@
 {
-    "name": "Dakiya Web App",
+    "name": "dakiya-client",
     "version": "1.0.0",
     "description": "This application is Single Page Web App For Dakiya",
     "private": true,
+    "type": "module",
     "scripts": {
-        "link": "rm -rf node_modules && ln -s ../node_modules node_modules",
+        "symlink": "rm -rf node_modules && ln -s ../node_modules node_modules",
         "build": "rm -rf dist && tsc",
         "build:prod": "rm -rf dist && tsc --project ./tsconfig-build.json",
-        "webpack": "rm -rf dist && webpack",
-        "webpack:prod": "rm -rf dist && webpack --mode=production",
-        "start": "node ../bin/runner.js --client",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "builder": "node ./client.js --build",
+        "builder:prod": "node ./client.js --build",
+        "start": "node ./client.js",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "es": "rm -rf dist && node mgr.js"
     }
 }
