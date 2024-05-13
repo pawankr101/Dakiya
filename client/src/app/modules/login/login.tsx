@@ -1,4 +1,4 @@
-import React, { SyntheticEvent, useCallback, useId, useMemo, useRef, useState } from 'react';
+import React, { SyntheticEvent, useCallback, useMemo, useState } from 'react';
 import { CredentialLoginBox, LoginBox, LoginInputBox, LoginPageContainer, SubmitButtonBox, ThirdPartyLoginBox, UserRegistrationLinkBox, Google, Microsoft, Meta, LinkedIn, GitHub } from './login.style';
 import { Button, IconButton, InputAdornment, InputLabel, OutlinedInput, Tabs, Box, FormHelperText, Tab } from '@mui/material';
 import { Visibility, VisibilityOff } from "@mui/icons-material";
@@ -86,7 +86,7 @@ function PasswordLogin() {
         </Box>
     );
 }
-function TextField({label, value, setValue}: {label: string, value?: string, setValue: (value: string) => void}) {
+function TextField({label, value, setValue}: Readonly<{label: string, value?: string, setValue: (value: string) => void}>) {
     const [error, setError] = useState('');
     const hasError = useMemo(() => (typeof(error)==='string' && error.length>0), [error]);
 
@@ -113,7 +113,7 @@ function TextField({label, value, setValue}: {label: string, value?: string, set
         </LoginInputBox>
     );
 }
-function PasswordField({label, setPassword}: {label: string, setPassword: (value: string) => void}) {
+function PasswordField({label, setPassword}: Readonly<{label: string, setPassword: (value: string) => void}>) {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const hasError = useMemo(() => (typeof(error)==='string' && error.length>0), [error]);
@@ -160,7 +160,7 @@ function OtpLogin() {
         </Box>
     );
 }
-function MobileNumberField({label, value, setValue}: {label: string, value?: string, setValue: (value: string) => void}) {
+function MobileNumberField({label, value, setValue}: Readonly<{label: string, value?: string, setValue: (value: string) => void}>) {
     const [error, setError] = useState('');
     const hasError = useMemo(() => (typeof(error)==='string' && error.length>0), [error]);
     
