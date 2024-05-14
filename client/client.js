@@ -177,7 +177,7 @@ class StaticServer {
     readdir(watchDir, {withFileTypes:true}, (err, files) => {
       if(err) console.error(err);
       else {
-        for(var i=files.length-1;i>=0;i--) {
+        for(let i=files.length-1;i>=0;i--) {
           const file = files[i], filePath = resolvePath(watchDir, file.name);
           if(file.isDirectory()) this.#addFileWatcher(filePath, watcherDelay, onChangeCallback);
           else if(file.isFile()) {
@@ -214,7 +214,7 @@ class StaticServer {
         if(options.watchDir) {
           this.#addWatcher(options.watchDir, options.watcherDelay, (acknowledgment) => {
             console.log(`\u001b[33m  [C] Changes found. Restarting the server...`);
-            builder.build(options.consoleOut).then(() => this.#startServer(options.port, options.host).catch(console.error).then(acknowledgment));
+            builder.build(options.consoleOut).then(() => this.#startServer(options.port, options.host).then(acknowledgment));
           });
         }
       })
