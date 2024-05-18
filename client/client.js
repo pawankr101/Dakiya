@@ -21,7 +21,7 @@ const CONFIG = {
   host: 'localhost',
   port: 3500,
   watcherDelay: 3000,
-  buildReport: true,
+  buildReport: false,
   cachesIndexHtml: true
 }
 /****************************************************************************/
@@ -104,8 +104,9 @@ class ProjectBuilder {
   /** @returns {Promise<void>} */
   #devBuild(cachesIndexHtml, consoleOut) {
     return new Promise((success) => {
+      let indexHtml = null;
       if(cachesIndexHtml) {
-        let indexHtml = StaticFiles.getFile('index.html');
+        indexHtml = StaticFiles.getFile('index.html');
         if(indexHtml) {
           this.buildOptions.entryPoints = this.buildOptions.entryPoints.filter(/** @param {{in: string, out: string}} e*/ (e) => {
             return !(e.in.endsWith('index.html'));
@@ -115,11 +116,12 @@ class ProjectBuilder {
       build(this.buildOptions).then((res) => {
         if(res.outputFiles && res.outputFiles.length) {
           StaticFiles.removeAllFiles();
+          if(cachesIndexHtml && indexHtml) StaticFiles.addFile('index.html', indexHtml);
           res.outputFiles.forEach(file => {
             const i = file.path.lastIndexOf('/');
             StaticFiles.addFile((i>-1 ? file.path.slice(i+1) : file.path), file.contents);
           });
-          if(consoleOut) console.log('Output Files:', res.outputFiles);
+          if(consoleOut) console.log('Output Files:', res.outputFiles.map(f => f.path));
         }
         if(consoleOut) {
           if(res.warnings && res.warnings.length) console.warn('Warnings:', res.warnings);
@@ -152,12 +154,13 @@ class StaticServer {
     return new Promise((success, failure) => {
       const server = createServer((request, response) => {
         let path = request.url.split('?')[0];
-        path = path==='/'? 'index.html' : (path[0]==='/' ? path.slice(1) : path);
+        if(path[0]==='/') path = path.slice(1);
+        if(!path) path = 'index.html'
         let file = StaticFiles.getFile(path);
         if(!file) file = StaticFiles.getFile(path = 'index.html');
         if(!file) {
-          response.writeHead(500, 'Internal Server Error.', {'content-type': MIME.getType('json')});
-          response.end({message: 'Resource not found.'});
+          response.writeHead(404, 'Resource not found.', {'content-type': MIME.getType('json')});
+          response.end('{"message": "Resource not found."}');
           return;
         }
         response.writeHead(200, 'Success', {'content-type': MIME.getType(path), 'content-length': file.length})
@@ -207,14 +210,18 @@ class StaticServer {
   /** @param {string} publicDir @param {[{in: string, out: string}]} entryPoints @param {{port?:number, host?: string, tsconfig?: string, consoleOut?:boolean, watchDir?: string, watcherDelay?: number, cachesIndexHtml?: boolean}} options */
   static startStaticDevServer(publicDir, entryPoints, options) {
     options = options || {watcherDelay: 100};
-    const builder = ProjectBuilder.getBuilder(publicDir, entryPoints, options.tsconfig, options.consoleOut);
+    const builder = ProjectBuilder.getBuilder(publicDir, entryPoints, options.tsconfig, false);
 
     builder.build(options.cachesIndexHtml, options.consoleOut).then(() => {
       this.#startServer(options.port, options.host).catch(console.error).then(() => {
         if(options.watchDir) {
           this.#addWatcher(options.watchDir, options.watcherDelay, (acknowledgment) => {
-            console.log(`\u001b[33m  [C] Changes found. Restarting the server...`);
-            builder.build(options.consoleOut).then(() => this.#startServer(options.port, options.host).then(acknowledgment));
+            console.log(`\u001b[33m  [C] Changes found. Rebuilding Application...`);
+            builder.build(options.cachesIndexHtml, options.consoleOut).then(() => {
+              console.log(`\u001b[32m  [C] New Build Available.`);
+              console.
+              acknowledgment();
+            });
           });
         }
       })
