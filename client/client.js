@@ -155,7 +155,7 @@ class StaticServer {
       const server = createServer((request, response) => {
         let path = request.url.split('?')[0];
         if(path[0]==='/') path = path.slice(1);
-        if(!path) path = 'index.html'
+        if(!path) path = 'index.html';
         let file = StaticFiles.getFile(path);
         if(!file) file = StaticFiles.getFile(path = 'index.html');
         if(!file) {
@@ -163,7 +163,7 @@ class StaticServer {
           response.end('{"message": "Resource not found."}');
           return;
         }
-        response.writeHead(200, 'Success', {'content-type': MIME.getType(path), 'content-length': file.length})
+        response.writeHead(200, 'Success', {'content-type': MIME.getType(path), 'content-length': file.length});
         response.end(file);
       }).on('error', failure);
       if(this.#server) this.#server.close();
@@ -219,7 +219,6 @@ class StaticServer {
             console.log(`\u001b[33m  [C] Changes found. Rebuilding Application...`);
             builder.build(options.cachesIndexHtml, options.consoleOut).then(() => {
               console.log(`\u001b[32m  [C] New Build Available.`);
-              console.
               acknowledgment();
             });
           });
