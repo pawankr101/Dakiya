@@ -1,5 +1,5 @@
 import { resolve as resolvePath } from 'path';
-import { readdir, watchFile, rm } from 'fs';
+import { rm, watch } from 'fs';
 import { createServer, Server } from 'http';
 import { performance } from 'perf_hooks';
 import { fileURLToPath } from 'url';
@@ -18,6 +18,7 @@ const CONFIG = {
     { in: resolvePath(CWD, 'src', 'index.tsx'), out: 'main' },
     { in: resolvePath(CWD, 'src', 'workers/index.ts'), out: 'worker' }
   ],
+  target: ['ES2022', 'chrome120', 'firefox121'],
   host: 'localhost',
   port: 3500,
   watcherDelay: 3000,
@@ -53,6 +54,8 @@ class ProjectBuilder {
   static #DEFAULT_OPTIONS = {
     bundle: true,
     platform: 'browser',
+    splitting: true,
+    format: 'esm',
     loader: {
       '.ts': 'ts',
       '.tsx': 'tsx',
@@ -64,17 +67,17 @@ class ProjectBuilder {
     }
   }
 
-  /** @param {string} privateHash @param {string} publicDir @param {[{in: string, out: string}]} entryPoints @param {string} tsconfig @param {boolean} isProd */
-  constructor(privateHash, publicDir, entryPoints, tsconfig, isProd) {
+  /** @param {string} privateHash @param {string} publicDir @param {[{in: string, out: string}]} entryPoints @param {string} tsconfig @param {Array<string>} target @param {boolean} isProd */
+  constructor(privateHash, publicDir, entryPoints, tsconfig, target, isProd) {
     if(privateHash !== ProjectBuilder.#staticHash) throw new Exception(`'ProjectBuilder' class constructor can not be called from outside.`);
     
     /** @type {BuildOptions} */
-    this.buildOptions = ProjectBuilder.#DEFAULT_OPTIONS;
+    this.buildOptions = {...ProjectBuilder.#DEFAULT_OPTIONS, outdir: publicDir, entryPoints, tsconfig, target};
     /** @type {boolean} */
     this.isProd = isProd;
 
-    if(isProd)  this.buildOptions = { ...this.buildOptions, outdir: publicDir, entryPoints, tsconfig, minify: true, treeShaking: true };
-    else this.buildOptions = { ...this.buildOptions, outdir: publicDir, entryPoints, tsconfig, sourcemap: 'inline', write: false };
+    if(isProd)  this.buildOptions = { ...this.buildOptions, minify: true, sourcemap: false, treeShaking: true, write: true };
+    else this.buildOptions = { ...this.buildOptions, minify: false, sourcemap: 'inline', treeShaking: false, write: false };
   }
 
   /** @returns {Promise<void>} */
@@ -140,9 +143,9 @@ class ProjectBuilder {
     return this.isProd ? this.#prodBuild(consoleOut) : this.#devBuild(cachesIndexHtml, consoleOut);
   }
 
-  /** @param {string} publicDir @param {[{in: string, out: string}]} entryPoints @param {string} tsconfig */
-  static getBuilder(publicDir, entryPoints, tsconfig, isProd=false) {
-    return new ProjectBuilder(this.#staticHash, publicDir, entryPoints, tsconfig, isProd);
+  /** @param {string} publicDir @param {[{in: string, out: string}]} entryPoints @param {string} tsconfig @param {Array<string>} target */
+  static getBuilder(publicDir, entryPoints, tsconfig, target, isProd=false) {
+    return new ProjectBuilder(this.#staticHash, publicDir, entryPoints, tsconfig, target, isProd);
   }
 }
 
@@ -175,28 +178,10 @@ class StaticServer {
     });
   }
 
-  /** @param {string} watchDir @param {number} watcherDelay @param {(filepath: string)=>void} onChangeCallback */
-  static #addFileWatcher(watchDir, watcherDelay, onChangeCallback) {
-    readdir(watchDir, {withFileTypes:true}, (err, files) => {
-      if(err) console.error(err);
-      else {
-        for(let i=files.length-1;i>=0;i--) {
-          const file = files[i], filePath = resolvePath(watchDir, file.name);
-          if(file.isDirectory()) this.#addFileWatcher(filePath, watcherDelay, onChangeCallback);
-          else if(file.isFile()) {
-            watchFile(filePath, {interval: watcherDelay}, (curr, prev) => {
-              if(curr.mtimeMs != prev.mtimeMs) onChangeCallback(filePath);
-            });
-          }
-        }
-      }
-    });
-  }
-
   /** @param {string} watchDir @param {number} watcherDelay @param {(acknowledgment: ()=>void)=>void} onChangeCallback */
   static #addWatcher(watchDir, watcherDelay, onChangeCallback) {
     let currentTime = performance.now(), updateCompleted = true;
-    this.#addFileWatcher(watchDir, watcherDelay, (filepath) => {
+    watch(watchDir, {recursive: true}, () => {
       if(updateCompleted && performance.now() > (currentTime + watcherDelay)) {
         updateCompleted = false;
         onChangeCallback(() => {
@@ -204,20 +189,22 @@ class StaticServer {
           updateCompleted = true;
         });
       }
-    })
+    });
   }
 
-  /** @param {string} publicDir @param {[{in: string, out: string}]} entryPoints @param {{port?:number, host?: string, tsconfig?: string, consoleOut?:boolean, watchDir?: string, watcherDelay?: number, cachesIndexHtml?: boolean}} options */
+  /** @param {string} publicDir @param {[{in: string, out: string}]} entryPoints @param {{port?:number, host?: string, tsconfig?: string, target: Array<string>, consoleOut?:boolean, watchDir?: string, watcherDelay?: number, cachesIndexHtml?: boolean}} options */
   static startStaticDevServer(publicDir, entryPoints, options) {
     options = options || {watcherDelay: 100};
-    const builder = ProjectBuilder.getBuilder(publicDir, entryPoints, options.tsconfig, false);
+    const builder = ProjectBuilder.getBuilder(publicDir, entryPoints, options.tsconfig, options.target, false);
 
     builder.build(options.cachesIndexHtml, options.consoleOut).then(() => {
       this.#startServer(options.port, options.host).catch(console.error).then(() => {
         if(options.watchDir) {
           this.#addWatcher(options.watchDir, options.watcherDelay, (acknowledgment) => {
             console.log(`\u001b[33m  [C] Changes found. Rebuilding Application...`);
+            console.time('build');
             builder.build(options.cachesIndexHtml, options.consoleOut).then(() => {
+              console.timeEnd('build');
               console.log(`\u001b[32m  [C] New Build Available.`);
               acknowledgment();
             });
@@ -237,6 +224,7 @@ class StaticServer {
       watcherDelay: CONFIG.watcherDelay,
       port: CONFIG.port, host: CONFIG.host,
       tsconfig: CONFIG.tsconfig,
+      target: CONFIG.target,
       consoleOut: CONFIG.buildReport,
       cachesIndexHtml: CONFIG.cachesIndexHtml
     });

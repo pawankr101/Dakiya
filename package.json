@@ -33,7 +33,6 @@
     "mime": "^4.0.1",
     "mongodb": "^6.5.0",
     "nodemailer": "^6.9.13",
-    "react-router-dom": "^6.22.3",
     "ws": "^8.16.0"
   },
   "devDependencies": {
@@ -59,6 +58,7 @@
     "node-watch": "^0.7.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.3",
     "sass": "^1.74.1",
     "sass-loader": "^14.2.0",
     "style-loader": "^4.0.0",
