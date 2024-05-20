@@ -18,7 +18,7 @@ const CONFIG = {
     { in: resolvePath(CWD, 'src', 'index.tsx'), out: 'main' },
     { in: resolvePath(CWD, 'src', 'workers/index.ts'), out: 'worker' }
   ],
-  target: ['ES2022', 'chrome120', 'firefox121'],
+  target: ['ES2022', 'chrome120', 'firefox121', 'edge120', 'safari17'],
   host: 'localhost',
   port: 3500,
   watcherDelay: 3000,
