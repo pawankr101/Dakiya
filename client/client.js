@@ -21,7 +21,7 @@ const CONFIG = {
   target: ['ES2022', 'chrome120', 'firefox121', 'edge120', 'safari17'],
   host: 'localhost',
   port: 3500,
-  watcherDelay: 3000,
+  watcherDelay: 2000,
   buildReport: false,
   cachesIndexHtml: true
 }
@@ -184,9 +184,11 @@ class StaticServer {
     watch(watchDir, {recursive: true}, () => {
       if(updateCompleted && performance.now() > (currentTime + watcherDelay)) {
         updateCompleted = false;
+        console.log(`\u001b[33m  [C] Changes found.`);
         onChangeCallback(() => {
           currentTime = performance.now();
           updateCompleted = true;
+          console.log(`\u001b[33m  [C] Changes applied.`);
         });
       }
     });
@@ -201,13 +203,7 @@ class StaticServer {
       this.#startServer(options.port, options.host).catch(console.error).then(() => {
         if(options.watchDir) {
           this.#addWatcher(options.watchDir, options.watcherDelay, (acknowledgment) => {
-            console.log(`\u001b[33m  [C] Changes found. Rebuilding Application...`);
-            console.time('build');
-            builder.build(options.cachesIndexHtml, options.consoleOut).then(() => {
-              console.timeEnd('build');
-              console.log(`\u001b[32m  [C] New Build Available.`);
-              acknowledgment();
-            });
+            builder.build(options.cachesIndexHtml, options.consoleOut).then(acknowledgment);
           });
         }
       })
