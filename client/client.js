@@ -16,7 +16,8 @@ const CONFIG = {
   entryPoints: [
     { in: resolvePath(CWD, 'src', 'index.html'), out: 'index' },
     { in: resolvePath(CWD, 'src', 'index.tsx'), out: 'main' },
-    { in: resolvePath(CWD, 'src', 'workers/index.ts'), out: 'worker' }
+    { in: resolvePath(CWD, 'src', 'workers/index.ts'), out: 'worker' },
+    { in: resolvePath(CWD, 'src', 'assets/dakiya.ico'), out: 'favicon' }
   ],
   target: ['ES2022', 'chrome120', 'firefox121', 'edge120', 'safari17'],
   host: 'localhost',
@@ -63,7 +64,7 @@ class ProjectBuilder {
       '.json': 'json',
       '.html': 'copy',
       '.ttf': 'file',
-      '.ico': 'file',
+      '.ico': 'copy',
     }
   }
 

@@ -18,7 +18,7 @@ const InputBox = styled(FormControl)`
     margin: 4%;
 `;
 
-function TextField({label="Email or Mobile", value, setValue}: {label: string, value?: string, setValue: (value: string) => void}) {
+function TextField({label="Email or Mobile", value, setValue}: Readonly<{label: string, value?: string, setValue: (value: string) => void}>) {
     return (
         <InputBox variant="outlined">
             <InputLabel htmlFor="text-field">{label}</InputLabel>
@@ -38,7 +38,7 @@ function isValidPassword(password: string) {
     if(password) return true;
 }
 
-function PasswordField({label="Password", setPassword}: {label: string, setPassword: (value: string) => void}) {
+function PasswordField({label="Password", setPassword}: Readonly<{label: string, setPassword: (value: string) => void}>) {
     const [showPassword, setShowPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     

@@ -13,7 +13,7 @@ export const APP_CONFIG = {
     }
 }
 
-export const SERVER_CONFIG: {httpVersion: HttpVersion, httpSecurity: HttpSecurity, host: string, port: number} = {
+export const HTTP_SERVER: {httpVersion: HttpVersion, httpSecurity: HttpSecurity, host: string, port: number} = {
     httpVersion: 'http1',
     httpSecurity: 'http',
     host: process.env['HOST'] || '127.0.0.1',

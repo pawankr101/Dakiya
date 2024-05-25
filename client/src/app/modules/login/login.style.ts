@@ -30,6 +30,7 @@ export const LoginPageContainer = styled(Box)`
     align-items: center;
     justify-content: flex-end;
 `;
+
 export const LoginBox = styled(Paper)`
     width: 23vw;
     height: 70vh;
