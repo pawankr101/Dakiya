@@ -71,3 +71,6 @@
         => expiry: timestamp
         => isExpired: false
 
+## Flow Diagrams:
+    * https://docs.google.com/drawings/d/1qO5UaBj4zLtTRN2K-B5qi-D5tWvuPqBAnhkYXI3KPYM
+    * https://docs.google.com/drawings/d/16T5T88e_Ij6IwE9uA6SjOJPw5vd2mI3hD6xVeHcdnCc
