@@ -1,0 +1,73 @@
+# Dakiya Design Document
+
+## about:
+    Dakiya is a collaboration platform where one or multiple users can share text, audio, video and file to one or multiple users.
+
+## Requirements:
+    @ Functional Requirements:
+        * Login
+            => Email/Username/mobile + Password Login
+            => OTP Login
+            => Third Party Login(google, facebook, linkedin, github, +2more)
+        * Dashboard
+            => Chats List
+            => Call History
+            => Link to Profile
+            => Link to Settings
+            => Link to Logout
+        * Communication Module:
+            <=> ONE-TO-ONE
+                ==> Chat
+                    => Online Status
+                    => Read Receipts
+                    => Text
+                    => Picture
+                    => Audio
+                    => Video
+                    => File (PDF, DOCX, etc...)
+                    => message notification
+                ==> Calling - (Audio Call/Video Call)
+                    => duplex Audio/Video Stream
+                    => disconnection problem handling
+                    => Call Receiver call screen
+                    => Call notification and acknowledgement.
+                    => Call Record.
+            <=> Group (MENY-TO-MENY)
+                ==> Chat (Group Chat)
+                ==> Calling (Group Calling)
+        * Profile:
+            ==> User Registration
+            ==> Profile
+            ==> Contacts Management
+            ==> New Contacts Suggestion
+        * Settings 
+            ==> Privacy and Data Control
+            ==> Password and security Control
+            ==> Account Control
+        * Speech Recognition and Contacts Suggestion (Future Improvement)
+        * Decentralization (Future Improvement)
+
+    @ Non-functional Requirements:
+        * Partition tolerant
+        * consistency
+        * Availability as much as possible
+        * Scalability
+        * low latency
+
+## Entities:
+    * User:
+        => _id: "'UserId', Unique"
+        => email: "'Email', Unique"
+        => mobile: "'+91-9876543210', Unique"
+        => password: "Password Hash"
+        => name: "Name"
+        => profile_pic: "Profile_pic_Url"
+    * Session:
+        => _id: "session_id",
+        => user_id: "User-id"
+        => user_agent: "device Info",
+        => is_online: true,
+        => token: "session_token"
+        => expiry: timestamp
+        => isExpired: false
+
