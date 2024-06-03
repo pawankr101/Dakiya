@@ -32,19 +32,19 @@ const CONFIG = {
 
 class StaticFiles {
   /** @type {{[filename: string]: Uint8Array}} */
-  static #cachedFiles = Object.create(null);
+  #cachedFiles = Object.create(null);
 
   /** @param {string} filename */
-  static getFile(filename) {
+  getFile(filename) {
     return this.#cachedFiles[filename];
   }
 
   /** @param {string} filename @param {Uint8Array} file */
-  static addFile(filename, file) {
+  putFile(filename, file) {
     this.#cachedFiles[filename] = file;
   }
 
-  static removeAllFiles() {
+  removeAllFiles() {
     this.#cachedFiles = Object.create(null);
   }
 }
@@ -68,8 +68,8 @@ class ProjectBuilder {
     }
   }
 
-  /** @param {string} privateHash @param {string} publicDir @param {[{in: string, out: string}]} entryPoints @param {string} tsconfig @param {Array<string>} target @param {boolean} isProd */
-  constructor(privateHash, publicDir, entryPoints, tsconfig, target, isProd) {
+  /** @param {string} privateHash @param {{publicDir: string, entryPoints: [{in: string, out: string}], tsconfig: string, target: Array<string>, isProd?: boolean, cache?: StaticFiles}} param1 */
+  constructor(privateHash, {publicDir, entryPoints, tsconfig, target, isProd, cache}) {
     if(privateHash !== ProjectBuilder.#staticHash) throw new Exception(`'ProjectBuilder' class constructor can not be called from outside.`);
     
     /** @type {BuildOptions} */
@@ -78,90 +78,91 @@ class ProjectBuilder {
     this.isProd = isProd;
 
     if(isProd)  this.buildOptions = { ...this.buildOptions, minify: true, sourcemap: false, treeShaking: true, write: true };
-    else this.buildOptions = { ...this.buildOptions, minify: false, sourcemap: 'inline', treeShaking: false, write: false };
+    else {
+      this.buildOptions = { ...this.buildOptions, minify: false, sourcemap: 'inline', treeShaking: false, write: false };
+      this.cache = cache || new StaticFiles();
+    }
   }
 
-  /** @returns {Promise<void>} */
+  /** @param {BuildResult<BuildOptions>} res  */
+  #consoleOutBuildResult(res) {
+    if(res.outputFiles && res.outputFiles.length) console.log('Output Files:', res.outputFiles.map(f => f.path));
+    if(res.warnings && res.warnings.length) console.warn('Warnings:', res.warnings);
+    if(res.errors && res.errors.length) console.error('Errors:', res.errors);
+  }
+
+  /** @param {boolean} consoleOut  */
+  async #startBuild(consoleOut) {
+    try {
+      const res = await build(this.buildOptions);
+      if(consoleOut) this.#consoleOutBuildResult(res);
+      return res.outputFiles || [];
+    } catch(error) {
+      console.error(error);
+      return [];
+    }
+  }
+
+  /** @param {boolean} consoleOut @returns {Promise<void>} */
   #prodBuild(consoleOut) {
-    return new Promise((success, failure) => {
+    return new Promise((success) => {
       rm(this.buildOptions.outdir, { recursive: true, force: true }, (error) => {
         if(error) {
           console.error(error);
           success();
-        } else {
-          build(this.buildOptions).then((res) => {
-            if(consoleOut) {
-              if(res.outputFiles && res.outputFiles.length) console.log('Output Files:', res.outputFiles);
-              if(res.warnings && res.warnings.length) console.warn('Warnings:', res.warnings);
-              if(res.errors && res.errors.length) console.error('Errors:', res.errors);
-            }
-            success();
-          }).catch((error) => {
-            console.error(error);
-            success();
-          });
+          return;
         }
-      })
-    });
-  }
-
-  /** @returns {Promise<void>} */
-  #devBuild(cachesIndexHtml, consoleOut) {
-    return new Promise((success) => {
-      let indexHtml = null;
-      if(cachesIndexHtml) {
-        indexHtml = StaticFiles.getFile('index.html');
-        if(indexHtml) {
-          this.buildOptions.entryPoints = this.buildOptions.entryPoints.filter(/** @param {{in: string, out: string}} e*/ (e) => {
-            return !(e.in.endsWith('index.html'));
-          });
-        }
-      }
-      build(this.buildOptions).then((res) => {
-        if(res.outputFiles && res.outputFiles.length) {
-          StaticFiles.removeAllFiles();
-          if(cachesIndexHtml && indexHtml) StaticFiles.addFile('index.html', indexHtml);
-          res.outputFiles.forEach(file => {
-            const i = file.path.lastIndexOf('/');
-            StaticFiles.addFile((i>-1 ? file.path.slice(i+1) : file.path), file.contents);
-          });
-          if(consoleOut) console.log('Output Files:', res.outputFiles.map(f => f.path));
-        }
-        if(consoleOut) {
-          if(res.warnings && res.warnings.length) console.warn('Warnings:', res.warnings);
-          if(res.errors && res.errors.length) console.error('Errors:', res.errors);
-        }
-        success();
-      }).catch((error) => {
-        console.error(error);
-        success();
+        this.#startBuild(consoleOut).then(() => success());
       });
     });
   }
 
-  /** @returns {Promise<void>} */
-  build(cachesIndexHtml=true, consoleOut=false) {
-    return this.isProd ? this.#prodBuild(consoleOut) : this.#devBuild(cachesIndexHtml, consoleOut);
+  /** @param {OutputFile[]} newFiles, @param {Uint8Array} [indexHtml]   */
+  #updateCache(newFiles, indexHtml) {
+    this.cache.removeAllFiles();
+    if(indexHtml) this.cache.putFile('index.html', indexHtml);
+    newFiles.forEach(file => {
+      const i = file.path.lastIndexOf('/');
+      this.cache.putFile((i>-1 ? file.path.slice(i+1) : file.path), file.contents);
+    });
   }
 
-  /** @param {string} publicDir @param {[{in: string, out: string}]} entryPoints @param {string} tsconfig @param {Array<string>} target */
-  static getBuilder(publicDir, entryPoints, tsconfig, target, isProd=false) {
-    return new ProjectBuilder(this.#staticHash, publicDir, entryPoints, tsconfig, target, isProd);
+  async #devBuild(cachesIndexHtml, consoleOut) {
+    let indexHtml = null;
+    if(cachesIndexHtml) {
+      indexHtml = this.cache.getFile('index.html');
+      if(indexHtml) {
+        this.buildOptions.entryPoints = this.buildOptions.entryPoints.filter(/** @param {{in: string, out: string}} e*/ (e) => {
+          return !(e.in.endsWith('index.html'));
+        });
+      }
+    }
+    const outputFiles = await this.#startBuild(consoleOut);
+    this.#updateCache(outputFiles, indexHtml);
+  }
+
+  async build(cachesIndexHtml=true, consoleOut=false) {
+    this.isProd ? await this.#prodBuild(consoleOut) : await this.#devBuild(cachesIndexHtml, consoleOut);
+  }
+
+  /** @param { {publicDir: string, entryPoints: [{in: string, out: string}], tsconfig: string, target: Array<string>, isProd: boolean} } options */
+  static getBuilder(options) {
+    return new ProjectBuilder(this.#staticHash, options);
   }
 }
 
 class StaticServer {
   /** @type {Server} */
   static #server = null;
-  /** @returns {Promise<void>} */
-  static #startServer(port=3500, host='localhost') {
+  /** @param {StaticFiles} cache @returns {Promise<void>} */
+  static #startServer(cache, port=3500, host='localhost') {
     return new Promise((success, failure) => {
       const server = createServer((request, response) => {
         let path = request.url.split('?')[0];
         if(path[0]==='/') path = path.slice(1);
         if(!path) path = 'index.html';
-        let file = StaticFiles.getFile(path);
-        if(!file) file = StaticFiles.getFile(path = 'index.html');
+        let file = cache.getFile(path);
+        if(!file) file = cache.getFile(path = 'index.html');
         if(!file) {
           response.writeHead(404, 'Resource not found.', {'content-type': MIME.getType('json')});
           response.end('{"message": "Resource not found."}');
@@ -198,10 +199,9 @@ class StaticServer {
   /** @param {string} publicDir @param {[{in: string, out: string}]} entryPoints @param {{port?:number, host?: string, tsconfig?: string, target: Array<string>, consoleOut?:boolean, watchDir?: string, watcherDelay?: number, cachesIndexHtml?: boolean}} options */
   static startStaticDevServer(publicDir, entryPoints, options) {
     options = options || {watcherDelay: 100};
-    const builder = ProjectBuilder.getBuilder(publicDir, entryPoints, options.tsconfig, options.target, false);
-
+    const builder = ProjectBuilder.getBuilder({publicDir, entryPoints, tsconfig: options.tsconfig, target: options.target});
     builder.build(options.cachesIndexHtml, options.consoleOut).then(() => {
-      this.#startServer(options.port, options.host).catch(console.error).then(() => {
+      this.#startServer(builder.cache, options.port, options.host).catch(console.error).then(() => {
         if(options.watchDir) {
           this.#addWatcher(options.watchDir, options.watcherDelay, (acknowledgment) => {
             builder.build(options.cachesIndexHtml, options.consoleOut).then(acknowledgment);
