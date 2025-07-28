@@ -13,7 +13,7 @@ export const APP_CONFIG = {
     }
 }
 
-export const HTTP_SERVER: {httpVersion: HttpVersion, httpSecurity: HttpSecurity, host: string, port: number} = {
+export const HTTP_SERVER: { httpVersion: HttpVersion, httpSecurity: HttpSecurity, host: string, port: number } = {
     httpVersion: 'http1',
     httpSecurity: 'http',
     host: process.env['HOST'] || '127.0.0.1',
@@ -30,4 +30,19 @@ export const THREADING = {
     maxThreadsAllowed: 4,
     maxTasksAllowedPerThread: 5,
     maxThreadIdleTimeInMS: 600000
+}
+
+export const AUTH = {
+    jwtSecret: 'SecretKeyForJWT',
+}
+
+export const MONGO_DB = {
+    connectionUrl: 'mongodb+srv://<username>:<password>@dakiya-dev.slolmyp.mongodb.net/?retryWrites=true&w=majority&appName=dakiya-dev',
+    dbName: 'dakiya',
+    username: 'akshaykr101',
+    password: 'aDZRI9ccoxQAFn2G',
+    collections: {
+        users: 'users',
+        sessions: 'sessions',
+    }
 }

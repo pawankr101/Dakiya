@@ -1,6 +1,6 @@
 type Message = string;
 type Reason = Message|Exception|Error;
-type ExceptionOptions = {code?: number, cause?: Exception}
+type ExceptionOptions = { code?: number, cause?: Exception|Error }
 
 function isExceptionOrError(error: any) : error is Exception|Error {
     return ((error instanceof Exception) || (error instanceof Error))
@@ -8,7 +8,7 @@ function isExceptionOrError(error: any) : error is Exception|Error {
 
 export class Exception extends Error {
     cause?: Exception|Error; code?: number=0;
-    constructor(reason?: Reason, options?: ExceptionOptions) {
+    constructor(reason: Reason, options?: ExceptionOptions) {
         super(isExceptionOrError(reason) ? reason.message : reason);
         if(isExceptionOrError(reason)){
             this.cause = reason;

@@ -12,7 +12,7 @@ export type ServerOptions<hv extends HttpVersion = 'http1', hs extends HttpSecur
 export type Request<hv extends HttpVersion = 'http1'> = hv extends 'http1' ? http.IncomingMessage : http2.Http2ServerRequest;
 export type Response<hv extends HttpVersion = 'http1'> = hv extends 'http1' ? http.OutgoingMessage : http2.Http2ServerResponse;
 export type RequestListener<hv extends HttpVersion = 'http1'> = (request: Request<hv>, response?: Response<hv>) => void|Promise<void>;
-export type StartCallbacks = {onError?: (err: Error) => void, listener?: () => void};
+export type StartCallbacks = { onError?: (err: Error) => void, listener?: () => void };
 
 /* ***** Type Declarations: End ***** */
 
@@ -24,10 +24,10 @@ export class HttpServer<hv extends HttpVersion, hs extends HttpSecurity> {
         const server = (httpVer==='http2')
             ? ((httpSec==='https')
                 ? http2.createSecureServer(<ServerOptions<'http2', 'https'>>options)
-                : http2.createServer(<ServerOptions<'http2', 'http'>>options))
+                : http2.createServer(<ServerOptions<'http2'>>options))
             : ((httpSec==='https')
                 ? https.createServer(<ServerOptions<'http1', 'https'>>options)
-                : http.createServer(<ServerOptions<'http1', 'http'>>options));
+                : http.createServer(<ServerOptions>options));
         return <Server<hv, hs>>server;
     }
 

@@ -32,6 +32,7 @@
     "jws": "^4.0.0",
     "mime": "^4.0.1",
     "mongodb": "^6.5.0",
+    "node-machine-id": "^1.1.12",
     "nodemailer": "^6.9.13",
     "ws": "^8.16.0"
   },
@@ -71,7 +72,10 @@
     "webpack-cli": "^5.1.4",
     "webpack-node-externals": "^3.0.0"
   },
-  "keywords": [ "chat", "call" ],
+  "keywords": [
+    "chat",
+    "call"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pawankr101/Dakiya.git"
@@ -84,9 +88,11 @@
     "name": "Akshay Kumar",
     "email": "pawan.akshaykr@gmail.com"
   },
-  "contributors": [{
-    "name": "Akshay Kumar",
-    "email": "pawan.akshaykr@gmail.com"
-  }],
+  "contributors": [
+    {
+      "name": "Akshay Kumar",
+      "email": "pawan.akshaykr@gmail.com"
+    }
+  ],
   "license": "ISC"
 }

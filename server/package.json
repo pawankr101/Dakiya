@@ -10,7 +10,7 @@
         "build:prod": "rm -rf dist && tsc --project ./tsconfig-prod.json",
         "start": "npm run build && node --inspect ./dist",
         "start:debug": "node ../bin/runner.js --server --debug",
-        "start:dev": "node --inspect ../bin/runner.js --server",
+        "start:dev": "node ../bin/runner.js --server",
         "test": "jest"
     }
 }

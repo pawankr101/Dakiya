@@ -10,7 +10,8 @@ type HeaderWithSchema = HeaderWithSchemaWithExample|HeaderWithSchemaWithExamples
 type Link = LinkWithOperationRef|LinkWithOperationId;
 type SecurityScheme = APIKeySecurityScheme|HTTPSecurityScheme|OAuth2SecurityScheme|OpenIdConnectSecurityScheme;
 type HTTPSecurityScheme = NonBearerHTTPSecurityScheme|BearerHTTPSecurityScheme;
-type Info = {
+
+interface Info {
   title: string;
   description?: string;
   termsOfService?: string;
@@ -18,37 +19,39 @@ type Info = {
   license?: License;
   version: string;
 }
-type Contact = {
+interface Contact {
   name?: string;
   url?: string;
   email?: string;
 }
-type License = {
+interface License {
   name: string;
   url?: string;
 }
-type ExternalDocumentation = {
+interface ExternalDocumentation {
   description?: string;
   url: string;
 }
-type Server = {
+interface Server {
   url: string;
   description?: string;
   variables?: ObjectOf<ServerVariable>;
 }
-type ServerVariable = {
+interface ServerVariable {
   enum?: string[];
   default: string;
   description?: string;
 }
+
 type SecurityRequirement = ObjectOf<string[]>
 type Paths = ObjectOf<PathItem>
-type Tag = {
+
+interface Tag {
   name: string;
   description?: string;
   externalDocs?: ExternalDocumentation;
 }
-type PathItem = {
+interface PathItem {
   $ref?: string;
   summary?: string;
   description?: string;
@@ -63,7 +66,7 @@ type PathItem = {
   servers?: Server[];
   parameters?: (Parameter|Reference)[];
 }
-type Operation = {
+interface Operation {
   tags?: string[];
   summary?: string;
   description?: string;
@@ -77,7 +80,7 @@ type Operation = {
   security?: SecurityRequirement[];
   servers?: Server[];
 }
-type ParameterWithSchemaWithExampleInPath = {
+interface ParameterWithSchemaWithExampleInPath {
   name: string;
   in: "path";
   description?: string;
@@ -90,7 +93,7 @@ type ParameterWithSchemaWithExampleInPath = {
   schema: Schema|Reference;
   example?: any;
 }
-type Schema = {
+interface Schema {
   title?: string;
   multipleOf?: number;
   maximum?: number;
@@ -127,21 +130,21 @@ type Schema = {
   deprecated?: boolean;
   xml?: XML;
 }
-type Reference = {
+interface Reference {
   $ref: string;
 }
-type Discriminator = {
+interface Discriminator {
   propertyName: string;
   mapping?: ObjectOf<string>;
 }
-type XML = {
+interface XML {
   name?: string;
   namespace?: string;
   prefix?: string;
   attribute?: boolean;
   wrapped?: boolean;
 }
-type ParameterWithSchemaWithExampleInQuery = {
+interface ParameterWithSchemaWithExampleInQuery {
   name: string;
   in: "query";
   description?: string;
@@ -154,7 +157,7 @@ type ParameterWithSchemaWithExampleInQuery = {
   schema: Schema|Reference;
   example?: any;
 }
-type ParameterWithSchemaWithExampleInHeader = {
+interface ParameterWithSchemaWithExampleInHeader {
   name: string;
   in: "header";
   description?: string;
@@ -167,7 +170,7 @@ type ParameterWithSchemaWithExampleInHeader = {
   schema: Schema|Reference;
   example?: any;
 }
-type ParameterWithSchemaWithExampleInCookie = {
+interface ParameterWithSchemaWithExampleInCookie {
   name: string;
   in: "cookie";
   description?: string;
@@ -180,7 +183,7 @@ type ParameterWithSchemaWithExampleInCookie = {
   schema: Schema|Reference;
   example?: any;
 }
-type ParameterWithSchemaWithExamplesInPath = {
+interface ParameterWithSchemaWithExamplesInPath {
   name: string;
   in: "path";
   description?: string;
@@ -193,13 +196,13 @@ type ParameterWithSchemaWithExamplesInPath = {
   schema: Schema|Reference;
   examples: ObjectOf<Example|Reference>;
 }
-type Example = {
+interface Example {
   summary?: string;
   description?: string;
   value?: any;
   externalValue?: string;
 }
-type ParameterWithSchemaWithExamplesInQuery = {
+interface ParameterWithSchemaWithExamplesInQuery {
   name: string;
   in: "query";
   description?: string;
@@ -212,7 +215,7 @@ type ParameterWithSchemaWithExamplesInQuery = {
   schema: Schema|Reference;
   examples: ObjectOf<Example|Reference>;
 }
-type ParameterWithSchemaWithExamplesInHeader = {
+interface ParameterWithSchemaWithExamplesInHeader {
   name: string;
   in: "header";
   description?: string;
@@ -225,7 +228,7 @@ type ParameterWithSchemaWithExamplesInHeader = {
   schema: Schema|Reference;
   examples: ObjectOf<Example|Reference>;
 }
-type ParameterWithSchemaWithExamplesInCookie = {
+interface ParameterWithSchemaWithExamplesInCookie {
   name: string;
   in: "cookie";
   description?: string;
@@ -238,7 +241,7 @@ type ParameterWithSchemaWithExamplesInCookie = {
   schema: Schema|Reference;
   examples: ObjectOf<Example|Reference>;
 }
-type ParameterWithContentInPath = {
+interface ParameterWithContentInPath {
   name: string;
   in: "path";
   description?: string;
@@ -247,19 +250,19 @@ type ParameterWithContentInPath = {
   allowEmptyValue?: boolean;
   content: ObjectOf<MediaType>;
 }
-type MediaTypeWithExample = {
+interface MediaTypeWithExample {
   schema?: Schema|Reference;
   example?: any;
   encoding?: ObjectOf<Encoding>;
 }
-type Encoding = {
+interface Encoding {
   contentType?: string;
   headers?: ObjectOf<Header>;
   style?: "form"|"spaceDelimited"|"pipeDelimited"|"deepObject";
   explode?: boolean;
   allowReserved?: boolean;
 }
-type HeaderWithSchemaWithExample = {
+interface HeaderWithSchemaWithExample {
   description?: string;
   required?: boolean;
   deprecated?: boolean;
@@ -270,7 +273,7 @@ type HeaderWithSchemaWithExample = {
   schema: Schema|Reference;
   example?: any;
 }
-type HeaderWithSchemaWithExamples = {
+interface HeaderWithSchemaWithExamples {
   description?: string;
   required?: boolean;
   deprecated?: boolean;
@@ -281,19 +284,19 @@ type HeaderWithSchemaWithExamples = {
   schema: Schema|Reference;
   examples: ObjectOf<Example|Reference>;
 }
-type HeaderWithContent = {
+interface HeaderWithContent {
   description?: string;
   required?: boolean;
   deprecated?: boolean;
   allowEmptyValue?: boolean;
   content: ObjectOf<MediaType>;
 }
-type MediaTypeWithExamples = {
+interface MediaTypeWithExamples {
   schema?: Schema|Reference;
   examples: ObjectOf<Example|Reference>;
   encoding?: ObjectOf<Encoding>;
 }
-type ParameterWithContentNotInPath = {
+interface ParameterWithContentNotInPath {
   name: string;
   in: "query"|"header"|"cookie";
   description?: string;
@@ -302,36 +305,38 @@ type ParameterWithContentNotInPath = {
   allowEmptyValue?: boolean;
   content: ObjectOf<MediaType>;
 }
-type RequestBody = {
+interface RequestBody {
   description?: string;
   content: ObjectOf<MediaType>;
   required?: boolean;
 }
-type Responses = {
+interface Responses {
   default?: Response|Reference;
 }
-type Response = {
+interface Response {
   description: string;
   headers?: ObjectOf<Header|Reference>;
   content?: ObjectOf<MediaType>;
   links?: ObjectOf<Link|Reference>;
 }
-type LinkWithOperationRef = {
+interface LinkWithOperationRef {
   operationRef?: string;
   parameters?: ObjectOf<any>;
   requestBody?: any;
   description?: string;
   server?: Server;
 }
-type LinkWithOperationId = {
+interface LinkWithOperationId {
   operationId?: string;
   parameters?: ObjectOf<any>;
   requestBody?: any;
   description?: string;
   server?: Server;
 }
+
 type Callback = ObjectOf<PathItem>
-type Components = {
+
+interface Components {
   schemas?: ObjectOf<Reference|Schema>;
   responses?: ObjectOf<Reference|Response>;
   parameters?: ObjectOf<Reference|Parameter>;
@@ -342,61 +347,61 @@ type Components = {
   links?: ObjectOf<Reference|Link>;
   callbacks?: ObjectOf<Reference|Callback>;
 }
-type APIKeySecurityScheme = {
+interface APIKeySecurityScheme {
   type: "apiKey";
   name: string;
   in: "header"|"query"|"cookie";
   description?: string;
 }
-type NonBearerHTTPSecurityScheme = {
+interface NonBearerHTTPSecurityScheme {
   scheme: string;
   description?: string;
   type: "http";
 }
-type BearerHTTPSecurityScheme = {
+interface BearerHTTPSecurityScheme {
   scheme: "bearer";
   bearerFormat?: string;
   type: "http";
   description?: string;
 }
-type OAuth2SecurityScheme = {
+interface OAuth2SecurityScheme {
   type: "oauth2";
   flows: OAuthFlows;
   description?: string;
 }
-type OAuthFlows = {
+interface OAuthFlows {
   implicit?: ImplicitOAuthFlow;
   password?: PasswordOAuthFlow;
   clientCredentials?: ClientCredentialsFlow;
   authorizationCode?: AuthorizationCodeOAuthFlow;
 }
-type ImplicitOAuthFlow = {
+interface ImplicitOAuthFlow {
   authorizationUrl: string;
   refreshUrl?: string;
   scopes: ObjectOf<string>;
 }
-type PasswordOAuthFlow = {
+interface PasswordOAuthFlow {
   tokenUrl: string;
   refreshUrl?: string;
   scopes?: ObjectOf<string>;
 }
-type ClientCredentialsFlow = {
+interface ClientCredentialsFlow {
   tokenUrl: string;
   refreshUrl?: string;
   scopes?: ObjectOf<string>;
 }
-type AuthorizationCodeOAuthFlow = {
+interface AuthorizationCodeOAuthFlow {
   authorizationUrl: string;
   tokenUrl: string;
   refreshUrl?: string;
   scopes?: ObjectOf<string>;
 }
-type OpenIdConnectSecurityScheme = {
+interface OpenIdConnectSecurityScheme {
   type: "openIdConnect";
   openIdConnectUrl: string;
   description?: string;
 }
-type SwaggerSchema = {
+interface SwaggerSchema {
   openapi: string;
   info: Info;
   externalDocs?: ExternalDocumentation;
@@ -414,5 +419,6 @@ export const SWAGGER_JSON: SwaggerSchema = {
     version: '1.0.0'
   },
   paths: {
+    '/': {   }
   }
 }

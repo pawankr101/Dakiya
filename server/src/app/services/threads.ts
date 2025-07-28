@@ -1,5 +1,5 @@
-import { Worker, MessageChannel, MessagePort } from "worker_threads";
 import { cpus } from 'os';
+import { Worker, MessageChannel, MessagePort } from "worker_threads";
 import { THREADING } from "../../config.js";
 import { Exception } from "../../exceptions/exception.js";
 import { Utility } from "./utility.js";
@@ -19,7 +19,7 @@ export class Mapper<T> {
         return (this.#data[id] = val);
     }
     delete(id: string) {
-        if(this.#data[id]){
+        if(this.#data[id]) {
             delete this.#data[id];
             this.count--;
             return true;
@@ -40,25 +40,25 @@ export class Mapper<T> {
 
 export class Thread {
     /** #### Random Hash for Private Constructor */
-    static #staticHash: string = Utility.generateRandomId();
+    static readonly #staticHash: string = Utility.generateUid();
 
     /**
      * #### Maximum allowed Workers to create.
      * * Default value is count of logical CPU core.
      */
-    static #maxThreadsCount = THREADING.maxThreadsAllowed || cpus().length;
-    static #maxTasksPerThread = THREADING.maxTasksAllowedPerThread || 20;
-    static #workerIdleTimeInMS = THREADING.maxThreadIdleTimeInMS || 60000;
-    static #threads: Mapper<Thread> = new Mapper<Thread>();
+    static readonly #maxThreadsCount = THREADING.maxThreadsAllowed || cpus().length;
+    static readonly #maxTasksPerThread = THREADING.maxTasksAllowedPerThread || 20;
+    static readonly #workerIdleTimeInMS = THREADING.maxThreadIdleTimeInMS || 60000;
+    static readonly #threads: Mapper<Thread> = new Mapper<Thread>();
 
     #worker: Worker;
     #messageChannelPort: MessagePort
-    #tasks: Mapper<Task> = new Mapper<Task>();
+    readonly #tasks: Mapper<Task> = new Mapper<Task>();
     #terminationTimeout: NodeJS.Timeout = null;
 
     _id:string;
 
-    #onChannelMessage = (result: WorkerResult) => {
+    readonly #onChannelMessage = (result: WorkerResult) => {
         let task  = this.#tasks.get(result.taskId);
         if(task) this.#tasks.delete(result.taskId);
         if(!this.#tasks.count) {
@@ -72,7 +72,7 @@ export class Thread {
         }
     }
 
-    #onChannelMessageerror = (error: Error) => {
+    readonly #onChannelMessageerror = (error: Error) => {
         console.log('channel Message Error: ' + error.message);
     }
 
@@ -85,7 +85,7 @@ export class Thread {
         return port2;
     }
 
-    #onWorkerMessage = (result: WorkerResult) => {
+    readonly #onWorkerMessage = (result: WorkerResult) => {
         let task  = this.#tasks.get(result.taskId);
         if(task) this.#tasks.delete(result.taskId);
         if(!this.#tasks.count) {
@@ -99,15 +99,15 @@ export class Thread {
         }
     }
 
-    #onWorkerMessageerror = (error: Error) => {
+    readonly #onWorkerMessageerror = (error: Error) => {
         console.log('worker Message Error: ' + error.message);
     }
 
-    #onWorkerError = (error: Error) => {
+    readonly #onWorkerError = (error: Error) => {
         console.log('worker Error: ' + error.message);
     }
 
-    #onWorkerExit = (exitCode: number) => {
+    readonly #onWorkerExit = (exitCode: number) => {
         console.log('exit code: ' + exitCode);
     }
 
@@ -132,7 +132,7 @@ export class Thread {
     private constructor(workerFilePath: string, privateHash:string) {
         if(!privateHash || privateHash!==Thread.#staticHash) throw new Exception(`'Thread' class constructor can not be called from outside.`);
         if(!workerFilePath) throw new Exception(`'workerFilePath' is required to create Thread Object.`);
-        this._id = Utility.generateRandomId('thread-');
+        this._id = Utility.generateUid('thread-');
         this.#buildWorker(workerFilePath);
     }
 
@@ -142,7 +142,7 @@ export class Thread {
                 clearTimeout(this.#terminationTimeout);
                 this.#terminationTimeout = null;
             }
-            let taskId = Utility.generateRandomId('task-');
+            let taskId = Utility.generateUid('task-');
             this.#tasks.set(taskId, {_id: taskId, method: {name: method, arg: arg}, onSuccess: resolve, onError: reject});
             this.#messageChannelPort.postMessage({taskId, method, arg});
         });

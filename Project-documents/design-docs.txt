@@ -56,7 +56,7 @@
 
 ## Entities:
     * User:
-        => _id: "'UserId', Unique"
+        => uid: "'UserId', Unique"
         => email: "'Email', Unique"
         => mobile: "'+91-9876543210', Unique"
         => password: "Password Hash"

@@ -30,8 +30,10 @@ Run the following commands in your terminal:
     # Generate a certificate signing request (CSR)
     openssl req -new -nodes -out localhost.csr -keyout localhost.key -config localhost.ssl.conf
     ```
+
     * Note: Sample `localhost.ssl.conf`:
-        ```
+
+        ```conf
             [req]
             distinguished_name = dn
             default_bits = 2048
@@ -54,8 +56,10 @@ Run the following commands in your terminal:
     # Generate Self Signed X.509 SSL/TLS certificate
     openssl x509 -req -in localhost.csr -CA localhost.ca.cer -CAkey localhost.private.key -CAcreateserial -out localhost.crt -days 3650 -extfile localhost_v3.ext
     ```
+
     * Note: Sample `localhost_v3.ext`:
-        ```
+
+        ```ext
             authorityKeyIdentifier=keyid,issuer
             basicConstraints=CA:FALSE
             keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment

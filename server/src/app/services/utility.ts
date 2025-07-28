@@ -1,3 +1,4 @@
+import { machineIdSync } from 'node-machine-id';
 import { REGEXP } from '../config.js';
 
 export enum ShortMonth {
@@ -16,13 +17,13 @@ export type PossibleDTypes='undefined'|'string'|'number'|'boolean'|'array'|'obje
 export type DynamicType<T=PossibleDTypes, AO=any>= T extends 'undefined' ? undefined
     : T extends 'string' ? string : T extends 'number' ? number : T extends 'boolean' ? boolean
     : T extends 'array' ? Array<AO> : T extends 'object' ? Object : T extends 'function' ? Function : any;
-export type DateFormats = 'dd-mm-yyyy'|'yyyy-mm-dd'|'dd/mm/yyyy'|'yyyy/mm/dd'|'dd mmm yyyy'|'mmm dd yyyy'|'day mmm dd yyyy'|'mmmm dd|yyyy';
-const locals = {
+export type DateFormats = 'dd-mm-yyyy'|'yyyy-mm-dd'|'dd/mm/yyyy'|'yyyy/mm/dd'|'dd mmm yyyy'|'mmm dd yyyy'|'day mmm dd yyyy'|'mmmm dd, yyyy';
+const locals: {currentYear: number, availableDateFormats: DateFormats[]} = {
     currentYear: new Date().getFullYear(),
     availableDateFormats: ['dd-mm-yyyy', 'yyyy-mm-dd', 'dd/mm/yyyy', 'yyyy/mm/dd', 'dd mmm yyyy', 'mmm dd yyyy', 'day mmm dd yyyy', 'mmmm dd, yyyy']
 };
 export enum LoopControl {
-    break='__BREAK_LOOP', continue='__CONTINUE_LOOP'
+    break='__BREAK_LOOP'
 }
 
 export class Utility {
@@ -78,7 +79,7 @@ export class Utility {
      * #### Check If model is Array
      * @param model any
      */
-    static isArray(model: any): model is Array<any> {
+    static isArray<T=any>(model: any): model is Array<T> {
         return (model instanceof Array);
     }
 
@@ -101,6 +102,10 @@ export class Utility {
             return true;
         }
         return false;
+    }
+
+    static isNotEmptyArray<T=any>(model: any): model is Array<T> {
+        return this.isArray(model) && model.length > 0;
     }
 
     /**
@@ -292,8 +297,7 @@ export class Utility {
      * #### Loop through an Array or object.
      * @param model Array or object
      * @param callback Function that define specific task with each element while iteration.
-     * user can return `__CONTINUE_LOOP` or `__BREAK_LOOP` keyword string from callback function to
-     * skip the current iteration or break the whole loop at any point of time while iteration.
+     * @description user can return `LoopControl.break` enum from callback function to break the whole loop at any point of time while iteration.
      */
     static forLoop<T>(model: { [x: string]: T } | T[], callback: (value: T, key?: any) => void | LoopControl) {
         if(this.isArray(model)) {
@@ -317,14 +321,13 @@ export class Utility {
      * #### Loop through an Array or object in reverse order.
      * @param model Array or object
      * @param callback function that define specific task with each element while iteration.
-     * user can return __CONTINUE_LOOP or __BREAK_LOOP keyword string from callback function to
-     * skip the current iteration or break the whole loop at any point of time while iteration.
+     * @description user can return `LoopControl.break` enum from callback function to break the whole loop at any point of time while iteration.
      */
-    static forLoopReverse<T>(model: { [x: string]: T } | T[], callback: (value: T, key?: any) => void | '__CONTINUE_LOOP' | '__BREAK_LOOP') {
+    static forLoopReverse<T>(model: { [x: string]: T } | T[], callback: (value: T, key?: any) => void | LoopControl) {
         if(this.isArray(model)) {
             let index = model.length-1;
             while(index>=0) {
-                if(callback(model[index], index) === '__BREAK_LOOP') break;
+                if(callback(model[index], index) === LoopControl.break) break;
                 index--;
             }
         } else if(model instanceof Object) {
@@ -332,7 +335,7 @@ export class Utility {
             let index = keys.length-1, key: string;
             while(index>=0) {
                 key = keys[index];
-                if(callback(model[key], key) === '__BREAK_LOOP') break;
+                if(callback(model[key], key) === LoopControl.break) break;
                 index--;
             }
         }
@@ -381,9 +384,16 @@ export class Utility {
     }
 
     /**
-     * 
-     * @param value 
-     * @param comparator 
+     * #### Compare Number with given comparator object.
+     * @param value number
+     * @param comparator object
+     * * It can be one of the following:
+     *   - {toValue: number} - exact match
+     *   - {toValue: number, error: number} - within error range
+     *   - {toValue: number, errorPercentage: number} - within percentage error range
+     *   - {lowerRange: number, upperRange: number} - within range
+     *   - {lowerRange: number, distance: number} - lower range with distance
+     *   - {upperRange: number, distance: number} - upper range with distance
      */
     static compareNumber(value: number, comparator: {toValue: number}|{toValue: number, error: number}|{toValue: number, errorPercentage: number}|{lowerRange: number, upperRange: number}|{lowerRange: number, distance: number}|{upperRange: number, distance: number}) {
         if(!comparator) return false;
@@ -422,7 +432,43 @@ export class Utility {
         return (typeof(data)!=='object') ? data : copyObj(data);
     }
 
-    static generateRandomId(prefix: string = '') {
-        return `${prefix}` + Date.now().toString(36) + Math.random().toString(36).substring(2);
+    static #getMachineIdHash() {
+        const mi = machineIdSync(true).toLocaleLowerCase();
+        const mib36 = BigInt(`0x${mi.replaceAll(/[^a-f0-9]/g, '')}`).toString(36);
+        let mib36lastIndex = mib36.length;
+        if(mib36lastIndex % 2 !== 0) mib36.padEnd(mib36lastIndex + 1, '0');
+        else mib36lastIndex--;
+    
+        let machineIdHash = '';
+        while(mib36lastIndex >= 0) {
+            let num = `${parseInt(mib36.substring(mib36lastIndex-1, mib36lastIndex+1), 36)}`;
+            let ds = 0, numLen = num.length - 1;
+            while(numLen >= 0) {
+                ds += parseInt(num[numLen--], 10);
+            }
+            machineIdHash += ds.toString(36);
+            mib36lastIndex -= 2;
+        }
+        return machineIdHash;
     }
+    
+    static generateUid = (() => {
+        const machineId = this.#getMachineIdHash();
+        let cyclicCharCounter = 0;
+        return (prefix: string = '') => {
+            const timeStampHash = Date.now().toString(36);
+            const randomHash = Math.random().toString(36).substring(2);
+            let id = (`${machineId}${timeStampHash}${cyclicCharCounter.toString(36)}${randomHash}`).slice(0, 32);
+            cyclicCharCounter = cyclicCharCounter < 46655 ? cyclicCharCounter + 1 : 0; // Reset after 'zzz'
+            let il = 32 - id.length;
+            
+            while(il>0) {
+                id += Math.random().toString(36).substring(2);
+                id = id.slice(0, 32);
+                il = 32 - id.length;
+            }
+    
+            return `${prefix}${id}`;
+        };
+    })();
 }
