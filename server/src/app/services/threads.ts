@@ -4,43 +4,14 @@ import { THREADING } from "../../config.js";
 import { Exception } from "../../exceptions/exception.js";
 import { Utility } from "./utility.js";
 import methods from "../../workers/methods.js";
+import { Helpers, Mapper } from '../../utils/index.js';
 
 type WorkerResult = {taskId: string, result?: any, error?: any};
 type Task = {_id: string, method: {name: string, arg?: any[]}, onSuccess: (result?: any) => void, onError: (error?: any) => void}
 
-export class Mapper<T> {
-    #data: {[id: string]: T} = Object.create(null);
-    count = 0;
-    get(id: string) {
-        return this.#data[id];
-    }
-    set(id: string, val: T) {
-        if(!this.#data[id]) this.count++;
-        return (this.#data[id] = val);
-    }
-    delete(id: string) {
-        if(this.#data[id]) {
-            delete this.#data[id];
-            this.count--;
-            return true;
-        }
-        return false
-    }
-    deleteAll() {
-        this.#data = Object.create(null);
-        this.count = 0;
-    }
-    ids() {
-        return Object.keys(this.#data);
-    }
-    all() {
-        return Object.values(this.#data);
-    }
-}
-
 export class Thread {
     /** #### Random Hash for Private Constructor */
-    static readonly #staticHash: string = Utility.generateUid();
+    static readonly #staticHash: string = Helpers.getUuid();
 
     /**
      * #### Maximum allowed Workers to create.
@@ -132,7 +103,7 @@ export class Thread {
     private constructor(workerFilePath: string, privateHash:string) {
         if(!privateHash || privateHash!==Thread.#staticHash) throw new Exception(`'Thread' class constructor can not be called from outside.`);
         if(!workerFilePath) throw new Exception(`'workerFilePath' is required to create Thread Object.`);
-        this._id = Utility.generateUid('thread-');
+        this._id = Helpers.getUuid();
         this.#buildWorker(workerFilePath);
     }
 
@@ -142,7 +113,7 @@ export class Thread {
                 clearTimeout(this.#terminationTimeout);
                 this.#terminationTimeout = null;
             }
-            let taskId = Utility.generateUid('task-');
+            let taskId = Helpers.getUuid();
             this.#tasks.set(taskId, {_id: taskId, method: {name: method, arg: arg}, onSuccess: resolve, onError: reject});
             this.#messageChannelPort.postMessage({taskId, method, arg});
         });
@@ -163,7 +134,7 @@ export class Thread {
         let thread:Thread = null, minTaskCount: number = -1;
 
         // find thread with min tasks in its bucket.
-        Utility.forLoop(this.#threads.all(), (th) => {
+        Utility.forLoop(this.#threads.items(), (th) => {
             if((minTaskCount === (-1)) || th.#tasks.count<minTaskCount) {
                 minTaskCount = th.#tasks.count;
                 thread = th;
@@ -188,32 +159,4 @@ export class Thread {
     static execute(method: string, arg?: any[]) {
         return this.#getThread().run(method, arg);
     }
-}
-
-
-
-// this class should create and manage worker_thread depends on os parallelism, number of cores available.
-// it should distributes received tasks among all available worker thread.
-// should be able communicate with each thread as per requirements and can manage tasks and their returned result or error.
-
-async function oneCycle() {
-    // const t = performance.now();
-    // let objStr = await Thread.execute('stringify', [{a: 'a', b: {ba: 'ba', bb: [1, true, 'string', null]}}]);
-    // const t1 = performance.now();
-    // console.log('stringify: ' + (t1 - t)/1000 + 's');
-    // let obj = await Thread.execute('parse', [objStr]);
-    // const t2 = performance.now();
-    // console.log('parse: ' + (t2 - t1)/1000 + 's');
-    // console.log('cycle: ' + (t2 - t)/1000 + 's');
-    await Thread.execute('add', ['987898799789879797987987979979898797979789798', '98798949499989497979979879987646689779799899879879']);
-    // methods.add('987898799789879797987987979979898797979789798', '98798949499989497979979879987646689779799899879879');
-}
-export async function test() {
-    console.time('Full Cycle<1000000>');
-    const promises = [];
-    for (let i = 0; i < 1000000; i++) {
-        promises.push(oneCycle());
-    }
-    await Promise.all(promises);
-    console.timeEnd('Full Cycle<1000000>');
 }

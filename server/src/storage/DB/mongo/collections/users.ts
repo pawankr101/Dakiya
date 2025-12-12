@@ -1,12 +1,20 @@
-import { Utility } from "../../../../app/services/index.js";
+import { Collection } from "mongodb";
 import { MONGO_DB } from "../../../../config.js";
 import { Exception } from "../../../../exceptions/index.js";
 import { User } from "../../../../Models/index.js";
 import { MongoConnection } from "../connection.js";
-
+import { Helpers, Utils } from "../../../../utils/index.js";
 
 export class UsersQuery {
-    static #usersCollection = MongoConnection.db.collection<User>(MONGO_DB.collections.users);
+    static #getUsersCollection: () => Collection<User> = (() => {
+        let collection: Collection<User>;
+        return () => {
+            if(!collection) {
+                collection = MongoConnection.getCollection<User>(MONGO_DB.collections.users);
+            }
+            return collection;
+        }
+    })();
 
     public static async createUser(user: User): Promise<User> {
         if (!user) throw new Exception("User object is required.", { code: 400 });
@@ -14,7 +22,7 @@ export class UsersQuery {
             const existingUser = await this.findUserByUidEmailOrPhone(user.uid);
             if (existingUser) throw new Exception("User already exists.", { code: 409 });
         }
-        if (!user.uid) user.uid = Utility.generateUid();
+        if (!user.uid) user.uid = Helpers.getUuid();
         if (!user.email) throw new Exception("Email is required.", { code: 400 });
         if (!user.phone) throw new Exception("Phone is required.", { code: 400 });
         if (!user.firstName) throw new Exception("First name is required.", { code: 400 });
@@ -25,7 +33,7 @@ export class UsersQuery {
         user.updatedAt = new Date();
         user.password = 'password';
 
-        await this.#usersCollection.insertOne(user);
+        await this.#getUsersCollection().insertOne(user);
         return user;
     }
 
@@ -34,15 +42,15 @@ export class UsersQuery {
 
         // building projection object
         const projection: {[K: string]: 0|1}  = {};
-        if (Utility.isNotEmptyArray(fields)) Utility.forLoop(fields, (field) => { projection[field] = 1; });
+        if (Utils.isNotEmptyArray(fields)) Utils.forLoop(fields, (field) => { projection[field] = 1; });
 
-        return await this.#usersCollection.findOne({
+        return await this.#getUsersCollection().findOne({
             $or: [
                 { uid: uidEmailOrPhone },
                 { email: uidEmailOrPhone },
                 { phone: uidEmailOrPhone }
             ]
-        }, { projection: {_id: 0, ...projection}});
+        }, { projection: { _id: 0, ...projection }});
     }
 
     public static async validateUserCredentials(uidEmailOrPhone: string, password: string, fields: string[] = []): Promise<User> {

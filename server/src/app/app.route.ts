@@ -1,10 +1,7 @@
-import { FastifyInstance } from "fastify";
-import { test } from "./services/threads.js";
+import { FastifyPluginCallback } from "fastify";
 
-
-export function AppRoutes(fastify: FastifyInstance, options: any, done: Function) {
+export const AppRoutes: FastifyPluginCallback = (fastify, options, done) => {
     fastify.get('/app', (request, response) => {
-        test();
         response.header('Content-Type', 'application/json').send({done: true});
     });
     done();

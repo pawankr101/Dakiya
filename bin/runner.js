@@ -64,19 +64,19 @@ function run() {
         return;
     }
     console.log(`\n*** Starting ${config.app==='client' ? 'Web App Client' : 'Api Server'} ***`.cyan);
-    // watcher = watch(config[config.app].sourceDir, {recursive:true}, () => {
-    //     console.log('\n*** Change(s) detected in codebase ***'.yellow);
-    //     console.log('*** Rebuilding and Restarting Application ***'.cyan);
-    //     config.app==='client' ? null : runServer();
-    // });
-    if(config.app) startStaticDevServer(config.client.port, config.client.sourceDir, config.client.buildDir, {
-        entryPoints: [
-            { in: 'index.tsx', out: 'main' },
-            { in: 'workers/index.ts', out: 'worker' },
-            { in: 'index.html', out: 'index' }
-        ],
-        watcherDelay: 10,
-        tsconfig: resolve(config.client.cwd, './tsconfig.json')
+    watcher = watch(config[config.app].sourceDir, {recursive:true}, () => {
+        console.log('\n*** Change(s) detected in codebase ***'.yellow);
+        console.log('*** Rebuilding and Restarting Application ***'.cyan);
+        config.app==='client' ? null : runServer();
     });
+    // if(config.app) startStaticDevServer(config.client.port, config.client.sourceDir, config.client.buildDir, {
+    //     entryPoints: [
+    //         { in: 'index.tsx', out: 'main' },
+    //         { in: 'workers/index.ts', out: 'worker' },
+    //         { in: 'index.html', out: 'index' }
+    //     ],
+    //     watcherDelay: 10,
+    //     tsconfig: resolve(config.client.cwd, './tsconfig.json')
+    // });
 }
 setTimeout(run, 100);

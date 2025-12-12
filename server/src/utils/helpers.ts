@@ -1,64 +1,34 @@
-import { machineIdSync } from "node-machine-id";
+import { randomBytes } from "crypto";
+import { v7 as uuid } from 'uuid';
 
 export class Helpers {
 
     /**
-     * #### Get Machine Id Hash
-     * @returns string
-     * @description
-     * - It generates a hash from the machine ID.
-     * - The hash is a base-36 representation of the machine ID, processed to ensure it is unique and consistent.
-     * - The hash is used to generate unique IDs.
-     */
-    static #getMachineIdHash() {
-        const mi = machineIdSync(true).toLocaleLowerCase();
-        const mib36 = BigInt(`0x${mi.replaceAll(/[^a-f0-9]/g, '')}`).toString(36);
-        let mib36lastIndex = mib36.length;
-        if(mib36lastIndex % 2 !== 0) mib36.padEnd(mib36lastIndex + 1, '0');
-        else mib36lastIndex--;
-    
-        let machineIdHash = '';
-        while(mib36lastIndex >= 0) {
-            let num = `${parseInt(mib36.substring(mib36lastIndex-1, mib36lastIndex+1), 36)}`;
-            let ds = 0, numLen = num.length - 1;
-            while(numLen >= 0) {
-                ds += parseInt(num[numLen--], 10);
-            }
-            machineIdHash += ds.toString(36);
-            mib36lastIndex -= 2;
-        }
-        return machineIdHash;
-    }
-    
-    /**
-     * #### Generate Unique Id
-     * @param prefix string
-     * @returns string
-     * @description
-     * - It generates a unique ID of 32 characters length excluding prefix.
-     * - The generated ID is a combination of the machine ID, current timestamp, a cyclic character counter, and a random hash.
-     * - The cyclic character counter ensures that the ID is unique even if generated multiple times in quick succession resulting at least 46,655,000 unique ids per second.
-     * - The ID is padded with random characters if it is shorter than 32 characters.
+     * Generates a unique identifier.
+     *
+     * By default, this method creates a compact, 26-character, base-36 encoded unique ID.
+     * This is achieved by combining a standard v7 UUID with random bytes, converting the
+     * resulting hexadecimal string to a BigInt, and then encoding it to base-36. The
+     * result is then truncated or padded to a fixed length of 26 characters.
+     *
+     * @param {boolean} [original=false] - If true, the function returns a standard v7 UUID string with hyphens.
+     * @returns {string} A 26-character base-36 unique ID, or a standard v7 UUID if `original` is true.
+     *
      * @example
-     *   Helpers.generateUid('prefix-'); // e.g., 'prefix-1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6'
+     * // Get a custom 26-character ID
+     * const customId = Helpers.getUuid(); // e.g., '1fpu6v0c8qj2l7k5m3n9p4o8de'
+     *
+     * @example
+     * // Get a standard v7 UUID
+     * const standardUuid = Helpers.getUuid(true); // e.g., '123e4567-e89b-12d3-a456-426614174000'
      */
-    static generateUid = (() => {
-        const machineId = this.#getMachineIdHash();
-        let cyclicCharCounter = 0;
-        return (prefix: string = '') => {
-            const timeStampHash = Date.now().toString(36);
-            const randomHash = Math.random().toString(36).substring(2);
-            let id = (`${machineId}${timeStampHash}${cyclicCharCounter.toString(36)}${randomHash}`).slice(0, 32);
-            cyclicCharCounter = cyclicCharCounter < 46655 ? cyclicCharCounter + 1 : 0; // Reset after 'zzz'
-            let il = 32 - id.length;
-            
-            while(il>0) {
-                id += Math.random().toString(36).substring(2);
-                id = id.slice(0, 32);
-                il = 32 - id.length;
-            }
-    
-            return `${prefix}${id}`;
-        };
-    })();
+    static getUuid(original: boolean = false): string {
+        if(original) return uuid();
+        let uid = uuid().replaceAll('-', '')
+        uid = BigInt(`0x${uid}`).toString(36) + Math.random().toString(36).substring(2);
+
+        // Ensure the UID is exactly 26 characters long.
+        uid = uid.length > 26 ? uid.substring(0, 26) : uid.padEnd(26, '0');
+        return uid;
+    }
 }

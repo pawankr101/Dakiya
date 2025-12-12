@@ -290,16 +290,22 @@ export class Utils {
      * - If `cloneFunction` option is true, it will clone functions as well.
      */
     static #cloneObjects<T>(data: T, options: DeepCopyOptions, visited: WeakMap<Object, Object>): T {
-        // Handle special cases for cloning
         if(data instanceof Promise) return data; // Do not clone Promise object
+
+        if(visited.has(data)) return visited.get(data) as T;
+
+        // Handle special cases for cloning
         if(data instanceof Date) return new Date(data.getTime()) as T; // Clone Date object
         if(data instanceof RegExp) return new RegExp(data.source, data.flags) as T; // Clone RegExp object
 
-        if(visited.has(data)) return visited.get(data) as T;
         const copiedData = this.isArray(data) ? [] : Object.create(Object.getPrototypeOf(data));
+
+        
+        visited.set(data, copiedData);
+
         const keys = options.toJson ? Object.keys(data) : [...Object.getOwnPropertyNames(data), ...Object.getOwnPropertySymbols(data)];
         this.forLoop(keys, (key) => {
-            const value = this.clone(data[key], options);
+            const value = this.#cloneData(data[key], options, visited);
             const descriptor = Object.getOwnPropertyDescriptor(data, key);
             if(descriptor.hasOwnProperty('value')) {
                 Object.defineProperty(copiedData, key, { value, writable: true, enumerable: descriptor.enumerable, configurable: descriptor.configurable });
@@ -307,7 +313,6 @@ export class Utils {
                 Object.defineProperty(copiedData, key, { get: descriptor.get, set: descriptor.set, enumerable: descriptor.enumerable, configurable: descriptor.configurable });
             } 
         });
-        visited.set(data, copiedData);
         return copiedData as T;
     }
 
@@ -344,6 +349,27 @@ export class Utils {
     }
 
     /**
+     * #### Clone data based on its type.
+     * @param data any - data to clone
+     * @param options DeepCopyOptions - options for deep cloning
+     * @param visited WeakMap<Object, Object> - used to track already cloned objects/functions for circular reference handling
+     * @returns cloned data
+     * @description
+     * - It will clone objects and arrays deeply.
+     * - It will clone functions if `cloneFunction` option is true and `toJson` is false.
+     * - Primitive types are returned as is.
+     */
+    static #cloneData<T>(data: T, options: DeepCopyOptions, visited: WeakMap<Object, Object>): T {
+        if(typeof(data) === 'object' && data !== null) {
+            return this.#cloneObjects(data, options, visited) as T;
+        }
+        if(typeof(data) === 'function' && options.cloneFunction && !options.toJson) {
+            return this.#cloneFunction(data, visited) as T;
+        }
+        return data;
+    }
+
+    /**
      * #### Deep Clone an object or array.
      * @param data any - object or array to clone
      * @param options DeepCopyOptions - options for deep cloning
@@ -357,18 +383,10 @@ export class Utils {
      *  Utils.clone(obj, { toJson: false, cloneFunction: true }); // { a: 1, b: { c: 2, d: [4, 5] }, e: [Function] }
      *  Utils.clone(obj, { toJson: false, cloneFunction: false }); // { a: 1, b: { c: 2, d: [4, 5] } }
      */
-    static clone = (() => {
+    static clone<T>(data: T, options: DeepCopyOptions): T {
         const visited = new WeakMap<Object, Object>();
-        return <T>(data: T, options: DeepCopyOptions): T => {
-            if(typeof(data) === 'object' && data !== null) {
-                return this.#cloneObjects(data, options, visited) as T;
-            }
-            if(typeof(data) === 'function' && options.cloneFunction && !options.toJson) {
-                return this.#cloneFunction(data, visited) as T;
-            }
-            return data;
-        }
-    })();
+        return this.#cloneData(data, options, visited);
+    }
 
     /**
      * #### Compare Number with given comparator object.
