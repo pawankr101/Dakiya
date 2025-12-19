@@ -42,7 +42,7 @@ export class UsersQuery {
 
         // building projection object
         const projection: {[K: string]: 0|1}  = {};
-        if (Utils.isNotEmptyArray(fields)) Utils.forLoop(fields, (field) => { projection[field] = 1; });
+        if (Utils.isNotEmptyArray(fields)) Utils.loop(fields, (field) => { projection[field] = 1; });
 
         return await this.#getUsersCollection().findOne({
             $or: [

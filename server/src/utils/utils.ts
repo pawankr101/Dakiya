@@ -6,16 +6,20 @@ type ValueErrorType = { toValue: number, error?: number, errorPercentage?: numbe
 type RangeType = { lowerRange: number, upperRange: number, distance: number };
 type DeepCopyOptions = { toJson: boolean, cloneFunction: boolean };
 
-export enum LoopControl {
-    break='__BREAK_LOOP'
-}
+export const LoopControl = (() => {
+    const lc : { break: Symbol } = Object.create(null);
+    lc['break'] = Symbol('__BREAK_LOOP');
+    return lc;
+})();
+export type LoopControl = typeof LoopControl[keyof typeof LoopControl];
+type LoopArgumentTypes<T = any> = (() => void | LoopControl) | ({ [x: string]: T } | T[]) | (boolean) | ((value: T, key?: any) => void | LoopControl);
 
 export class Utils {
     /**
      * #### Check If model is Defined
      * @param model any
      */
-    static isDefined(model: any): boolean {
+    static isDefined<T = any>(model: T): model is Exclude<typeof model, undefined> {
         return typeof(model) !== 'undefined';
     }
 
@@ -23,8 +27,24 @@ export class Utils {
      * #### Check If model is Defined and Not null
      * @param model any
      */
-    static isDefinedAndNotNull(model: any): boolean {
+    static isDefinedAndNotNull<T = any>(model: T): model is Exclude<typeof model, undefined|null> {
         return this.isDefined(model) && model!==null;
+    }
+
+    /**
+     * #### Check If model is Undefined or Null
+     * @param model any
+     */
+    static isUndefinedOrNull<T = any>(model: T): model is undefined | null {
+        return typeof(model) === 'undefined' || model === null;
+    }
+
+    /**
+     * #### Check If model is null
+     * @param model any
+     */
+    static isNull<T = any>(model: T): model is null {
+        return model === null
     }
 
     /**
@@ -52,6 +72,14 @@ export class Utils {
     }
 
     /**
+     * #### Check If model is Function
+     * @param model any
+     */
+    static isFunction(model: any): model is Function {
+        return typeof(model) === 'function';
+    }
+
+    /**
      * #### Check If model is Array
      * @param model any
      */
@@ -64,7 +92,9 @@ export class Utils {
      */
     static isArrayOf<AO=any,T extends string=PossibleDTypes>(type: T, model: any): model is Array<DynamicType<T,AO>> {
         if(this.isArray(model)) {
-            for(var i=0,l=model.length; i<l; i++) {if(typeof(model[i]) !== type) return false;}
+            for(var i=0,l=model.length; i<l; i++) {
+                if(typeof(model[i]) !== type) return false;
+            }
             return true;
         }
         return false;
@@ -103,18 +133,20 @@ export class Utils {
      *  getValue(model, 'key4', 'default_value'); // 'default_value'
      *  getValue(model, 'key4'); // null
      */
-    static getValue<T=any>(model: any, key: string|number, defaultValue?: T): typeof defaultValue {
+    static getValue<T=any>(model: any, key: string|number, defaultValue?: T): T | null {
         defaultValue = this.isDefined(defaultValue) ? defaultValue : null;
-        if(this.isDefinedAndNotNull(model)) {
+        if(this.isNull(model)) return model;
+        if(this.isDefined(model)) {
             if(this.isString(key) && key.includes('.')) {
                 let keys = key.split('.'), val = model[keys[0]],l=keys.length,i=1;
                 while(i<l) {
-                    if(!this.isDefinedAndNotNull(val)) return defaultValue;
+                    if(this.isNull(val)) return val;
+                    if(!this.isDefined(val)) return defaultValue;
                     val = val[keys[i++]];
                 }
-                return this.isDefinedAndNotNull(val) ? val : defaultValue;
+                return this.isDefined(val) ? val : defaultValue;
             }
-            return this.isDefinedAndNotNull(model[key]) ? model[key] : defaultValue;
+            return this.isDefined(model[key]) ? model[key] : defaultValue;
         }
         return defaultValue;
     }
@@ -141,7 +173,7 @@ export class Utils {
      *  // key1 value1
      *  // key2 { inner_key1: 'innerValue1', inner_key2: 'innerValue2' }
      */
-    static forLoop<T>(model: { [x: string]: T } | T[], callback: (value: T, key?: any) => void | LoopControl) {
+    static #forLoop<T>(model: { [x: string]: T } | T[], callback: (value: T, key?: any) => void | LoopControl) {
         if(this.isArray(model)) {
             let index = 0, len = model.length;
             while(index<len) {
@@ -175,7 +207,7 @@ export class Utils {
      *   // 3 4
      *   // 2 3
      * */
-    static forLoopReverse<T>(model: { [x: string]: T } | T[], callback: (value: T, key?: any) => void | LoopControl) {
+    static #forLoopReverse<T>(model: { [x: string]: T } | T[], callback: (value: T, key?: any) => void | LoopControl) {
         if(this.isArray(model)) {
             let index = model.length-1;
             while(index>=0) {
@@ -192,6 +224,52 @@ export class Utils {
             }
         }
     }
+
+
+    /**
+     * #### Loop through an Array or object or infinite loop.
+     * @param args variable arguments
+     * @description
+     * - If single argument is passed and it is a function then it will run infinite loop until `LoopControl.break` is returned from callback function.
+     * - If two arguments are passed and first argument is an Array or object and second argument is a function then it will loop through the Array or object.
+     * - If three arguments are passed and first argument is an Array or object, second argument is a boolean and third argument is a function then it will loop through the Array or object in reverse order if boolean is true.
+     * @example
+     *  // Infinite loop example
+     * Utils.loop(() => {
+     *   console.log('Hello World');
+     *  // return LoopControl.break; // uncomment this line to break the loop
+     * });
+     * // Loop through object example
+     * const model = { a: 1, b: 2, c: 3 };
+     * Utils.loop(model, (value, key) => {
+     *  console.log(key, value);
+     * });
+     * // Loop through array in reverse order example
+     * const array = [ 1, 2, 3, 4, 5 ];
+     * Utils.loop(array, true, (value, index) => {
+     *  console.log(index, value);
+     * });
+     */
+    static loop(cb: () => void | LoopControl): void;
+    static loop<T>(model: { [x: string]: T } | T[], cb: (value: T, key?: any) => void | LoopControl): void;
+    static loop<T>(model: { [x: string]: T } | T[], reverse: boolean, cb: (value: T, key?: any) => void | LoopControl): void;
+    static loop<T>(...args: LoopArgumentTypes<T>[]): void {
+        if(args.length === 1 && this.isFunction(args[0])) {
+            const cb = args[0] as () => void | LoopControl;
+            while(true) {
+                if(cb() === LoopControl.break) break;
+            }
+        } else if(args.length === 2 && this.isFunction(args[1])) {
+            this.#forLoop(args[0] as { [x: string]: T } | T[], args[1]);
+        } else if(args.length === 3 && this.isFunction(args[2]) && this.isBoolean(args[1])) {
+            if(args[1] === true) {
+                this.#forLoopReverse(args[0] as { [x: string]: T } | T[], args[2]);
+            } else {
+                this.#forLoop(args[0] as { [x: string]: T } | T[], args[2]);
+            }
+        }
+    }
+
 
     /**
      * #### Map through an Array and return a new Array with the results.
@@ -304,7 +382,7 @@ export class Utils {
         visited.set(data, copiedData);
 
         const keys = options.toJson ? Object.keys(data) : [...Object.getOwnPropertyNames(data), ...Object.getOwnPropertySymbols(data)];
-        this.forLoop(keys, (key) => {
+        this.#forLoop(keys, (key) => {
             const value = this.#cloneData(data[key], options, visited);
             const descriptor = Object.getOwnPropertyDescriptor(data, key);
             if(descriptor.hasOwnProperty('value')) {

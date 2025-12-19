@@ -32,7 +32,7 @@ export class Thread {
     readonly #onChannelMessage = (result: WorkerResult) => {
         let task  = this.#tasks.get(result.taskId);
         if(task) this.#tasks.delete(result.taskId);
-        if(!this.#tasks.count) {
+        if(!this.#tasks.size) {
             this.#terminationTimeout = setTimeout(() => {
                 this.stop();
             }, Thread.#workerIdleTimeInMS);
@@ -59,7 +59,7 @@ export class Thread {
     readonly #onWorkerMessage = (result: WorkerResult) => {
         let task  = this.#tasks.get(result.taskId);
         if(task) this.#tasks.delete(result.taskId);
-        if(!this.#tasks.count) {
+        if(!this.#tasks.size) {
             this.#terminationTimeout = setTimeout(() => {
                 this.stop();
             }, Thread.#workerIdleTimeInMS);
@@ -135,13 +135,13 @@ export class Thread {
 
         // find thread with min tasks in its bucket.
         Utility.forLoop(this.#threads.items(), (th) => {
-            if((minTaskCount === (-1)) || th.#tasks.count<minTaskCount) {
-                minTaskCount = th.#tasks.count;
+            if((minTaskCount === (-1)) || th.#tasks.size<minTaskCount) {
+                minTaskCount = th.#tasks.size;
                 thread = th;
             }
         });
         if(minTaskCount >= this.#maxTasksPerThread) {
-            if(this.#threads.count < this.#maxThreadsCount) return null;
+            if(this.#threads.size < this.#maxThreadsCount) return null;
             // console.log(`Reached to the maximum allowed Threads and maximum tasks per Thread.`);
         }
         return thread;
