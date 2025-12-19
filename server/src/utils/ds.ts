@@ -373,6 +373,10 @@ export class List<T> {
         this.#data.sort(compareFn);
     }
 
+    /**
+     * Returns a string representation of the list.
+     * @returns string representation of the list.
+     */
     toString(): string {
         return this.#data.toString();
     }
@@ -387,6 +391,14 @@ export class List<T> {
 }
 
 
+/**
+ * Represents a node in a doubly linked list.
+ * @template T The type of value stored in the node.
+ * @example
+ * ```ts
+ * const node = new Node<number>(42);
+ * ```
+ */
 class Node<T> {
     #value: T;
     #next: Node<T>;
@@ -423,6 +435,11 @@ class Node<T> {
     }
 }
 
+/**
+ * A generic LinkedList class to manage an ordered collection of data items using a doubly linked list structure.
+ * Provides methods to get, set, delete, and manipulate items in the list.
+ * @template T - The type of data stored in the linked list.
+ */
 export class LinkedList<T> {
     #head: Node<T>;
     #tail: Node<T>;
@@ -780,6 +797,10 @@ export class LinkedList<T> {
         return foundIndex;
     }
 
+    /**
+     * Returns a string representation of the list by converting its items to a string.
+     * @returns string representation of the list.
+     */
     toString(): string {
         return this.items().toString();
     }
