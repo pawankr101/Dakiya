@@ -40,7 +40,7 @@ export class Utils {
     }
 
     /**
-     * #### Check If model is null
+     * ##### Check If model is null
      * @param model any
      */
     static isNull<T = any>(model: T): model is null {
@@ -318,7 +318,7 @@ export class Utils {
      * @example
      *  capitalize('hello world'); // 'Hello world'
      *  capitalize('HELLO WORLD'); // 'Hello world'
-     */    
+     */
     static capitalize(string='') {
         return string && string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
     }
@@ -355,7 +355,7 @@ export class Utils {
         return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
     }
 
-    
+
     /**
      * #### Deep Clone an object or array.
      * @template T - The type of the object to clone.
@@ -378,7 +378,7 @@ export class Utils {
 
         const copiedData = this.isArray(data) ? [] : Object.create(Object.getPrototypeOf(data));
 
-        
+
         visited.set(data, copiedData);
 
         const keys = options.toJson ? Object.keys(data) : [...Object.getOwnPropertyNames(data), ...Object.getOwnPropertySymbols(data)];
@@ -389,7 +389,7 @@ export class Utils {
                 Object.defineProperty(copiedData, key, { value, writable: true, enumerable: descriptor.enumerable, configurable: descriptor.configurable });
             } else { // This else implicitly means (descriptor.hasOwnProperty('get') || descriptor.hasOwnProperty('set'))
                 Object.defineProperty(copiedData, key, { get: descriptor.get, set: descriptor.set, enumerable: descriptor.enumerable, configurable: descriptor.configurable });
-            } 
+            }
         });
         return copiedData as T;
     }
