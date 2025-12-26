@@ -48,6 +48,11 @@ export class Temporals {
         return Utils.mapLoop(months, (month: string | ShortMonth | FullMonths) => month.toString());
     }
 
+    /*
+    * Get list of week days
+    * @param isShort: boolean - whether to return short names or full names
+    * @return string[] - list of week days
+    */
     static getWeekDayList(isShort?: boolean): string[] {
         const weekDays = isShort ? Object.values(ShortWeekDays) : Object.values(FullWeekDays);
         return Utils.mapLoop(weekDays, (day: string | ShortWeekDays | FullWeekDays) => day.toString());

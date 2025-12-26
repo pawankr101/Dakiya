@@ -20,7 +20,15 @@ export class Utils {
      * @param model any
      */
     static isDefined<T = any>(model: T): model is Exclude<typeof model, undefined> {
-        return typeof(model) !== 'undefined';
+        return model !== undefined;
+    }
+
+    /**
+     * #### Check If model is Undefined
+     * @param model any
+     */
+    static isUndefined<T = any>(model: T): model is undefined {
+        return model === undefined;
     }
 
     /**
@@ -28,7 +36,7 @@ export class Utils {
      * @param model any
      */
     static isDefinedAndNotNull<T = any>(model: T): model is Exclude<typeof model, undefined|null> {
-        return this.isDefined(model) && model!==null;
+        return model !== undefined && model!==null;
     }
 
     /**
@@ -36,7 +44,7 @@ export class Utils {
      * @param model any
      */
     static isUndefinedOrNull<T = any>(model: T): model is undefined | null {
-        return typeof(model) === 'undefined' || model === null;
+        return model === undefined || model === null;
     }
 
     /**
@@ -135,20 +143,20 @@ export class Utils {
      */
     static getValue<T=any>(model: any, key: string|number, defaultValue?: T): T | null {
         defaultValue = this.isDefined(defaultValue) ? defaultValue : null;
-        if(this.isNull(model)) return model;
-        if(this.isDefined(model)) {
-            if(this.isString(key) && key.includes('.')) {
-                let keys = key.split('.'), val = model[keys[0]],l=keys.length,i=1;
-                while(i<l) {
-                    if(this.isNull(val)) return val;
-                    if(!this.isDefined(val)) return defaultValue;
-                    val = val[keys[i++]];
-                }
-                return this.isDefined(val) ? val : defaultValue;
+        if(this.isUndefinedOrNull(model)) return defaultValue;
+
+        if(this.isString(key) && key.includes('.')) {
+            const keys = key.split('.'), keyCount = keys.length;
+            let index = 0, value = model;
+            while(index < keyCount) {
+                value = value[keys[index]];
+                if(this.isUndefined(value)) return defaultValue;
+                if(this.isNull(value)) return value;
+                index++;
             }
-            return this.isDefined(model[key]) ? model[key] : defaultValue;
+            return value as T;
         }
-        return defaultValue;
+        return this.isDefined(model[key]) ? model[key] : defaultValue;
     }
 
     /**
@@ -285,14 +293,19 @@ export class Utils {
      *    return value % 2 === 0 ? value * 2 : undefined; // double the even numbers
      *  }); // result will be [4, 8]
      */
-    static mapLoop<T, C>(array: Array<T>, callback: (value: T, index?: number) => C): Array<C> {
-        const result: Array<C> = [];
-        if(this.isArray(array)) {
-            for(var index = 0, len = array.length; index < len; index++) {
-                const cb_ret = callback(array[index], index);
-                if(this.isDefined(cb_ret)) result.push(cb_ret);
+    static mapLoop<T, U>(array: Array<T>, callback: (value: T, index: number) => U | LoopControl): Array<U> {
+        const result: Array<U> = [], len = array.length;
+        let index = 0;
+
+        while(index < len) {
+            const cbRetun = callback(array[index], index);
+            if(this.isDefined(cbRetun)) {
+                if(cbRetun === LoopControl.break) break;
+                result.push(cbRetun as U);
             }
+            index++;
         }
+
         return result;
     }
 
