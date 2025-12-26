@@ -1,13 +1,16 @@
 import { cpus } from 'os';
 import { Worker, MessageChannel, MessagePort } from "worker_threads";
-import { THREADING } from "../../config.js";
-import { Exception } from "../../exceptions/exception.js";
-import { Utility } from "./utility.js";
-import methods from "../../workers/methods.js";
-import { Helpers, Mapper } from '../../utils/index.js';
+import { THREADING } from "../config.js";
+import { Exception } from "../exceptions/index.js";
+import { Helpers, Mapper } from './index.js';
 
-type WorkerResult = {taskId: string, result?: any, error?: any};
-type Task = {_id: string, method: {name: string, arg?: any[]}, onSuccess: (result?: any) => void, onError: (error?: any) => void}
+type WorkerResult = { taskId: string, result?: any, error?: any };
+type Task = {
+    _id: string,
+    method: { name: string, arg?: any[] },
+    onSuccess: (result?: any) => void,
+    onError: (error?: any) => void
+}
 
 export class Thread {
     /** #### Random Hash for Private Constructor */
@@ -134,8 +137,8 @@ export class Thread {
         let thread:Thread = null, minTaskCount: number = -1;
 
         // find thread with min tasks in its bucket.
-        Utility.forLoop(this.#threads.items(), (th) => {
-            if((minTaskCount === (-1)) || th.#tasks.size<minTaskCount) {
+        this.#threads.loop((th) => {
+            if ((minTaskCount === (-1)) || th.#tasks.size < minTaskCount) {
                 minTaskCount = th.#tasks.size;
                 thread = th;
             }

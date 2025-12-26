@@ -1,9 +1,9 @@
 import { Collection, Db, MongoClient } from "mongodb";
 import { MONGO_DB } from "../../../config.js";
-import { Exception } from "../../../exceptions/exception.js";
+import { Exception } from "../../../exceptions/index.js";
 
 export class MongoConnection {
-    
+
     static #client: MongoClient;
     static #db: Db;
     static #connected: boolean = false;
@@ -22,7 +22,7 @@ export class MongoConnection {
 
     /**
      * Initializes the MongoDB connection if it is not already connected.
-     * 
+     *
      * This method attempts to connect the MongoDB client and set up the database instance.
      * If the connection is successful, it updates the internal state to reflect the connection status.
      */

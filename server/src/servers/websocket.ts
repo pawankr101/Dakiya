@@ -2,7 +2,7 @@
 import { WebSocket as Ws, WebSocketServer as Wss } from 'ws';
 import { Duplex } from 'stream';
 import { Server, Request } from './index.js';
-import { Exception } from '../../exceptions/exception.js';
+import { Exception } from '../exceptions/index.js';
 
 export class WSServer {
     static #wss: Wss = new Wss({ noServer: true });

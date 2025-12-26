@@ -1,5 +1,5 @@
 import { Response } from "./index.js";
-import { Mapper } from "../../utils/index.js";
+import { Mapper } from "../utils/index.js";
 
 /****** Type Declarations: Start ***** */
 

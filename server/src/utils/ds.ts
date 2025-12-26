@@ -21,7 +21,7 @@ export class Mapper<T> {
             });
         }
     }
-    
+
     /**
      * Retrieves the number of items in the Mapper.
      */
@@ -84,6 +84,15 @@ export class Mapper<T> {
      */
     items() {
         return Object.values(this.#data);
+    }
+
+    loop(cb: LoopCallback<T>): void {
+        const data = this.#data, keys = Object.keys(data), len = keys.length;
+        let index = 0;
+        while(index < len) {
+            if(cb(data[keys[index]], index) === LoopControl.break) break;
+            index++;
+        }
     }
 }
 
@@ -198,7 +207,7 @@ export class List<T> {
      * @returns The item that was removed.
      * @throws {Error} Throws an error if the list is empty.
      * @throws {Error} Throws an error if the index is out of bounds.
-     * 
+     *
      */
     deleteOne(index: number): T {
         if(this.#size === 0) throw new Error("List is empty");
@@ -352,16 +361,16 @@ export class List<T> {
 
     /**
      * Sorts the List in place.
-     * 
+     *
      * @param compareFn Function used to determine the order of the elements. It is expected to return
      * a negative value if the first argument is less than the second argument, zero if they're equal, and a positive
      * value otherwise. If omitted, the elements are sorted in ascending, UTF-16 code unit order.
      * @returns void
-     * 
+     *
      * @remarks
      * The default sort order is according to string Unicode code points. If you need a different sort order, you should provide a compare function.
      * This method mutates the List and does not create a new sorted List.
-     * 
+     *
      * @example
      * ```ts
      * const list = new List([11,2,22,1]);
@@ -472,11 +481,11 @@ export class LinkedList<T> {
 
     /**
      * Retrieves a node at the specified index in the doubly linked list.
-     * 
+     *
      * Uses an optimization strategy that searches from the nearest end:
      * - Searches from head if index is in the first half
      * - Searches from tail if index is in the second half
-     * 
+     *
      * @param index - The zero-based index of the node to retrieve
      * @returns The node at the specified index
      * @throws {Error} If the list is empty
@@ -486,7 +495,7 @@ export class LinkedList<T> {
         const size = this.size;
         if(size === 0) throw new Error("List is empty");
         if(index < 0 || index >= size) throw new Error("Index out of bounds");
-        
+
         if(index > size/2) {
             let node = this.#tail, currentPosition = size -1;
             while(currentPosition > index) {
@@ -495,13 +504,13 @@ export class LinkedList<T> {
             }
             return node;
         }
-        
+
         let node = this.#head, currentPosition = 0;
         while(currentPosition < index) {
             node = node.next;
             currentPosition++;
         }
-        
+
         return node;
     }
 
@@ -568,7 +577,7 @@ export class LinkedList<T> {
         const tempList = this.#buildTempList(...items);
         const currentNode = this.#getNode(index);
         const prevNode = currentNode.prev;
-        
+
         if(prevNode) {
             prevNode.setNext(tempList.head);
             tempList.head.setPrev(prevNode);
@@ -630,7 +639,7 @@ export class LinkedList<T> {
      * @returns The item that was removed.
      * @throws {Error} Throws an error if the list is empty.
      * @throws {Error} Throws an error if the index is out of bounds.
-     * 
+     *
      */
     deleteOne(index: number): T {
         if(this.#size === 0) throw new Error("List is empty");
@@ -841,7 +850,7 @@ export class Queue<T> {
      */
     dequeue(): T {
         if(this.#list.isEmpty()) throw new Error("Queue is empty");
-        
+
         return this.#list.deleteOne(0);
     }
 
@@ -906,7 +915,7 @@ export class Stack<T> {
      */
     pop(): T {
         if(this.#list.isEmpty()) throw new Error("Stack is empty");
-        
+
         return this.#list.deleteOne(this.size - 1);
     }
 

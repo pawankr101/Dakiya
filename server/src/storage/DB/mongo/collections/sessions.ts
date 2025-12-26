@@ -1,7 +1,7 @@
 import { Collection } from "mongodb";
 import { MONGO_DB } from "../../../../config.js";
 import { Exception } from "../../../../exceptions/index.js";
-import { User, UserSession } from "../../../../Models/index.js";
+import { User, UserSession } from "../../../../models/index.js";
 import { MongoConnection } from "../connection.js";
 import { Helpers } from "../../../../utils/helpers.js";
 

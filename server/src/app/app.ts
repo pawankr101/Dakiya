@@ -1,7 +1,7 @@
 import { HTTP_SERVER } from '../config.js';
 import { Exception } from '../exceptions/exception.js';
 import { AppRoutes } from './app.route.js';
-import { HttpServer, Request, Response, Server } from './servers/index.js';
+import { HttpServer, Request, Response, Server } from '../servers/index.js';
 import Fastify from 'fastify';
 
 export class Application {
@@ -12,9 +12,9 @@ export class Application {
 
     static #setupAppLevelErrorHandling() {
         this.#app.setErrorHandler((error, request, response) => {
-            const err = error instanceof Exception ? error : new Exception('Internal Server Error', { cause: error, code: 500 });
+            const err = error instanceof Exception ? error : new Exception('Internal Server Error', { cause: error as Error, code: 500 });
             response.status(err.code).send({ error: err.message, code: err.code });
-            
+
         });
     }
 
@@ -38,8 +38,8 @@ export class Application {
      * logs a descriptive message, and exits. On a successful start, it logs the
      * server's base URL and process ID to the console.
      *
-     * @returns `Promise<void>` 
-     * 
+     * @returns `Promise<void>`
+     *
      * @remarks
      * A promise that resolves when the startup process is initiated.
      * Note that the process will exit on failure or continue running on success,
@@ -67,7 +67,7 @@ export class Application {
                         console.log(`  [S] Server info:\n      Base Route: ${HTTP_SERVER.httpSecurity}://${HTTP_SERVER.host}:${HTTP_SERVER.port}\n      Process id: ${process.pid}`);
                     }
                 });
-            } 
+            }
         })
     }
 }

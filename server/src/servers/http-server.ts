@@ -3,8 +3,8 @@ import https from 'https';
 import http2 from 'http2';
 import { ListenOptions } from 'net';
 import { WSServer } from './index.js';
-import { Exception } from '../../exceptions/index.js';
-import { Helpers } from '../../utils/index.js';
+import { Exception } from '../exceptions/index.js';
+import { Helpers } from '../utils/index.js';
 
 /* ***** Type Declarations: Start ***** */
 
@@ -79,7 +79,7 @@ export class HttpServer<hv extends HttpVersion, hs extends HttpSecurity> {
         if(!this.#httpServer) this.#httpServer = new HttpServer<hv, hs>(httpVer, httpSec, options, HttpServer.#staticHash);
         return this.#httpServer;
     }
-    
+
     /**
      * Attaches a request listener and a global client error handler to the server.
      *
@@ -105,7 +105,7 @@ export class HttpServer<hv extends HttpVersion, hs extends HttpSecurity> {
                     socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
                 }
             });
-            
+
             // Attach the provided request listener
             this.#server.addListener('request', requestListener);
 
