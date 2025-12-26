@@ -1,100 +1,97 @@
 {
-  "name": "dakiya",
-  "version": "1.0.0",
-  "description": "this is a chat app which provide end to end communication solution.",
-  "private": true,
-  "type": "module",
-  "engine-strict": true,
-  "engines": {
-    "node": ">=20"
-  },
-  "scripts": {
-    "client:symlink": "cd ./client && npm run symlink",
-    "client:build": "cd ./client && npm run builder",
-    "client:build:prod": "cd ./client && npm run builder:prod",
-    "client:start": "cd ./client && npm start",
-    "server:symlink": "cd ./server && npm run symlink",
-    "server:build": "cd ./server && npm run build",
-    "server:build:prod": "cd ./server && npm run build:prod",
-    "server:start": "cd ./server && npm start",
-    "server:start:dev": "cd ./server && npm run start:dev",
-    "server:start:debug": "cd ./server && npm run start:debug",
-    "server:test": "cd ./server && npm run test",
-    "symlink": "npm run client:symlink && npm run server:symlink",
-    "build": "concurrently --kill-others \"npm run server:build\" \"npm run client:build\"",
-    "build:prod": "concurrently --kill-others \"npm run server:build:prod\" \"npm run client:build\"",
-    "start": "concurrently --kill-others \"npm run server:start\" \"npm run client:start\"",
-    "reinstall": "rm -rf node_modules && rm -f package-lock.json && npm install && npm run symlink",
-    "update": "ncu -u",
-    "es": "cd ./client && npm run es"
-  },
-  "dependencies": {
-    "fastify": "^5.6.2",
-    "jws": "^4.0.1",
-    "mime": "^4.1.0",
-    "mongodb": "^7.0.0",
-    "nodemailer": "^7.0.12",
-    "uuid": "^13.0.0",
-    "ws": "^8.18.3"
-  },
-  "devDependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.3.6",
-    "@mui/material": "^7.3.6",
-    "@types/jest": "^30.0.0",
-    "@types/jws": "^3.2.11",
-    "@types/node": "^25.0.3",
-    "@types/nodemailer": "^7.0.4",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
-    "@types/webpack-node-externals": "^3.0.4",
-    "@types/ws": "^8.18.1",
-    "colors": "^1.4.0",
-    "concurrently": "^9.2.1",
-    "css-loader": "^7.1.2",
-    "esbuild": "^0.27.2",
-    "file-loader": "^6.2.0",
-    "html-webpack-plugin": "^5.6.5",
-    "jest": "^30.2.0",
-    "node-watch": "^0.7.4",
-    "npm-check-updates": "^19.2.0",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "react-router-dom": "^7.11.0",
-    "sass": "^1.97.1",
-    "sass-loader": "^16.0.6",
-    "style-loader": "^4.0.0",
-    "ts-jest": "^29.4.6",
-    "ts-loader": "^9.5.4",
-    "ts-node": "^10.9.2",
-    "typedoc": "^0.28.15",
-    "typescript": "^5.9.3",
-    "webpack": "^5.104.1",
-    "webpack-cli": "^6.0.1",
-    "webpack-node-externals": "^3.0.0"
-  },
-  "keywords": [
-    "chat",
-    "call"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/pawankr101/Dakiya.git"
-  },
-  "homepage": "https://github.com/pawankr101/Dakiya#readme",
-  "bugs": {
-    "url": "https://github.com/pawankr101/Dakiya/issues"
-  },
-  "author": {
-    "name": "Akshay Kumar",
-    "email": "pawan.akshaykr@gmail.com"
-  },
-  "contributors": [
-    {
-      "name": "Akshay Kumar",
-      "email": "pawan.akshaykr@gmail.com"
-    }
-  ],
-  "license": "ISC"
+    "name": "dakiya",
+    "version": "1.0.0",
+    "description": "this is a chat app which provide end to end communication solution.",
+    "private": true,
+    "type": "module",
+    "engine-strict": true,
+    "engines": {
+        "node": ">=20"
+    },
+    "scripts": {
+        "client:build": "cd ./client && npm run builder",
+        "client:build:prod": "cd ./client && npm run builder:prod",
+        "client:start": "cd ./client && npm start",
+        "server:build": "cd ./server && npm run build",
+        "server:build:prod": "cd ./server && npm run build:prod",
+        "server:start": "cd ./server && npm start",
+        "server:start:dev": "cd ./server && npm run start:dev",
+        "server:start:debug": "cd ./server && npm run start:debug",
+        "server:test": "cd ./server && npm run test",
+        "build": "concurrently --kill-others \"npm run server:build\" \"npm run client:build\"",
+        "build:prod": "concurrently --kill-others \"npm run server:build:prod\" \"npm run client:build\"",
+        "start": "concurrently --kill-others \"npm run server:start\" \"npm run client:start\"",
+        "reinstall": "rm -rf node_modules && rm -f package-lock.json && npm install",
+        "update": "ncu -u",
+        "es": "cd ./client && npm run es"
+    },
+    "dependencies": {
+        "fastify": "^5.6.2",
+        "jws": "^4.0.1",
+        "mime": "^4.1.0",
+        "mongodb": "^7.0.0",
+        "nodemailer": "^7.0.12",
+        "uuid": "^13.0.0",
+        "ws": "^8.18.3"
+    },
+    "devDependencies": {
+        "@emotion/react": "^11.14.0",
+        "@emotion/styled": "^11.14.1",
+        "@mui/icons-material": "^7.3.6",
+        "@mui/material": "^7.3.6",
+        "@types/jest": "^30.0.0",
+        "@types/jws": "^3.2.11",
+        "@types/node": "^25.0.3",
+        "@types/nodemailer": "^7.0.4",
+        "@types/react": "^19.2.7",
+        "@types/react-dom": "^19.2.3",
+        "@types/webpack-node-externals": "^3.0.4",
+        "@types/ws": "^8.18.1",
+        "colors": "^1.4.0",
+        "concurrently": "^9.2.1",
+        "css-loader": "^7.1.2",
+        "esbuild": "^0.27.2",
+        "file-loader": "^6.2.0",
+        "html-webpack-plugin": "^5.6.5",
+        "jest": "^30.2.0",
+        "node-watch": "^0.7.4",
+        "npm-check-updates": "^19.2.0",
+        "react": "^19.2.3",
+        "react-dom": "^19.2.3",
+        "react-router-dom": "^7.11.0",
+        "sass": "^1.97.1",
+        "sass-loader": "^16.0.6",
+        "style-loader": "^4.0.0",
+        "ts-jest": "^29.4.6",
+        "ts-loader": "^9.5.4",
+        "ts-node": "^10.9.2",
+        "typedoc": "^0.28.15",
+        "typescript": "^5.9.3",
+        "webpack": "^5.104.1",
+        "webpack-cli": "^6.0.1",
+        "webpack-node-externals": "^3.0.0"
+    },
+    "keywords": [
+        "chat",
+        "call"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/pawankr101/Dakiya.git"
+    },
+    "homepage": "https://github.com/pawankr101/Dakiya#readme",
+    "bugs": {
+        "url": "https://github.com/pawankr101/Dakiya/issues"
+    },
+    "author": {
+        "name": "Akshay Kumar",
+        "email": "pawan.akshaykr@gmail.com"
+    },
+    "contributors": [
+        {
+            "name": "Akshay Kumar",
+            "email": "pawan.akshaykr@gmail.com"
+        }
+    ],
+    "license": "ISC"
 }
