@@ -280,9 +280,6 @@ class ProjectBuilder {
 
 /**
  * Static file server
- *
- * @ignore
- * biome-ignore lint/complexity/noStaticOnlyClass: Implements a Singleton Static Server
  */
 class StaticServer {
     /** @type {Server} */
