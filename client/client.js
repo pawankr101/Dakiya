@@ -1,9 +1,8 @@
-import { resolve as resolvePath } from "path";
-import { createServer, Server } from "http";
-import { performance } from "perf_hooks";
-import { fileURLToPath } from "url";
-import { randomUUID } from "crypto";
-import { rm, watch } from "fs";
+import { resolve as resolvePath } from "node:path";
+import { createServer, Server } from "node:http";
+import { randomBytes } from "node:crypto";
+import { fileURLToPath } from "node:url";
+import { rm, watch } from "node:fs";
 import { build } from "esbuild";
 import MIME from "mime/lite";
 
@@ -42,7 +41,7 @@ const CONFIG = {
  * @returns {string}
  */
 function generateId() {
-    return randomUUID().toString();
+    return randomBytes(4).toString('hex');
 }
 /************************ utils: End *************************/
 
@@ -174,11 +173,11 @@ class ProjectBuilder {
      * @param {{warnings: BuilderMessage[], errors: BuilderMessage[]}} result
      */
     #logBuilderError(result) {
-        if (result.warnings && result.warnings.length) {
+        if (result.warnings?.length) {
             const warnings = result.warnings.map((w) => w.text);
             console.warn("Warnings:", warnings);
         }
-        if (result.errors && result.errors.length) {
+        if (result.errors?.length) {
             const errors = result.errors.map((e) => e.text);
             console.error("Errors:", errors);
         }
@@ -189,7 +188,7 @@ class ProjectBuilder {
      * @param {BuildResult} res
      */
     #logBuilderResult(res) {
-        if (res.outputFiles && res.outputFiles.length) {
+        if (res.outputFiles?.length) {
             const outputFiles = res.outputFiles.map((f) => f.path);
             console.log("Output Files:", outputFiles);
         }
@@ -275,12 +274,15 @@ class ProjectBuilder {
      * @returns {ProjectBuilder}
      */
     static getBuilder(options) {
-        return new ProjectBuilder(this.#staticHash, options);
+        return new ProjectBuilder(ProjectBuilder.#staticHash, options);
     }
 }
 
 /**
  * Static file server
+ *
+ * @ignore
+ * biome-ignore lint/complexity/noStaticOnlyClass: Implements a Singleton Static Server
  */
 class StaticServer {
     /** @type {Server} */
@@ -295,15 +297,15 @@ class StaticServer {
      * @return {{name: string, size: number, contents: Uint8Array}}
      */
     static #getRequestedFile(url) {
-        if (!this.#fileSource) return null;
+        if (!StaticServer.#fileSource) return null;
         let path = url.split("?")[0];
         if (path[0] === "/") path = path.slice(1);
         if (!path) path = "index.html";
 
-        let file = this.#fileSource.getFile(path);
+        let file = StaticServer.#fileSource.getFile(path);
         if (!file) {
             path = "index.html";
-            file = this.#fileSource.getFile(path);
+            file = StaticServer.#fileSource.getFile(path);
         }
 
         return file ? { name: path, size: file.length, contents: file } : null;
@@ -340,11 +342,11 @@ class StaticServer {
     static #startServer(host, port) {
         return new Promise((success, failure) => {
             // create server
-            const server = createServer(this.#requestHandler);
+            const server = createServer(StaticServer.#requestHandler);
             server.on("error", failure);
 
-            if (this.#server) this.#server.close();
-            this.#server = server;
+            if (StaticServer.#server) StaticServer.#server.close();
+            StaticServer.#server = server;
 
             server.listen(port, host, () => {
                 console.log(`\u001b[32m  [C] Client Application Started.`);
@@ -364,26 +366,30 @@ class StaticServer {
      * @return {void}
      */
     static #watchDirectory(watchDir, watcherDelay, builder) {
-        let currentTime = performance.now(),
-            updateCompleted = true;
-        const watcher = watch(watchDir, { recursive: true }, () => {
-            if (
-                updateCompleted &&
-                performance.now() > currentTime + watcherDelay
-            ) {
-                updateCompleted = false;
-                console.log(`\u001b[33m  [C] Changes found.`);
-                builder
-                    .build()
-                    .then(() => {
-                        currentTime = performance.now();
-                        updateCompleted = true;
-                        console.log(`\u001b[33m  [C] Changes applied.`);
-                    })
-                    .catch((error) => {
-                        console.error(error);
-                        watcher.close();
-                    });
+        let timer = null, isBuilding = false, needRebuild = false;
+        const rebuild = () => {
+            isBuilding = true;
+            needRebuild = false;
+            console.log(`\u001b[33m  [C] Changes found.`);
+            builder.build().then(() => {
+                console.log(`\u001b[33m  [C] Changes applied.`);
+            }).catch((error) => {
+                console.error(error);
+            }).finally(() => {
+                isBuilding = false;
+                if (needRebuild) {
+                    if (timer) clearTimeout(timer);
+                    timer = setTimeout(rebuild, watcherDelay);
+                }
+            });
+        }
+
+        watch(watchDir, { recursive: true }, () => {
+            if(!isBuilding) {
+                if(timer) clearTimeout(timer);
+                timer = setTimeout(rebuild, watcherDelay);
+            } else {
+                needRebuild = true;
             }
         });
     }
@@ -397,11 +403,11 @@ class StaticServer {
         try {
             const builder = ProjectBuilder.getBuilder(builderOptions);
             await builder.build();
-            this.#fileSource = builder.cache;
+            StaticServer.#fileSource = builder.cache;
 
-            await this.#startServer(serverOptions.host, serverOptions.port);
+            await StaticServer.#startServer(serverOptions.host, serverOptions.port);
             if (serverOptions.watchDir) {
-                this.#watchDirectory(
+                StaticServer.#watchDirectory(
                     serverOptions.watchDir,
                     serverOptions.watcherDelay,
                     builder,
@@ -409,7 +415,7 @@ class StaticServer {
             }
         } catch (error) {
             console.error(error);
-            process.exit(1);
+            throw error;
         }
     }
 }
