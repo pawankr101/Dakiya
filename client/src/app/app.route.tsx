@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link, RouteObject } from "react-router-dom";
 import { Dashboard } from './components';
 import { Login } from './modules';

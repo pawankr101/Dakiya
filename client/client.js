@@ -31,7 +31,7 @@ const CONFIG = {
 /************************ Types: Start ************************/
 /**
  * @typedef {{ publicDir: string, entryPoints: [{in: string, out: string}], tsconfig: string, target: Array<string>, isProd?: boolean, cachesIndexHtml?: boolean, logBuildResult?: boolean }} BuilderOptions
- * @typedef {{host: string, port: number, watchDir?: string, watcherDelay?: number}} ServerOptions
+ * @typedef {{ host: string, port: number, watchDir?: string, watcherDelay?: number }} ServerOptions
  */
 /************************ Types: End *************************/
 
@@ -113,23 +113,13 @@ class ProjectBuilder {
      * @param {string} privateHash
      * @param {BuilderOptions} param1
      */
-    constructor(
-        privateHash,
-        {
-            publicDir,
-            entryPoints,
-            tsconfig,
-            target,
-            isProd,
-            cachesIndexHtml,
-            logBuildResult,
-        },
-    ) {
+    constructor(privateHash,{ publicDir, entryPoints, tsconfig, target, isProd, cachesIndexHtml, logBuildResult }) {
         if (privateHash !== ProjectBuilder.#staticHash) {
-            throw new Error(
-                `'ProjectBuilder' class constructor can not be called from outside.`,
-            );
+            throw new Error(`'ProjectBuilder' class constructor can not be called from outside.`);
         }
+
+        /** @type {boolean} */
+        this.isProd = isProd ? true : false;
 
         /** @type {BuildOptions} */
         this.buildOptions = {
@@ -138,33 +128,22 @@ class ProjectBuilder {
             entryPoints,
             tsconfig,
             target,
+            minify: isProd,
+            treeShaking: isProd,
+            write: isProd,
         };
 
-        /** @type {boolean} */
-        this.isProd = isProd || false;
-
-        if (isProd)
-            this.buildOptions = {
-                ...this.buildOptions,
-                minify: true,
-                sourcemap: false,
-                treeShaking: true,
-                write: true,
-                legalComments: "linked",
-            };
-        else {
-            this.buildOptions = {
-                ...this.buildOptions,
-                minify: false,
-                sourcemap: "inline",
-                treeShaking: false,
-                write: false,
-            };
+        if(isProd) {
+            this.buildOptions.sourcemap = false;
+            this.buildOptions.legalComments = 'linked';
+        } else {
+            this.buildOptions.sourcemap = 'inline';
 
             /** @type {StaticFiles} */
             this.cache = new StaticFiles();
-            this.cachesIndexHtml = cachesIndexHtml || false;
-            this.logBuildResult = logBuildResult || false;
+
+            this.cachesIndexHtml = cachesIndexHtml ? true: false;
+            this.logBuildResult = logBuildResult ? true: false;
         }
     }
 
@@ -363,7 +342,8 @@ class StaticServer {
      * @return {void}
      */
     static #watchDirectory(watchDir, watcherDelay, builder) {
-        let timer = null, isBuilding = false, needRebuild = false;
+        let timer = null;
+        let isBuilding = false, needRebuild = false;
         const rebuild = () => {
             isBuilding = true;
             needRebuild = false;

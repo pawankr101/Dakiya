@@ -1,9 +1,7 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyPluginCallback } from "fastify";
 import { AuthRoutes } from "./auth/index.js";
 
-
-export function ModuleRoutes(fastify: FastifyInstance, options: any, done: Function) {
-    // Define module-specific routes here
+export const ModuleRoutes: FastifyPluginCallback =(fastify, _options, done) => {
 
     // Auth Module Routes
     fastify.register(AuthRoutes, { prefix: '/auth' })

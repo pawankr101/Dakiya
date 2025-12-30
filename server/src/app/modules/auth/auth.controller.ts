@@ -15,7 +15,7 @@ export class AuthController {
         try {
             const { uidEmailOrPhone, password } = request.body;
             const token = await AuthService.login(uidEmailOrPhone, password, request.headers['user-agent'], request.ip);
-            
+
             response.header('Content-Type', 'application/json').send({ message: 'Login successful', token });
         } catch (error) {
             if (error instanceof Exception) {

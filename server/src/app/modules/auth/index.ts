@@ -1,8 +1,8 @@
 
-import { FastifyInstance } from "fastify";
+import type { FastifyPluginCallback } from "fastify";
 import { AuthController } from "./auth.controller.js";
 
-export function AuthRoutes(fastify: FastifyInstance, options: any, done: Function) {
+export const AuthRoutes: FastifyPluginCallback = (fastify, _options, done) => {
     // Define authentication routes
     fastify.post('/register', { schema: {} }, AuthController.register);
     fastify.post('/login', { schema: {} }, AuthController.login);

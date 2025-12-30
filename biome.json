@@ -3,13 +3,13 @@
     "files": {
         "ignoreUnknown": false,
         "includes": [
-            "src/**", "client.js"
+            "src/**", "client.js", "server.js"
         ]
     },
     "linter": {
         "enabled": true,
         "rules": {
-            "recommended": false,
+            "recommended": true,
             "complexity": {
                 "noStaticOnlyClass": "off"
             }
