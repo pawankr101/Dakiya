@@ -2,17 +2,17 @@ import { Collection } from "mongodb";
 import { MONGO_DB } from "../../../../config.js";
 import { Exception } from "../../../../exceptions/index.js";
 import { User, UserSession } from "../../../../models/index.js";
-import { MongoConnection } from "../connection.js";
+import { MongoDB } from "../connection.js";
 import { Helpers } from "../../../../utils/helpers.js";
 
 
 export class SessionsQuery {
 
-    static #getSessionsCollection: () => Collection<UserSession> = (() => {
+    static #getSessionsCollection = (() => {
         let collection: Collection<UserSession>;
-        return () => {
+        return async () => {
             if(!collection) {
-                collection = MongoConnection.getCollection<UserSession>(MONGO_DB.collections.sessions);
+                collection = await MongoDB.getCollection<UserSession>(MONGO_DB.collections.sessions);
             }
             return collection;
         }
@@ -33,7 +33,8 @@ export class SessionsQuery {
         session.lastSessionId = null;
         session.closedAt = null;
 
-        await this.#getSessionsCollection().insertOne(session);
+        const collection = await this.#getSessionsCollection();
+        await collection.insertOne(session);
         return session;
     }
 }

@@ -312,13 +312,13 @@ class AppRunner {
             isBuilding = true;
             needRebuild = false;
 
-            if(!isFirstBuild) console.log(`\u001b[33m  [S] Changes found.`);
+            if(!isFirstBuild) console.log(`\u001b[36m  [S] Changes found.`);
 
             const isBuildSuccesiful = await this.#buildProject();
 
             if (isBuildSuccesiful && !needRebuild) {
-                if(isFirstBuild) console.log(`\u001b[33m  [S] Starting application...`);
-                else console.log(`\u001b[33m  [S] Restarting application...`);
+                if(isFirstBuild) console.log(`\u001b[34m  [S] Starting application...`);
+                else console.log(`\u001b[34m  [S] Restarting application...`);
                 this.#startNewProcess();
             }
 

@@ -3,12 +3,17 @@ import { Exception } from '../exceptions/exception.js';
 import { AppRoutes } from './app.route.js';
 import { HttpServer, Request, Response, Server } from '../servers/index.js';
 import Fastify from 'fastify';
+import { MongoDB } from '../storage/index.js';
 
 export class Application {
     static #httpServer = HttpServer.build(HTTP_SERVER.httpVersion, HTTP_SERVER.httpSecurity, {allowHTTP1: true});
     static #app = Fastify({
         serverFactory: (requestHandler) => <Server>this.#httpServer.addRequestListener(requestHandler)
     });
+
+    static async #setupDatabases() {
+        await MongoDB.getConnection().connect();
+    }
 
     static #setupAppLevelErrorHandling() {
         this.#app.setErrorHandler((error, request, response) => {
@@ -19,8 +24,13 @@ export class Application {
     }
 
     static async #setupApplication() {
-        this.#setupAppLevelErrorHandling();
-        this.#app.register(AppRoutes);
+        try {
+            this.#setupAppLevelErrorHandling();
+            await this.#setupDatabases();
+            this.#app.register(AppRoutes);
+        } catch (error) {
+            throw new Exception("Application setup failed.", { code: 500, cause: error as Error });
+        }
     }
 
     /**
@@ -46,28 +56,34 @@ export class Application {
      * managed by internal callbacks.
      */
     static async start() {
-        await this.#setupApplication();
-        this.#app.ready((appError) => {
-            if(appError) {
-                console.log(`  [S] Api Server Could not get started.`);
-                console.log(`      ERROR: ${appError.message}`);
-                process.exit();
-            } else {
-                this.#httpServer.start({
-                    host: HTTP_SERVER.host,
-                    port: HTTP_SERVER.port
-                }, {
-                    onError: (error) => {
-                        console.log(`  [S] Api Server stopped.`);
-                        console.log(`      ERROR: ${error.message}`);
-                        process.exit();
-                    },
-                    listener: () => {
-                        console.log(`  [S] Server Started:`);
-                        console.log(`  [S] Server info:\n      Base Route: ${HTTP_SERVER.httpSecurity}://${HTTP_SERVER.host}:${HTTP_SERVER.port}\n      Process id: ${process.pid}`);
-                    }
-                });
-            }
-        })
+        try {
+            await this.#setupApplication();
+            this.#app.ready((appError) => {
+                if (appError) {
+                    console.log(`\u001b[31m  [S] Api Server Could not get started.`);
+                    console.log(`\u001b[31m      ERROR: ${appError.message}`);
+                    process.exit();
+                } else {
+                    this.#httpServer.start({
+                        host: HTTP_SERVER.host,
+                        port: HTTP_SERVER.port
+                    }, {
+                        onError: (error) => {
+                            console.log(`\u001b[33m  [S] Api Server stopped.`);
+                            console.log(`\u001b[33m      ERROR: ${error.message}`);
+                            process.exit();
+                        },
+                        listener: () => {
+                            console.log(`\u001b[34m  [S] Server Started:`);
+                            console.log(`\u001b[34m  [S] Server info:\n\u001b[34m      Base Route: ${HTTP_SERVER.httpSecurity}://${HTTP_SERVER.host}:${HTTP_SERVER.port}\n\u001b[34m      Process id: ${process.pid}`);
+                        }
+                    });
+                }
+            });
+        }
+        catch (error) {
+            console.error("Application failed to start:", error);
+            process.exit(1);
+        }
     }
 }

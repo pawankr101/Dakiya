@@ -1,32 +1,27 @@
 import { Collection, Db, MongoClient } from "mongodb";
 import { MONGO_DB } from "../../../config.js";
 import { Exception } from "../../../exceptions/index.js";
+import { Helpers } from "../../../utils/index.js";
 
-export class MongoConnection {
+export class MongoDB {
+    static #privateHash = Helpers.getUuid();
+    static #instance: MongoDB;
 
-    static #client: MongoClient;
-    static #db: Db;
-    static #connected: boolean = false;
+    #client: MongoClient;
+    #db: Db;
+    #connected: boolean = false;
 
-    static {
+    constructor(hash: string) {
+        if(hash !== MongoDB.#privateHash)
         this.#client = new MongoClient(MONGO_DB.connectionUrl, {
             auth: {
                 username: MONGO_DB.username,
                 password: MONGO_DB.password
             }
         });
-
-        // Attempt to connect to the database immediately
-        // this.#init()
     }
 
-    /**
-     * Initializes the MongoDB connection if it is not already connected.
-     *
-     * This method attempts to connect the MongoDB client and set up the database instance.
-     * If the connection is successful, it updates the internal state to reflect the connection status.
-     */
-    static async #init() {
+    async connect() {
         try {
             if(!this.#connected) {
                 await this.#client.connect();
@@ -35,23 +30,22 @@ export class MongoConnection {
                 console.log("MongoDB connection initialized successfully.");
             }
         } catch(error) {
-            console.error("Failed to initialize MongoDB connection.", error);
+            new Exception("Failed to initialize MongoDB connection.", { code: 503, cause: error } );
         }
     }
 
-    /**
-     * Retrieves a MongoDB collection with the specified name and type.
-     *
-     * @template T - The type of documents stored in the collection.
-     * @param collectionName - The name of the collection to retrieve.
-     * @returns The MongoDB collection instance for the specified type.
-     * @throws {Exception} If the database connection is not established.
-     */
-    public static getCollection<T>(collectionName: string): Collection<T> {
-        if (!this.#connected) {
-            this.#init();
-            throw new Exception("Database connection is not established.", { code: 503 });
+    static getConnection() {
+        if(!this.#instance) this.#instance = new MongoDB(this.#privateHash);
+        return this.#instance;
+    }
+
+    static async getCollection<T>(collectionName: string): Promise<Collection<T>> {
+        const mongo = MongoDB.getConnection();
+        try {
+            if(!mongo.#connected) await mongo.connect();
+            return mongo.#db.collection<T>(collectionName);
+        } catch (error) {
+            throw new Exception("Database connection is not established.", { code: 500, cause: error } );
         }
-        return this.#db.collection<T>(collectionName);
     }
 }

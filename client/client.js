@@ -337,9 +337,7 @@ class StaticServer {
 
             server.listen(port, host, () => {
                 console.log(`\u001b[32m  [C] Client Application Started.`);
-                console.log(
-                    `\u001b[32m  [C] Client Application listening at => \u001b[34mhttp://${host}:${port}`,
-                );
+                console.log(`\u001b[32m  [C] Client Application listening at => \u001b[34mhttp://${host}:${port}`);
                 success();
             });
         });
@@ -358,9 +356,9 @@ class StaticServer {
         const rebuild = () => {
             isBuilding = true;
             needRebuild = false;
-            console.log(`\u001b[33m  [C] Changes found.`);
+            console.log(`\u001b[36m  [C] Changes found.`);
             builder.build().then(() => {
-                console.log(`\u001b[33m  [C] Changes applied.`);
+                console.log(`\u001b[32m  [C] Changes applied.`);
             }).catch((error) => {
                 console.error(error);
             }).finally(() => {

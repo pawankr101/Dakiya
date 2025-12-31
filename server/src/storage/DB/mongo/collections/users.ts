@@ -2,15 +2,15 @@ import { Collection } from "mongodb";
 import { MONGO_DB } from "../../../../config.js";
 import { Exception } from "../../../../exceptions/index.js";
 import { User } from "../../../../models/index.js";
-import { MongoConnection } from "../connection.js";
+import { MongoDB } from "../connection.js";
 import { Helpers, Utils } from "../../../../utils/index.js";
 
 export class UsersQuery {
-    static #getUsersCollection: () => Collection<User> = (() => {
+    static #getUsersCollection = (() => {
         let collection: Collection<User>;
-        return () => {
+        return async () => {
             if(!collection) {
-                collection = MongoConnection.getCollection<User>(MONGO_DB.collections.users);
+                collection = await MongoDB.getCollection<User>(MONGO_DB.collections.users);
             }
             return collection;
         }
@@ -33,7 +33,8 @@ export class UsersQuery {
         user.updatedAt = new Date();
         user.password = 'password';
 
-        await this.#getUsersCollection().insertOne(user);
+        const collection = await this.#getUsersCollection();
+        await collection.insertOne(user);
         return user;
     }
 
@@ -44,7 +45,8 @@ export class UsersQuery {
         const projection: {[K: string]: 0|1}  = {};
         if (Utils.isNotEmptyArray(fields)) Utils.loop(fields, (field) => { projection[field] = 1; });
 
-        return await this.#getUsersCollection().findOne({
+        const collection = await this.#getUsersCollection();
+        return await collection.findOne({
             $or: [
                 { uid: uidEmailOrPhone },
                 { email: uidEmailOrPhone },
