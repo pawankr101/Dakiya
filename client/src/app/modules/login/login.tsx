@@ -1,10 +1,10 @@
-import React, { SyntheticEvent, useCallback, useMemo, useState } from 'react';
+import { type SyntheticEvent, useCallback, useMemo, useState } from 'react';
 import { CredentialLoginBox, LoginBox, LoginInputBox, LoginPageContainer, SubmitButtonBox, ThirdPartyLoginBox, UserRegistrationLinkBox, Google, Microsoft, Meta, LinkedIn, GitHub } from './login.style';
 import { Button, IconButton, InputAdornment, InputLabel, OutlinedInput, Tabs, Box, FormHelperText, Tab } from '@mui/material';
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { Link } from 'react-router-dom';
 
-// Util Functions 
+// Util Functions
 function validatePassword(password: string) {
     if(password) return '';
     return `'Password' is Required`;
@@ -117,7 +117,7 @@ function PasswordField({label, setPassword}: Readonly<{label: string, setPasswor
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const hasError = useMemo(() => (typeof(error)==='string' && error.length>0), [error]);
-    
+
     const handleClickShowPassword = useCallback(() => setShowPassword((show) => !show), []);
     const onChangePasswordHandler = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const value = event.target.value;
@@ -163,7 +163,7 @@ function OtpLogin() {
 function MobileNumberField({label, value, setValue}: Readonly<{label: string, value?: string, setValue: (value: string) => void}>) {
     const [error, setError] = useState('');
     const hasError = useMemo(() => (typeof(error)==='string' && error.length>0), [error]);
-    
+
     const onChangeHandler = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const value = event.target.value;
         event.stopPropagation();

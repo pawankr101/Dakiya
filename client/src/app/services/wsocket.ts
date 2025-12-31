@@ -1,7 +1,7 @@
 
-class WSocket {
+export class WSocket {
     #socket: WebSocket
     constructor() {
-        new WebSocket('url' )
+        this.#socket = new WebSocket('url' )
     }
 }

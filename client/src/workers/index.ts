@@ -1,20 +1,20 @@
 type WorkerMessageDataInput = {
     method: string,
-    arg: any[]
+    arg: unknown[]
 }
-type WorkerMessageDataOutput<T=any> = {
+type WorkerMessageDataOutput<T> = {
     error: {
         message: string,
         code?: number
     },
     output: T
 }
-let worker = <DedicatedWorkerGlobalScope><unknown>self;
+const worker = <DedicatedWorkerGlobalScope><unknown>self;
 
 worker.onmessage = async (event: MessageEvent<WorkerMessageDataInput>) => {
     try {
         if(event.data) {
-            let output = await processData(event.data.method, event.data.arg);
+            const output = await processData(event.data.method, event.data.arg);
             worker.postMessage({output});
         } else worker.postMessage({error: {message: "input data not provided to worker."}});
     } catch(error) {
@@ -22,6 +22,6 @@ worker.onmessage = async (event: MessageEvent<WorkerMessageDataInput>) => {
     }
 }
 
-async function processData<T=any>(method: string, arg: any[]): Promise<WorkerMessageDataOutput<T>> {
-    return <WorkerMessageDataOutput><unknown>{method: method, data: arg[0]};
+async function processData<T, U>(method: string, arg: U[]): Promise<WorkerMessageDataOutput<T>> {
+    return {method: method, data: arg[0]} as unknown as WorkerMessageDataOutput<T>;
 }

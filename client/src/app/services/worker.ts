@@ -1,16 +1,16 @@
 import { Exception } from "../../exceptions"
 
-type WorkerMessageDataInput = {
+type WorkerMessageDataInput<T=unknown> = {
     method: string,
-    arg: any[]
+    arg: T[]
 }
-type WorkerMessageDataOutput<T=any> = {
+type WorkerMessageDataOutput<T=unknown> = {
     error: Exception,
     output: T
 }
 const worker = new Worker('worker.js', {name: 'worker'});
 
-export async function callWorkerMethod<T>(method: string, arg: any[]) {
+export async function callWorkerMethod<T>(method: string, arg: unknown[]) {
     return new Promise((resolve: (v: T)=>void, reject) => {
         if(method) {
             worker.onmessage = (event: MessageEvent<WorkerMessageDataOutput<T>>) => {
@@ -22,4 +22,3 @@ export async function callWorkerMethod<T>(method: string, arg: any[]) {
         }
     })
 }
-

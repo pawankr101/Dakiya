@@ -1,5 +1,5 @@
-import {styled, FormControl, Box, Paper } from '@mui/material';
-import { SVGProps } from 'react';
+import { styled, FormControl, Box, Paper } from '@mui/material';
+import { JSX, type SVGProps } from 'react';
 import { GoogleIcon, MicrosoftIcon, MetaIcon, LinkedInIcon, GitHubIcon } from "../../icons";
 
 function styledThirdPartyIcon(children: (props: SVGProps<SVGSVGElement>) => JSX.Element) {
