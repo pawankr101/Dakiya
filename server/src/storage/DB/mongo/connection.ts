@@ -17,7 +17,7 @@ export class MongoConnection {
         });
 
         // Attempt to connect to the database immediately
-        this.#init()
+        // this.#init()
     }
 
     /**

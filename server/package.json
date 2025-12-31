@@ -8,6 +8,7 @@
         "build": "node ./server.js --build",
         "build:prod": "node ./server.js --build --prod",
         "start": "node ./server.js",
+        "start:process": "node ./server.js --process",
         "lint": "biome check --config-path=../biome.json ./src",
         "test": "echo \"Error: no test specified\" && exit 1"
     }

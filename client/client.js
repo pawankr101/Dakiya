@@ -109,6 +109,21 @@ class ProjectBuilder {
         },
     };
 
+    /** @type {boolean} */
+    #isProd = false;
+
+    /** @type {BuildOptions} */
+    #buildOptions = null;
+
+    /** @type {StaticFiles} */
+    cache = null;
+
+    /** @type {boolean} */
+    #cachesIndexHtml = false;
+
+    /** @type {boolean} */
+    #logBuildResult = false;
+
     /**
      * @param {string} privateHash
      * @param {BuilderOptions} param1
@@ -118,32 +133,28 @@ class ProjectBuilder {
             throw new Error(`'ProjectBuilder' class constructor can not be called from outside.`);
         }
 
-        /** @type {boolean} */
-        this.isProd = isProd ? true : false;
+        this.#isProd = isProd ? true : false;
 
-        /** @type {BuildOptions} */
-        this.buildOptions = {
+        this.#buildOptions = {
             ...ProjectBuilder.#DEFAULT_BUILD_OPTIONS,
             outdir: publicDir,
             entryPoints,
             tsconfig,
             target,
-            minify: isProd,
-            treeShaking: isProd,
-            write: isProd,
+            minify: this.#isProd,
+            treeShaking: this.#isProd,
+            write: this.#isProd,
         };
 
-        if(isProd) {
-            this.buildOptions.sourcemap = false;
-            this.buildOptions.legalComments = 'linked';
+        if(this.#isProd) {
+            this.#buildOptions.sourcemap = false;
+            this.#buildOptions.legalComments = 'linked';
         } else {
-            this.buildOptions.sourcemap = 'inline';
+            this.#buildOptions.sourcemap = 'inline';
 
-            /** @type {StaticFiles} */
+            this.#cachesIndexHtml = cachesIndexHtml ? true: false;
+            this.#logBuildResult = logBuildResult ? true: false;
             this.cache = new StaticFiles();
-
-            this.cachesIndexHtml = cachesIndexHtml ? true: false;
-            this.logBuildResult = logBuildResult ? true: false;
         }
     }
 
@@ -194,8 +205,8 @@ class ProjectBuilder {
      */
     async #prodBuild() {
         try {
-            await this.#deleteFilesinDir(this.buildOptions.outdir);
-            await build(this.buildOptions);
+            await this.#deleteFilesinDir(this.#buildOptions.outdir);
+            await build(this.#buildOptions);
         } catch (error) {
             if (error.errors || error.warnings) this.#logBuilderError(error);
             else console.error(error);
@@ -209,7 +220,7 @@ class ProjectBuilder {
      */
     #updateCache(newFiles) {
         let indexHtml = null;
-        if (this.cachesIndexHtml) indexHtml = this.cache.getFile("index.html");
+        if (this.#cachesIndexHtml) indexHtml = this.cache.getFile("index.html");
         this.cache.removeAllFiles();
         newFiles.forEach((file) => {
             const i = file.path.lastIndexOf("/");
@@ -226,9 +237,9 @@ class ProjectBuilder {
      */
     async #devBuild() {
         try {
-            await this.#deleteFilesinDir(this.buildOptions.outdir);
-            const res = await build(this.buildOptions);
-            if (this.logBuildResult) this.#logBuilderResult(res);
+            await this.#deleteFilesinDir(this.#buildOptions.outdir);
+            const res = await build(this.#buildOptions);
+            if (this.#logBuildResult) this.#logBuilderResult(res);
             this.#updateCache(res.outputFiles || []);
         } catch (error) {
             if (error.errors || error.warnings) this.#logBuilderError(error);
@@ -240,7 +251,7 @@ class ProjectBuilder {
      * #### build project
      */
     async build() {
-        if (this.isProd) {
+        if (this.#isProd) {
             await this.#prodBuild();
         } else {
             await this.#devBuild();
@@ -404,7 +415,7 @@ class StaticServer {
             entryPoints: CONFIG.entryPoints,
             tsconfig: CONFIG.tsconfigProd,
             target: CONFIG.target,
-            isProd: true,
+            isProd: true
         }).build();
     } else {
         StaticServer.start(

@@ -4,6 +4,7 @@ import { Worker } from "node:worker_threads";
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
+import { pathToFileURL } from "node:url";
 import { rm, watch } from "node:fs";
 import { build } from "esbuild";
 
@@ -146,7 +147,7 @@ class ProjectBuilder {
 class AppRunner {
     static #staticHash = generateId();
 
-    /** @type {import("child_process").ChildProcess | Worker} */
+    /** @type {(import("child_process").ChildProcess | import("worker_threads").Worker) & { exitTriggered: boolean instanceKilled: boolean}} */
     #instance = null;
 
     /** @type {ProjectBuilder} */
@@ -188,30 +189,58 @@ class AppRunner {
      */
     async #stopOldProcess() {
         if(this.#instance) {
+            /** @type{Promise<void>} */
+            let gracefullExit;
+            /** @type{Promise<void>} */
+            let forceExit;
+
+            this.#instance.exitTriggered = true;
             if (this.#instance instanceof Worker) {
                 // WORKER CLEANUP
-                await this.#instance.terminate();
-            } else {
-                // SPAWN CLEANUP (SIGTERM Strategy)
-                // 1. Send SIGTERM (Polite request to stop)
-                this.#instance.kill("SIGTERM");
-
-                const exitPromise = new Promise((resolve) => {
-                    this.#instance.on("exit", resolve)
+                // 1. Send shutdown message and wait for exit
+                gracefullExit = new Promise((resolve, reject) => {
+                    if (this.#instance instanceof Worker) {
+                        this.#instance.on('exit', (exitCode) => {
+                            this.#instance.instanceKilled = true;
+                            if (exitCode) reject(new Error(`Worker stopped with exit code ${exitCode}`));
+                            else resolve();
+                        });
+                    }
                 });
+                this.#instance.postMessage('shutdown');
+
+                // 2. Force terminate if it doesn't close in 2 seconds
+                forceExit = new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        if (this.#instance && this.#instance.exitTriggered && !this.#instance.instanceKilled) {
+                            this.#instance.terminate().then(resolve).catch(reject);
+                        }
+                    }, 2000);
+                });
+            } else {
+                // SPAWN CLEANUP
+                // 1. Polite request to stop
+                gracefullExit = new Promise((resolve, reject) => {
+                    this.#instance.on("exit", (exitCode) => {
+                        this.#instance.instanceKilled = true;
+                        if(exitCode) reject(new Error(`Process stopped with exit code ${exitCode}`));
+                        else resolve();
+                    });
+                });
+                this.#instance.kill();
 
                 // 2. Force SIGKILL if it doesn't close in 2 seconds
-                const timeout = new Promise((resolve) => {
+                forceExit = new Promise((resolve) => {
                     setTimeout(() => {
-                        if (this.#instance && this.#instance.exitCode === null) {
+                        if (this.#instance && this.#instance.exitTriggered && !this.#instance.instanceKilled) {
                             this.#instance.kill("SIGKILL");
                         }
                         resolve();
-                    }, 2000)
+                    }, 2000);
                 });
-
-                await Promise.race([exitPromise, timeout]);
             }
+
+            await Promise.race([gracefullExit, forceExit]);
             this.#instance = null;
         }
     }
@@ -224,7 +253,19 @@ class AppRunner {
 
         if (this.#mode === "worker") {
             // --- WORKER THREAD MODE ---
-            this.#instance = new Worker(this.#entryFile, { env: this.#env, stdout: true, stderr: true, argv: ["--inspect", "--enable-source-maps"] });
+
+            // This script runs INSIDE the worker
+            const wrapperCode = `import { open, close } from 'node:inspector';\nimport { parentPort } from 'node:worker_threads';\ntry {\n\topen(9249, 'localhost');\n} catch(e) {\n\tconsole.log(e)\n}\nparentPort.on('message', (msg) => {\n\tif(msg==='shutdown'){\n\t\tclose();\n\t\tprocess.exit(0)\n\t}\n});\nimport('${pathToFileURL(this.#entryFile).href}');`;
+
+            this.#instance = new Worker(wrapperCode, {
+                env: this.#env,
+                eval: true,
+                type: "module",
+                execArgv: ["--enable-source-maps"],
+                stdout: true,
+                stderr: true
+            });
+
             this.#instance.stdout.pipe(process.stdout);
             this.#instance.stderr.pipe(process.stderr);
             this.#instance.on("error", (err) => console.error(`[S] Error:`, err));
@@ -235,6 +276,15 @@ class AppRunner {
                 stdio: "inherit"
             });
         }
+        process.on('exit', () => {
+            if(this.#instance) {
+                if(this.#instance instanceof Worker) {
+                    this.#instance.terminate();
+                } else {
+                    this.#instance.kill("SIGKILL");
+                }
+            }
+        });
     }
 
     /**
