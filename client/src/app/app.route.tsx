@@ -12,16 +12,16 @@ export const ROUTES: RouteObject[] = [
             <Link to={'/login'}>login</Link>
         </div>
     },
-    {
-        path: '/login',
-        element: <Login />
-    },
+    // {
+    //     path: '/login',
+    //     element: <Login />
+    // },
     {
         path: '/register',
         element: <div><h1>This is User Registration Page.</h1></div>
     },
-    {
-        path: '/dashboard',
-        element: <Dashboard />
-    }
+    // {
+    //     path: '/dashboard',
+    //     element: <Dashboard />
+    // }
 ];

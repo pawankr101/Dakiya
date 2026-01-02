@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @font-face {
     font-family: "OpenSans";
     src: url("./assets/fonts/OpenSans.ttf") format("ttf"), url("./assets/fonts/OpenSans-Italic.ttf") format("ttf");
