@@ -13,6 +13,7 @@
     "inlineSources": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
     "typeRoots": ["../node_modules/@types"]
   }
 }
