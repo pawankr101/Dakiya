@@ -40,7 +40,7 @@
             ==> Profile
             ==> Contacts Management
             ==> New Contacts Suggestion
-        * Settings 
+        * Settings
             ==> Privacy and Data Control
             ==> Password and security Control
             ==> Account Control
@@ -53,23 +53,6 @@
         * Availability as much as possible
         * Scalability
         * low latency
-
-## Entities:
-    * User:
-        => uid: "'UserId', Unique"
-        => email: "'Email', Unique"
-        => mobile: "'+91-9876543210', Unique"
-        => password: "Password Hash"
-        => name: "Name"
-        => profile_pic: "Profile_pic_Url"
-    * Session:
-        => _id: "session_id",
-        => user_id: "User-id"
-        => user_agent: "device Info",
-        => is_online: true,
-        => token: "session_token"
-        => expiry: timestamp
-        => isExpired: false
 
 ## Flow Diagrams:
     * https://docs.google.com/drawings/d/1qO5UaBj4zLtTRN2K-B5qi-D5tWvuPqBAnhkYXI3KPYM

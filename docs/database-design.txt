@@ -1,0 +1,138 @@
+Database Design Document
+    <=> we are using Local-First database along with Bring-Your-Own-Storage (BYOS) approach for our application.
+    <=> Database:
+        => WatermelonDB (Local-First Database) - uses indexedDB / SQLite as local storage
+        => PostgreSQL (Cloud Storage Database)
+        => redis (In-memory Database for Caching and Real-time Data Handling)
+
+
+1. USER & DEVICE MANAGEMENT
+    * User:
+        => id: "'Primary key', 'immutable', 'for intenal use'"
+
+        //-- Public Identifiers
+        => username: "'Username', Unique"
+        => email: "'Email', Unique, can only added/modify after verification"
+        => mobile: "'Mobile Number', Unique, can only added/modify after verification"
+
+        => password_hash: "'Password Hash'"
+
+        //-- Profile Information
+        => name: "'Full Name'"
+        => profile_picture: "'Profile Picture URL or Base64 String'"
+        => bio: "'Short Bio or Status Message'"
+        => dob: "'Date of Birth', timestamp"
+        => gender: "'M/F/O', Enum, 'Male/Female/Other'"
+        => country: "'Country Code', Enum"
+
+        // -- Localization Preferences
+        => language: "'Preferred Language', Enum"
+        => timezone: "'User Timezone', Enum"
+
+        //-- Security & Status
+        => is_verified: "Boolean, if user informations are verified by government ID"
+        => last_active_at: "'Last Active Timestamp'"
+
+        => created_at: "'Account Creation Timestamp'"
+        => updated_at: "'Last Account Update Timestamp'"
+
+    * UserSettings:
+        => id: "'SettingsId', Unique"
+        => user_id: "'Foreign Key to UserId'"
+        => notifications: {
+            => message_tones: "Boolean"
+            => vibration: "Boolean"
+            => popup_notifications: "Boolean"
+            => email_notifications: "Boolean"
+            => group_notifications: "Boolean"
+        }
+        => privacy: {
+            => blocked_contacts: "List of UserIds"
+            => read_receipts: "Boolean, if true, send read receipts to contacts"
+            // -- standard values: 'everyone', 'contacts', 'nobody'
+            => last_seen: "Enum, 'everyone', 'contacts', 'nobody'"
+            => profile_picture: "Enum, 'everyone', 'contacts', 'nobody'"
+        }
+        => data_backup: {
+            => backup_enabled: "Boolean"
+            => backup_location: "String, URL or Path"
+            => backup_frequency: "Enum, 'daily', 'weekly', 'monthly', 'never'"
+            => backup_over_wifi_only: "Boolean"
+            => last_backup_at: "'Last Backup Timestamp'"
+            => auto_download_media: {
+                => photos: "Boolean"
+                => videos: "Boolean"
+                => audio: "Boolean"
+                => documents: "Boolean"
+            }
+        }
+        => account: {
+            => two_factor_auth: "Boolean"
+            => language: "Enum, preferred language"
+            => timezone: "'User Timezone', Enum"
+        }
+        => created_at: "'Settings Creation Timestamp'"
+        => updated_at: "'Last Settings Update Timestamp'"
+
+    * Device:
+        => id: "'DeviceId', Unique"
+        => user_id: "'Foreign Key to UserId'"
+
+        //-- Device Identifiers
+        => device_name: "'Device Name or Model'"
+        => platform: "'Platform', Enum, 'iOS', 'Android', 'Web', 'Desktop'"
+
+        //-- Device Specifications
+        => os_name: "'Operating System Name'"
+        => os_version: "'Operating System Version'"
+        => app_version: "'App Version Installed on Device'"
+        => user_agent: "'User Agent String'"
+
+        //-- Push Notification Token
+        => fcm_token: "'Firebase Cloud Messaging Token for Push Notifications'"
+        => last_active_at: "'Last Active Timestamp'"
+
+        => created_at: "'Device Registration Timestamp'"
+        => updated_at: "'Last Device Update Timestamp'"
+
+2. CONVERSATION MANAGEMENT
+    * Conversation:
+        => id: "'ConversationId', Unique"
+        => is_group: "Boolean, true if group conversation"
+
+        //-- Group Conversation Details
+        => group_name: "'Group Name', nullable if one-to-one conversation"
+        => group_avatar: "'Group Avatar URL or Base64 String', nullable if one-to-one conversation"
+        => description: "'Group Description', nullable if one-to-one conversation"
+        => created_by: "'Foreign Key to UserId of the creator' nullable if one-to-one conversation"
+        => settings: {
+            => allow_invites: "Boolean, if members can invite others"
+            => admin_only_messages: "Boolean, if only admins can send messages"
+            => admin_only_edit_info: "Boolean, if only admins can change group info"
+        }
+
+        => last_message_at: "'Timestamp of the last message sent in the conversation'"
+
+        => created_at: "'Conversation Creation Timestamp'"
+        => updated_at: "'Last Conversation Update Timestamp'"
+
+    * ConversationMembers:
+        => id: "'ParticipantId', Unique"
+        => conversation_id: "'Foreign Key to ConversationId'"
+        => user_id: "'Foreign Key to UserId'"
+
+        //-- Common Fields for One-to-One and Group Conversations
+        => mute_until: "'Timestamp until which notifications are muted', default = 0(not muted)"
+        => is_archived: "Boolean, if conversation is archived by the user"
+        => is_pinned: "Boolean, if conversation is pinned to top by the user"
+        => last_read_at: "'Timestamp of last read message in the conversation'"
+        => is_deleted: "Boolean, if the user has deleted the conversation"
+
+        //-- Group Conversation Specific Fields
+        => joined_at: "'Timestamp when user joined the group conversation'"
+        => added_by: "'Foreign Key to UserId who added this participant'"
+        => is_admin: "Boolean, if the user is an admin in the group conversation"
+        => has_left: "Boolean, if the user has left the group conversation"
+
+        => created_at: "'Participant Record Creation Timestamp'"
+        => updated_at: "'Last Participant Record Update Timestamp'"
