@@ -1,6 +1,4 @@
-<div align="center">
-  <h1>Dakiya</h1>
-</div>
+# Dakiya
 
 ## 📖 About the Project
 

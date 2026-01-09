@@ -48,7 +48,7 @@ Database Design Document
         }
         => privacy: {
             => blocked_contacts: "List of UserIds"
-            => read_receipts: "Boolean, if true, send read receipts to contacts"
+            => read_receipts: "Boolean, 'if true, send read receipts to contacts'"
             // -- standard values: 'everyone', 'contacts', 'nobody'
             => last_seen: "Enum, 'everyone', 'contacts', 'nobody'"
             => profile_picture: "Enum, 'everyone', 'contacts', 'nobody'"
