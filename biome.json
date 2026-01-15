@@ -3,7 +3,16 @@
     "files": {
         "ignoreUnknown": false,
         "includes": [
-            "src/**", "client.js", "server.js"
+            "!**/*/node_modules/**",
+            "!**/*/dist/**",
+            "**/*.js",
+            "**/*.ts",
+            "**/*.tsx",
+            "**/*.jsx",
+            "**/*.json",
+            "**/*.html",
+            "**/*.css",
+            "**/*.md"
         ]
     },
     "linter": {

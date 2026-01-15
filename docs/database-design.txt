@@ -23,9 +23,9 @@ Database Design Document
         => bio: "'Short Bio or Status Message'"
         => dob: "'Date of Birth', timestamp"
         => gender: "'M/F/O', Enum, 'Male/Female/Other'"
-        => country: "'Country Code', Enum"
 
         // -- Localization Preferences
+        => country: "'Country Code', Enum"
         => language: "'Preferred Language', Enum"
         => timezone: "'User Timezone', Enum"
 
@@ -195,7 +195,7 @@ Database Design Document
             => event_end_time: "'Timestamp when the event ends', nullable"
         }
 
-        //-- Message Metadata
+        //-- Message Metadata ** this might not required
         => status: "'Enum, 'sent', 'delivered', 'read'', default = 'sent'"
         => sent_at: "'Timestamp when message was sent'"
         => delivered_at: "'Timestamp when message was delivered to recipient(s)', nullable"
@@ -220,7 +220,7 @@ Database Design Document
         => message_id: "'Foreign Key to MessageId'"
         => user_id: "'Foreign Key to UserId of the reactor'"
         => reaction: "'String, e.g., emoji or reaction type'"
-        => reacted_at: "'Timestamp when the reaction was made'"
+        => is_removed: "Boolean, 'if the reaction was removed by the user'"
         => created_at: "'Reaction Record Creation Timestamp'"
         => updated_at: "'Last Reaction Record Update Timestamp'"
 
