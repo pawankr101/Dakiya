@@ -5,10 +5,11 @@ Database Design Document
         => PostgreSQL (Cloud Storage Database)
         => redis (In-memory Database for Caching and Real-time Data Handling)
 
-
+* Cloud Storage Database Design
+--------------------------------
 1. USER & DEVICE MANAGEMENT
     * User:
-        => id: "'Primary key', 'immutable', 'for intenal use'"
+        => uid: "'Primary key', 'immutable', 'for intenal use'"
 
         //-- Public Identifiers
         => username: "'Username', Unique"
@@ -19,15 +20,11 @@ Database Design Document
 
         //-- Profile Information
         => name: "'Full Name'"
-        => profile_picture: "'Profile Picture URL or Base64 String'"
+        => dp: "'Display Picture URL'"
         => bio: "'Short Bio or Status Message'"
         => dob: "'Date of Birth', timestamp"
         => gender: "'M/F/O', Enum, 'Male/Female/Other'"
-
-        // -- Localization Preferences
         => country: "'Country Code', Enum"
-        => language: "'Preferred Language', Enum"
-        => timezone: "'User Timezone', Enum"
 
         //-- Security & Status
         => is_verified: "Boolean, if user informations are verified by government ID"
@@ -37,8 +34,11 @@ Database Design Document
         => updated_at: "'Last Account Update Timestamp'"
 
     * UserSettings:
-        => id: "'SettingsId', Unique"
+        => uid: "'SettingsId', Unique"
         => user_id: "'Foreign Key to UserId'"
+        => theme: "Enum, 'light', 'dark', 'system_default'"
+        => language: "'Preferred Language', Enum"
+        => timezone: "'User Timezone', Enum"
         => notifications: {
             => message_tones: "Boolean"
             => vibration: "Boolean"
@@ -68,14 +68,13 @@ Database Design Document
         }
         => account: {
             => two_factor_auth: "Boolean"
-            => language: "Enum, preferred language"
-            => timezone: "'User Timezone', Enum"
+            => account_status: "Enum, 'active', 'deactivated', 'deleted'"
         }
         => created_at: "'Settings Creation Timestamp'"
         => updated_at: "'Last Settings Update Timestamp'"
 
     * Device:
-        => id: "'DeviceId', Unique"
+        => uid: "'DeviceId', Unique"
         => user_id: "'Foreign Key to UserId'"
 
         //-- Device Identifiers
@@ -97,12 +96,12 @@ Database Design Document
 
 2. CONVERSATION MANAGEMENT
     * Conversation:
-        => id: "'ConversationId', Unique"
+        => uid: "'ConversationId', Unique"
         => is_group: "Boolean, true if group conversation"
 
         //-- Group Conversation Details
         => group_name: "'Group Name', nullable if one-to-one conversation"
-        => group_avatar: "'Group Avatar URL or Base64 String', nullable if one-to-one conversation"
+        => group_dp: "'Group display picture URL', nullable if one-to-one conversation"
         => description: "'Group Description', nullable if one-to-one conversation"
         => created_by: "'Foreign Key to UserId of the creator' nullable if one-to-one conversation"
         => settings: {
@@ -117,7 +116,7 @@ Database Design Document
         => updated_at: "'Last Conversation Update Timestamp'"
 
     * ConversationMembers:
-        => id: "'ParticipantId', Unique"
+        => uid: "'ParticipantId', Unique"
         => conversation_id: "'Foreign Key to ConversationId'"
         => user_id: "'Foreign Key to UserId'"
 
@@ -137,9 +136,9 @@ Database Design Document
         => created_at: "'Participant Record Creation Timestamp'"
         => updated_at: "'Last Participant Record Update Timestamp'"
 
-3. Message Delivery Engine
+3. MESSAGE MANAGEMENT
     * Message:
-        => id: "'MessageId', Unique"
+        => uid: "'MessageId', Unique"
         => conversation_id: "'Foreign Key to ConversationId'"
         => sender_id: "'Foreign Key to UserId of the sender'"
 
@@ -216,7 +215,7 @@ Database Design Document
         => updated_at: "'Last Message Update Timestamp'"
 
     * MessageReactions:
-        => id: "'ReactionId', Unique"
+        => uid: "'ReactionId', Unique"
         => message_id: "'Foreign Key to MessageId'"
         => user_id: "'Foreign Key to UserId of the reactor'"
         => reaction: "'String, e.g., emoji or reaction type'"
@@ -225,7 +224,7 @@ Database Design Document
         => updated_at: "'Last Reaction Record Update Timestamp'"
 
     * MessageEdits:
-        => id: "'EditId', Unique"
+        => uid: "'EditId', Unique"
         => message_id: "'Foreign Key to MessageId'"
         => editor_id: "'Foreign Key to UserId who edited the message'"
         => previous_content: "'Previous content of the message before edit'"
@@ -234,10 +233,204 @@ Database Design Document
         => created_at: "'Edit Record Creation Timestamp'"
         => updated_at: "'Last Edit Record Update Timestamp'"
 
-4. Message Delivery System
+4. DELIVERY MANAGEMENT
     * DeliveryQueue:
-        => id: "'QueueId', Unique"
+        => uid: "'QueueId', Unique"
         => recipient_device_id: "'Foreign Key to DeviceId of the recipient device'"
         => delivery_item_type: "Enum, 'message', 'reaction', 'edit', 'read_receipt'"
         => delivery_item_id: "'Foreign Key to the respective item being delivered (MessageId, ReactionId, EditId)'"
         => created_at: "'Timestamp when the item was added to the delivery queue'"
+
+* Local-First Database Design (WatermelonDB)
+--------------------------------------------
+1. USER DATA
+    * User:
+        => uid: "'Primary key', 'immutable', 'for internal use'"
+
+        //-- Public Identifiers
+        => username: "'Username', Unique"
+        => email: "'Email', Unique"
+        => mobile: "'Mobile Number', Unique"
+
+        //-- Profile Information
+        => name: "'Full Name'"
+        => dp: "'Display Picture URL or Base64 String'"
+        => bio: "'Short Bio or Status Message'"
+        => dob: "'Date of Birth', timestamp"
+        => gender: "'M/F/O', Enum, 'Male/Female/Other'"
+        => country: "'Country Code', Enum"
+
+        //-- Security & Status
+        => is_verified: "Boolean, if user informations are verified by government ID"
+        => last_active_at: "'Last Active Timestamp'"
+
+        => Settings: {
+            => theme: "Enum, 'light', 'dark', 'system_default'"
+            => language: "'Language Code', Enum"
+            => timezone: "'Timezone Identifier', Enum",
+            => notifications: {
+                => message_tones: "Boolean"
+                => vibration: "Boolean"
+                => popup_notifications: "Boolean"
+                => email_notifications: "Boolean"
+                => group_notifications: "Boolean"
+            }
+            => privacy: {
+                => blocked_contacts: "List of UserIds"
+                => read_receipts: "Boolean, 'if true, send read receipts to contacts'"
+                // -- standard values: 'everyone', 'contacts', 'nobody'
+                => last_seen: "Enum, 'everyone', 'contacts', 'nobody'"
+                => profile_picture: "Enum, 'everyone', 'contacts', 'nobody'"
+            }
+            => data_backup: {
+                => backup_enabled: "Boolean"
+                => backup_location: "String, URL or Path"
+                => backup_frequency: "Enum, 'daily', 'weekly', 'monthly', 'never'"
+                => backup_over_wifi_only: "Boolean"
+                => last_backup_at: "'Last Backup Timestamp'"
+                => auto_download_media: {
+                    => photos: "Boolean"
+                    => videos: "Boolean"
+                    => audio: "Boolean"
+                    => documents: "Boolean"
+                }
+            }
+            => account: {
+                => two_factor_auth: "Boolean"
+                => account_status: "Enum, 'active', 'deactivated', 'deleted'"
+                => linked_devices: [{
+                    => device_name: "'Device Name or Model'"
+                    => platform: "'Platform', Enum, 'iOS', 'Android', 'Web', 'Desktop'"
+                    => os_name: "'Operating System Name'"
+                    => last_active_at: "'Last Active Timestamp'"
+                }]
+            }
+        }
+
+        => created_at: "'Account Creation Timestamp'"
+        => updated_at: "'Last Account Update Timestamp'"
+
+2. CONVERSATION & MESSAGE DATA
+    * Conversation:
+        => uid: "'ConversationId', Unique"
+        => is_group: "Boolean, true if group conversation"
+
+        //-- Conversation Details
+        => name: "'Group Name', 'Peer's Name for one-to-one conversation'"
+        => dp: "'Group display picture URL', 'Peer's display picture URL for one-to-one conversation'"
+
+        //-- Group Conversation Details
+        => description: "'Group Description', nullable if one-to-one conversation"
+        => created_by: "'UserId of the creator', nullable if one-to-one conversation"
+        => settings: {
+            => allow_invites: "Boolean, if members can invite others"
+            => admin_only_messages: "Boolean, if only admins can send messages"
+            => admin_only_edit_info: "Boolean, if only admins can change group info"
+        }
+
+        => last_message_at: "'Timestamp of the last message sent in the conversation'"
+
+        => mute_until: "'Timestamp until which notifications are muted', default = 0(not muted)"
+        => is_archived: "Boolean, if conversation is archived by the user"
+        => is_pinned: "Boolean, if conversation is pinned to top by the user"
+        => is_deleted: "Boolean, if the user has deleted the conversation"
+    * ConservationMembers:
+        => uid: "'ParticipantId', Unique"
+        => conversation_id: "'Foreign Key to ConversationId'"
+        => user_id: "'Foreign Key to UserId'"
+        => name: "'User's Name'",
+        => dp: "'User's Display Picture URL'",
+
+        //-- Common Fields for One-to-One and Group Conversations
+        => last_read_at: "'Timestamp of last read message in the conversation'"
+
+        //-- Group Conversation Specific Fields
+        => joined_at: "'Timestamp when user joined the group conversation'"
+        => added_by: "'Foreign Key to UserId who added this participant'"
+        => is_admin: "Boolean, 'if the user is an admin in the group conversation'"
+        => has_left: "Boolean, 'if the user has left the group conversation'"
+
+        => created_at: "'Participant Record Creation Timestamp'"
+        => updated_at: "'Last Participant Record Update Timestamp'"
+
+3. MESSAGE DATA
+    * Message:
+        => uid: "'MessageId', Unique"
+        => conversation_id: "'Foreign Key to ConversationId'"
+        => sender_id: "'Foreign Key to UserId of the sender'"
+        => type: "'Enum, 'text', 'photo', 'video', 'audio', 'document', 'location', 'poll', 'event'"
+        => content: {
+            //-- Text Message Content
+            => text: "'Text content of the message', nullable for media messages"
+
+            //-- photo Message Content
+            => photo_url: "'URL or Path to photo file', nullable for text messages"
+            => photo_thumbnail: "'Base64 String or URL of photo thumbnail', nullable"
+            => caption: "'Caption for photo messages', nullable"
+            => photo_width: "Integer, width of the photo in pixels"
+            => photo_height: "Integer, height of the photo in pixels"
+            => photo_size: "Integer, size of the photo file in bytes"
+
+            //-- video Message Content
+            => video_url: "'URL or Path to video file', nullable for text messages"
+            => video_thumbnail: "'Base64 String or URL of video thumbnail', nullable"
+            => caption: "'Caption for video messages', nullable"
+            => video_width: "Integer, width of the video in pixels"
+            => video_height: "Integer, height of the video in pixels"
+            => video_duration: "Integer, duration of the video in seconds"
+            => video_size: "Integer, size of the video file in bytes"
+
+            //-- audio Message Content
+            => audio_url: "'URL or Path to audio file', nullable for text messages"
+            => audio_duration: "Integer, duration of the audio in seconds"
+            => audio_size: "Integer, size of the audio file in bytes"
+
+            //-- document Message Content
+            => document_url: "'URL or Path to document file', nullable for text messages"
+            => document_name: "'Original name of the document file'"
+            => document_size: "Integer, size of the document file in bytes"
+            => document_type: "'MIME type of the document file'"
+
+            //-- location Message Content
+            => latitude: "Float, latitude of the location"
+            => longitude: "Float, longitude of the location"
+            => location_name: "'Name or description of the location', nullable"
+
+            //-- poll Message Content
+            => poll_question: "'Question of the poll'"
+            => poll_options: "Array of strings, options for the poll"
+            => poll_multiple_answers: "Boolean, if multiple answers are allowed"
+            => poll_expires_at: "'Timestamp when the poll expires', nullable"
+
+            //-- event Message Content
+            => event_title: "'Title of the event'"
+            => event_description: "'Description of the event', nullable"
+            => event_location: "'Location of the event', nullable"
+            => event_start_time: "'Timestamp when the event starts'"
+            => event_end_time: "'Timestamp when the event ends', nullable"
+        }
+        //-- Message Metadata
+        => status: "'Enum, 'pending', ' 'sent', 'delivered', 'read'", default = 'pending'"
+        => sent_at: "'Timestamp when message was sent',nullable"
+        => delivered_at: "'Timestamp when message was delivered to recipient(s)', nullable"
+        => read_at: "'Timestamp when message was read by recipient(s)', nullable"
+        //-- Reply & Forwarding
+        => reply_to_message_id: "'Foreign Key to MessageId being replied to', nullable"
+        => is_forwarded: "Boolean, if the message was forwarded from another conversation"
+    * MessageReactions:
+        => uid: "'ReactionId', Unique"
+        => message_id: "'Foreign Key to MessageId'"
+        => user_id: "'Foreign Key to UserId of the reactor'"
+        => reaction: "'String, e.g., emoji or reaction type'"
+        => is_removed: "Boolean, 'if the reaction was removed by the user'"
+        => created_at: "'Reaction Record Creation Timestamp'"
+        => updated_at: "'Last Reaction Record Update Timestamp'"
+    * MessageEdits:
+        => uid: "'EditId', Unique"
+        => message_id: "'Foreign Key to MessageId'"
+        => editor_id: "'Foreign Key to UserId who edited the message'"
+        => previous_content: "'Previous content of the message before edit'"
+        => new_content: "'New content of the message after edit'"
+        => edited_at: "'Timestamp when the edit was made'"
+        => created_at: "'Edit Record Creation Timestamp'"
+        => updated_at: "'Last Edit Record Update Timestamp'"
