@@ -7,8 +7,8 @@ Database Design Document
 
 * Cloud Storage Database Design
 --------------------------------
-1. USER & DEVICE MANAGEMENT
-    * User:
+1. USER AND DEVICE MANAGEMENT
+    * Users:
         => uid: "'Primary key', 'immutable', 'for intenal use'"
 
         //-- Public Identifiers
@@ -36,35 +36,40 @@ Database Design Document
     * UserSettings:
         => uid: "'SettingsId', Unique"
         => user_id: "'Foreign Key to UserId'"
-        => theme: "Enum, 'light', 'dark', 'system_default'"
         => language: "'Preferred Language', Enum"
         => timezone: "'User Timezone', Enum"
+        => chats: {
+            => theme: 'light' | 'dark' | 'system';
+            => font_size: 'small' | 'medium' | 'large';
+            => media_auto_download: {
+                => photos: "Boolean"
+                => videos: "Boolean"
+                => audio: "Boolean"
+                => documents: "Boolean"
+            }
+        }
         => notifications: {
-            => message_tones: "Boolean"
+            => enabled: "Boolean"
+            => group_notifications: "Boolean"
             => vibration: "Boolean"
+            => sound: "Boolean"
             => popup_notifications: "Boolean"
             => email_notifications: "Boolean"
-            => group_notifications: "Boolean"
         }
         => privacy: {
             => blocked_contacts: "List of UserIds"
             => read_receipts: "Boolean, 'if true, send read receipts to contacts'"
             // -- standard values: 'everyone', 'contacts', 'nobody'
             => last_seen: "Enum, 'everyone', 'contacts', 'nobody'"
-            => profile_picture: "Enum, 'everyone', 'contacts', 'nobody'"
+            => dp: "Enum, 'everyone', 'contacts', 'nobody'"
+            => about: "Enum, 'everyone', 'contacts', 'nobody'"
         }
-        => data_backup: {
-            => backup_enabled: "Boolean"
+        => backup: {
+            => enabled: "Boolean"
             => backup_location: "String, URL or Path"
-            => backup_frequency: "Enum, 'daily', 'weekly', 'monthly', 'never'"
+            => backup_frequency: "Enum, 'daily', 'weekly', 'monthly'"
             => backup_over_wifi_only: "Boolean"
             => last_backup_at: "'Last Backup Timestamp'"
-            => auto_download_media: {
-                => photos: "Boolean"
-                => videos: "Boolean"
-                => audio: "Boolean"
-                => documents: "Boolean"
-            }
         }
         => account: {
             => two_factor_auth: "Boolean"
@@ -142,38 +147,13 @@ Database Design Document
         => conversation_id: "'Foreign Key to ConversationId'"
         => sender_id: "'Foreign Key to UserId of the sender'"
 
-        => type: "'Enum, 'text', 'photo', 'video', 'audio', 'document', 'location', 'poll', 'event'"
+        => type: "'Enum, 'text', 'media', 'location', 'poll', 'event'"
         => content: {
             //-- Text Message Content
             => text: "'Text content of the message', nullable for media messages"
 
-            //-- photo Message Content
-            => photo_url: "'URL or Path to photo file', nullable for text messages"
-            => photo_thumbnail: "'Base64 String or URL of photo thumbnail', nullable"
-            => caption: "'Caption for photo messages', nullable"
-            => photo_width: "Integer, width of the photo in pixels"
-            => photo_height: "Integer, height of the photo in pixels"
-            => photo_size: "Integer, size of the photo file in bytes"
-
-            //-- video Message Content
-            => video_url: "'URL or Path to video file', nullable for text messages"
-            => video_thumbnail: "'Base64 String or URL of video thumbnail', nullable"
-            => caption: "'Caption for video messages', nullable"
-            => video_width: "Integer, width of the video in pixels"
-            => video_height: "Integer, height of the video in pixels"
-            => video_duration: "Integer, duration of the video in seconds"
-            => video_size: "Integer, size of the video file in bytes"
-
-            //-- audio Message Content
-            => audio_url: "'URL or Path to audio file', nullable for text messages"
-            => audio_duration: "Integer, duration of the audio in seconds"
-            => audio_size: "Integer, size of the audio file in bytes"
-
-            //-- document Message Content
-            => document_url: "'URL or Path to document file', nullable for text messages"
-            => document_name: "'Original name of the document file'"
-            => document_size: "Integer, size of the document file in bytes"
-            => document_type: "'MIME type of the document file'"
+            // Media Message Content
+            => media_caption: "'Caption for media messages', nullable"
 
             //-- location Message Content
             => latitude: "Float, latitude of the location"
@@ -231,9 +211,31 @@ Database Design Document
         => new_content: "'New content of the message after edit'"
         => edited_at: "'Timestamp when the edit was made'"
         => created_at: "'Edit Record Creation Timestamp'"
-        => updated_at: "'Last Edit Record Update Timestamp'"
 
-4. DELIVERY MANAGEMENT
+4. MEDIA STORAGE MANAGEMENT
+    * Media:
+        => uid: "'MediaId', Unique"
+
+        //-- Parent Entity Reference
+        => parent_type: "'Enum, 'message', 'user', 'conversation'"
+        => parent_id: "'Foreign Key to the respective parent entity (MessageId, UserId, ConversationId)'"
+
+        //-- Media File Information
+        => type: "'Enum, 'photo', 'video', 'audio', 'document'"
+        => file_name: "'Original name of the media file'"
+        => remote_path: "'Remote File Path in Cloud Storage'"
+
+        //-- Media Metadata
+        => mime_type: "'MIME type of the media file'"
+        => size: "Integer, size of the media file in bytes"
+        => width: "Integer, width of the media in pixels, nullable for non-visual media"
+        => height: "Integer, height of the media in pixels, nullable for non-visual media"
+        => duration: "Integer, duration in seconds, nullable for non-audio/video media"
+
+        => created_at: "'Media Record Creation Timestamp'"
+        => updated_at: "'Last Media Record Update Timestamp'"
+
+5. DELIVERY MANAGEMENT
     * DeliveryQueue:
         => uid: "'QueueId', Unique"
         => recipient_device_id: "'Foreign Key to DeviceId of the recipient device'"
@@ -243,8 +245,8 @@ Database Design Document
 
 * Local-First Database Design (WatermelonDB)
 --------------------------------------------
-1. USER DATA
-    * User:
+1. PROFILE AND USER DATA
+    * Profile: // this will be save as JSON in WatermelonDB localstorage
         => uid: "'Primary key', 'immutable', 'for internal use'"
 
         //-- Public Identifiers
@@ -264,43 +266,52 @@ Database Design Document
         => is_verified: "Boolean, if user informations are verified by government ID"
         => last_active_at: "'Last Active Timestamp'"
 
+        => pinned_conversation_id: "'Foreign Key to ConversationId of pinned conversation', nullable"
+
         => Settings: {
-            => theme: "Enum, 'light', 'dark', 'system_default'"
-            => language: "'Language Code', Enum"
-            => timezone: "'Timezone Identifier', Enum",
-            => notifications: {
-                => message_tones: "Boolean"
-                => vibration: "Boolean"
-                => popup_notifications: "Boolean"
-                => email_notifications: "Boolean"
-                => group_notifications: "Boolean"
-            }
-            => privacy: {
-                => blocked_contacts: "List of UserIds"
-                => read_receipts: "Boolean, 'if true, send read receipts to contacts'"
-                // -- standard values: 'everyone', 'contacts', 'nobody'
-                => last_seen: "Enum, 'everyone', 'contacts', 'nobody'"
-                => profile_picture: "Enum, 'everyone', 'contacts', 'nobody'"
-            }
-            => data_backup: {
-                => backup_enabled: "Boolean"
-                => backup_location: "String, URL or Path"
-                => backup_frequency: "Enum, 'daily', 'weekly', 'monthly', 'never'"
-                => backup_over_wifi_only: "Boolean"
-                => last_backup_at: "'Last Backup Timestamp'"
-                => auto_download_media: {
+            => setting_id: "'SettingsId', Unique"
+            => language: "'Preferred Language', Enum"
+            => timezone: "'User Timezone', Enum"
+            => chats: {
+                => theme: 'light' | 'dark' | 'system';
+                => font_size: 'small' | 'medium' | 'large';
+                => media_auto_download: {
                     => photos: "Boolean"
                     => videos: "Boolean"
                     => audio: "Boolean"
                     => documents: "Boolean"
                 }
             }
+            => notifications: {
+                => enabled: "Boolean"
+                => group_notifications: "Boolean"
+                => vibration: "Boolean"
+                => sound: "Boolean"
+                => popup_notifications: "Boolean"
+                => email_notifications: "Boolean"
+            }
+            => privacy: {
+                => blocked_contacts: "List of UserIds"
+                => read_receipts: "Boolean, 'if true, send read receipts to contacts'"
+                // -- standard values: 'everyone', 'contacts', 'nobody'
+                => last_seen: "Enum, 'everyone', 'contacts', 'nobody'"
+                => dp: "Enum, 'everyone', 'contacts', 'nobody'"
+                => about: "Enum, 'everyone', 'contacts', 'nobody'"
+            }
+            => backup: {
+                => enabled: "Boolean"
+                => backup_location: "String, URL or Path"
+                => backup_frequency: "Enum, 'daily', 'weekly', 'monthly'"
+                => backup_over_wifi_only: "Boolean"
+                => last_backup_at: "'Last Backup Timestamp'"
+            }
             => account: {
                 => two_factor_auth: "Boolean"
                 => account_status: "Enum, 'active', 'deactivated', 'deleted'"
                 => linked_devices: [{
+                    => device_id: "'Foreign Key to DeviceId'"
                     => device_name: "'Device Name or Model'"
-                    => platform: "'Platform', Enum, 'iOS', 'Android', 'Web', 'Desktop'"
+                    => platform: "'Platform', Enum, 'ios', 'android', 'Web', 'Desktop'"
                     => os_name: "'Operating System Name'"
                     => last_active_at: "'Last Active Timestamp'"
                 }]
@@ -309,17 +320,38 @@ Database Design Document
 
         => created_at: "'Account Creation Timestamp'"
         => updated_at: "'Last Account Update Timestamp'"
+    * Users:
+        => uid: "'Primary key', 'immutable', 'for internal use'"
+
+        //-- Public Identifiers
+        => username: "'Username', Unique"
+        => mobile: "'Mobile Number'"
+
+        //-- Profile Information
+        => name: "'Full Name'"
+        => bio: "'Short Bio or Status Message'"
+
+        => dp: "'Display Picture URL or Base64 String', if privacy settings allow"
+        => email: "'Email', Unique, if privacy settings allow"
+        => dob: "'Date of Birth', timestamp, if privacy settings allow"
+        => gender: "'M/F/O', Enum, 'Male/Female/Other', if privacy settings allow"
+        => country: "'Country Code', Enum, if privacy settings allow"
+
+        //-- Security & Status
+        => is_verified: "Boolean, if user informations are verified by government ID"
+        => last_active_at: "'Last Active Timestamp', if privacy settings allow"
+
+        => is_contact: "Boolean, if the user is in the local user's contact list"
+        => local_name: "'Custom name for the contact', nullable"
 
 2. CONVERSATION & MESSAGE DATA
     * Conversation:
         => uid: "'ConversationId', Unique"
         => is_group: "Boolean, true if group conversation"
 
-        //-- Conversation Details
-        => name: "'Group Name', 'Peer's Name for one-to-one conversation'"
-        => dp: "'Group display picture URL', 'Peer's display picture URL for one-to-one conversation'"
-
         //-- Group Conversation Details
+        => group_name: "'Group Name', nullable if one-to-one conversation"
+        => group_dp: "'Group display picture URL', nullable if one-to-one conversation"
         => description: "'Group Description', nullable if one-to-one conversation"
         => created_by: "'UserId of the creator', nullable if one-to-one conversation"
         => settings: {
@@ -332,22 +364,15 @@ Database Design Document
 
         => mute_until: "'Timestamp until which notifications are muted', default = 0(not muted)"
         => is_archived: "Boolean, if conversation is archived by the user"
-        => is_pinned: "Boolean, if conversation is pinned to top by the user"
         => is_deleted: "Boolean, if the user has deleted the conversation"
     * ConservationMembers:
         => uid: "'ParticipantId', Unique"
         => conversation_id: "'Foreign Key to ConversationId'"
         => user_id: "'Foreign Key to UserId'"
-        => name: "'User's Name'",
-        => dp: "'User's Display Picture URL'",
-
-        //-- Common Fields for One-to-One and Group Conversations
-        => last_read_at: "'Timestamp of last read message in the conversation'"
 
         //-- Group Conversation Specific Fields
-        => joined_at: "'Timestamp when user joined the group conversation'"
-        => added_by: "'Foreign Key to UserId who added this participant'"
         => is_admin: "Boolean, 'if the user is an admin in the group conversation'"
+        => joined_at: "'Timestamp when user joined the group conversation'"
         => has_left: "Boolean, 'if the user has left the group conversation'"
 
         => created_at: "'Participant Record Creation Timestamp'"
@@ -358,38 +383,13 @@ Database Design Document
         => uid: "'MessageId', Unique"
         => conversation_id: "'Foreign Key to ConversationId'"
         => sender_id: "'Foreign Key to UserId of the sender'"
-        => type: "'Enum, 'text', 'photo', 'video', 'audio', 'document', 'location', 'poll', 'event'"
+        => type: "'Enum, 'text', 'media', 'location', 'poll', 'event'"
         => content: {
             //-- Text Message Content
             => text: "'Text content of the message', nullable for media messages"
 
-            //-- photo Message Content
-            => photo_url: "'URL or Path to photo file', nullable for text messages"
-            => photo_thumbnail: "'Base64 String or URL of photo thumbnail', nullable"
-            => caption: "'Caption for photo messages', nullable"
-            => photo_width: "Integer, width of the photo in pixels"
-            => photo_height: "Integer, height of the photo in pixels"
-            => photo_size: "Integer, size of the photo file in bytes"
-
-            //-- video Message Content
-            => video_url: "'URL or Path to video file', nullable for text messages"
-            => video_thumbnail: "'Base64 String or URL of video thumbnail', nullable"
-            => caption: "'Caption for video messages', nullable"
-            => video_width: "Integer, width of the video in pixels"
-            => video_height: "Integer, height of the video in pixels"
-            => video_duration: "Integer, duration of the video in seconds"
-            => video_size: "Integer, size of the video file in bytes"
-
-            //-- audio Message Content
-            => audio_url: "'URL or Path to audio file', nullable for text messages"
-            => audio_duration: "Integer, duration of the audio in seconds"
-            => audio_size: "Integer, size of the audio file in bytes"
-
-            //-- document Message Content
-            => document_url: "'URL or Path to document file', nullable for text messages"
-            => document_name: "'Original name of the document file'"
-            => document_size: "Integer, size of the document file in bytes"
-            => document_type: "'MIME type of the document file'"
+            //-- Media Message Content
+            => media_caption: "'Caption for media messages', nullable"
 
             //-- location Message Content
             => latitude: "Float, latitude of the location"
@@ -434,3 +434,27 @@ Database Design Document
         => edited_at: "'Timestamp when the edit was made'"
         => created_at: "'Edit Record Creation Timestamp'"
         => updated_at: "'Last Edit Record Update Timestamp'"
+
+4. MEDIA MANAGEMENT
+    * Media:
+        => uid: "'MediaId', Unique"
+
+        //-- Parent Entity Reference
+        => parent_type: "'Enum, 'message', 'user', 'conversation'"
+        => parent_id: "'Foreign Key to the respective parent entity (MessageId, UserId, ConversationId)'"
+
+        //-- Media File Information
+        => type: "'Enum, 'photo', 'video', 'audio', 'document'"
+        => file_name: "'Original name of the media file'"
+        => local_path: "'Local file path on the device'"
+        => thumbnail_path: "'Base64 String or URL of media thumbnail', nullable"
+        => remote_path: "'Remote File Path if synced to cloud storage', nullable"
+
+        //-- Media Metadata
+        => mime_type: "'MIME type of the media file'"
+        => size: "Integer, size of the media file in bytes"
+        => width: "Integer, width of the media in pixels, nullable for non-visual media"
+        => height: "Integer, height of the media in pixels, nullable for non-visual media"
+        => duration: "Integer, duration in seconds, nullable for non-audio/video media"
+
+        => status: "'Enum, 'pending', 'uploaded', 'downloaded', 'failed'"
