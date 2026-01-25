@@ -12,6 +12,7 @@
         * Dashboard
             => Chats List
             => Call History
+            => Contacts List
             => Link to Profile
             => Link to Settings
             => Link to Logout
@@ -25,24 +26,32 @@
                     => Audio
                     => Video
                     => File (PDF, DOCX, etc...)
+                    => location sharing
+                    => Polls
+                    => event sharing
                     => message notification
                 ==> Calling - (Audio Call/Video Call)
                     => duplex Audio/Video Stream
                     => disconnection problem handling
                     => Call Receiver call screen
                     => Call notification and acknowledgement.
+                    => Screen sharing (doodling)
                     => Call Record.
+                    => adding more users to the call (Future Improvement)
             <=> Group (MENY-TO-MENY)
+                ==> group creation, management, governance
                 ==> Chat (Group Chat)
                 ==> Calling (Group Calling)
         * Profile:
             ==> User Registration
-            ==> Profile
-            ==> Contacts Management
-            ==> New Contacts Suggestion
+            ==> Profile Management
+            ==> Contacts Management (Block user, favorite user, invite user)
+            ==> New Contacts Suggestion (Future Improvement)
         * Settings
             ==> Privacy and Data Control
             ==> Password and security Control
+            ==> Backup and Restore Control
+            ==> Notification Control
             ==> Account Control
         * Speech Recognition and Contacts Suggestion (Future Improvement)
         * Decentralization (Future Improvement)

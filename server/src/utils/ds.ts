@@ -97,7 +97,7 @@ export class Mapper<T> {
     }
 }
 
-type LoopCallback<T> = (item: T, index: number) => void | LoopControl;
+type LoopCallback<T> = (item: T, index: number) => LoopControl;
 type LoopArguments<T> = LoopCallback<T> | boolean;
 
 /**
@@ -325,6 +325,7 @@ export class List<T> {
             if(cb(item, index)) {
                 return item;
             }
+            return undefined;
         });
     }
 
@@ -523,7 +524,7 @@ export class LinkedList<T> {
      * @throws {Error} Throws an error if the index is out of bounds.
      */
     get(index: number): T {
-        let node = this.#getNode(index);
+        const node = this.#getNode(index);
         return node.value;
     }
 
@@ -599,7 +600,7 @@ export class LinkedList<T> {
      * @throws {Error} Throws an error if the index is out of bounds.
      */
     update(index: number, item: T): T {
-        let node = this.#getNode(index);
+        const node = this.#getNode(index);
         node.setValue(item);
         return item;
     }
@@ -669,6 +670,7 @@ export class LinkedList<T> {
 
         this.loop((item) => {
             items.push(item);
+            return undefined
         })
 
         return items;
@@ -683,14 +685,14 @@ export class LinkedList<T> {
         if(this.size > 0) {
             let node: Node<T>, index: number;
             if(reverse) {
-                node = this.#tail, index = this.size - 1;
+                node = this.#tail; index = this.size - 1;
                 while(node) {
                     if(cb(node.value, index) === LoopControl.break) break;
                     node = node.prev;
                     index--;
                 }
             } else {
-                node = this.#head, index = 0;
+                node = this.#head; index = 0;
                 while(node) {
                     if(cb(node.value, index) === LoopControl.break) break;
                     node = node.next
@@ -772,6 +774,7 @@ export class LinkedList<T> {
             if(cb(item, index)) {
                 return item;
             }
+            return undefined;
         });
     }
 

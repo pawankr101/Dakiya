@@ -2,7 +2,7 @@ type Message = string;
 type Reason = Message|Exception|Error;
 type ExceptionOptions = {code?: number, cause?: Exception}
 
-function isExceptionOrError(error: any) : error is Exception|Error {
+function isExceptionOrError(error: unknown) : error is Exception|Error {
     return ((error instanceof Exception) || (error instanceof Error))
 }
 
