@@ -45,8 +45,9 @@ export class Mapper<T> {
      * @returns The data item that was added or updated.
      */
     set(key: string, val: T) {
-        if(!this.#data[key]) this.#size++;
-        return (this.#data[key] = val);
+        if (!this.#data[key]) this.#size++;
+        this.#data[key] = val
+        return val;
     }
 
     /**
