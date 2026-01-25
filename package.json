@@ -27,7 +27,7 @@
         "update": "ncu -u && npm run reinstall"
     },
     "dependencies": {
-        "fastify": "^5.6.2",
+        "fastify": "^5.7.1",
         "jws": "^4.0.1",
         "mime": "^4.1.0",
         "mongodb": "^7.0.0",
@@ -36,12 +36,12 @@
         "ws": "^8.19.0"
     },
     "devDependencies": {
-        "@biomejs/biome": "2.3.11",
+        "@biomejs/biome": "2.3.12",
         "@nozbe/watermelondb": "^0.28.0",
         "@types/jws": "^3.2.11",
-        "@types/node": "^25.0.3",
-        "@types/nodemailer": "^7.0.4",
-        "@types/react": "^19.2.7",
+        "@types/node": "^25.0.10",
+        "@types/nodemailer": "^7.0.5",
+        "@types/react": "^19.2.9",
         "@types/react-dom": "^19.2.3",
         "@types/ws": "^8.18.1",
         "concurrently": "^9.2.1",
@@ -50,7 +50,7 @@
         "npm-check-updates": "^19.3.1",
         "react": "^19.2.3",
         "react-dom": "^19.2.3",
-        "react-router-dom": "^7.12.0",
+        "react-router-dom": "^7.13.0",
         "tailwindcss": "^4.1.18",
         "typescript": "^5.9.3"
     },
