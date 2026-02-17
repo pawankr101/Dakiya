@@ -112,6 +112,12 @@ export class Thread {
         this.#buildWorker(workerFilePath);
     }
 
+    /**
+     * Run a method in a worker thread.
+     * @param method The method to run.
+     * @param arg The arguments to pass to the method.
+     * @returns A promise that resolves with the result of the method.
+     */
     run<T>(method: string, arg?: unknown[]) {
         return new Promise((resolve: (value?: T) => void, reject:(reason?: unknown) => void) => {
             if(this.#terminationTimeout) {
@@ -124,6 +130,10 @@ export class Thread {
         });
     }
 
+    /**
+     * Stop the worker thread.
+     * @returns A promise that resolves when the thread is stopped.
+     */
     async stop() {
         try {
             await this.#worker.terminate();
