@@ -1,39 +1,39 @@
 import { cpus } from 'os';
-import { Worker, MessageChannel, MessagePort } from "worker_threads";
+import { Worker, MessageChannel, type MessagePort } from "worker_threads";
 import { THREADING } from "../config.js";
 import { Exception } from "../exceptions/index.js";
-import { Helpers, Mapper } from './index.js';
+import { Helpers, Dictionary } from './index.js';
 
-type WorkerResult = { taskId: string, result?: any, error?: any };
+type WorkerResult = { taskId: string, result?: unknown, error?: unknown };
 type Task = {
     _id: string,
-    method: { name: string, arg?: any[] },
-    onSuccess: (result?: any) => void,
-    onError: (error?: any) => void
+    method: { name: string, arg?: unknown[] },
+    onSuccess: (result?: unknown) => void,
+    onError: (error?: unknown) => void
 }
 
 export class Thread {
-    /** #### Random Hash for Private Constructor */
+    /** Random Hash for Private Constructor */
     static readonly #staticHash: string = Helpers.getUuid();
 
     /**
-     * #### Maximum allowed Workers to create.
+     * Maximum allowed Workers to create.
      * * Default value is count of logical CPU core.
      */
     static readonly #maxThreadsCount = THREADING.maxThreadsAllowed || cpus().length;
     static readonly #maxTasksPerThread = THREADING.maxTasksAllowedPerThread || 20;
     static readonly #workerIdleTimeInMS = THREADING.maxThreadIdleTimeInMS || 60000;
-    static readonly #threads: Mapper<Thread> = new Mapper<Thread>();
+    static readonly #threads: Dictionary<Thread> = new Dictionary<Thread>();
 
     #worker: Worker;
     #messageChannelPort: MessagePort
-    readonly #tasks: Mapper<Task> = new Mapper<Task>();
+    readonly #tasks: Dictionary<Task> = new Dictionary<Task>();
     #terminationTimeout: NodeJS.Timeout = null;
 
     _id:string;
 
     readonly #onChannelMessage = (result: WorkerResult) => {
-        let task  = this.#tasks.get(result.taskId);
+        const task = this.#tasks.get(result.taskId);
         if(task) this.#tasks.delete(result.taskId);
         if(!this.#tasks.size) {
             this.#terminationTimeout = setTimeout(() => {
@@ -60,7 +60,7 @@ export class Thread {
     }
 
     readonly #onWorkerMessage = (result: WorkerResult) => {
-        let task  = this.#tasks.get(result.taskId);
+        const task  = this.#tasks.get(result.taskId);
         if(task) this.#tasks.delete(result.taskId);
         if(!this.#tasks.size) {
             this.#terminationTimeout = setTimeout(() => {
@@ -110,13 +110,13 @@ export class Thread {
         this.#buildWorker(workerFilePath);
     }
 
-    run(method: string, arg?: any[]) {
-        return new Promise((resolve: (value?: any) => void, reject:(reason?: any) => void) => {
+    run<T>(method: string, arg?: unknown[]) {
+        return new Promise((resolve: (value?: T) => void, reject:(reason?: unknown) => void) => {
             if(this.#terminationTimeout) {
                 clearTimeout(this.#terminationTimeout);
                 this.#terminationTimeout = null;
             }
-            let taskId = Helpers.getUuid();
+            const taskId = Helpers.getUuid();
             this.#tasks.set(taskId, {_id: taskId, method: {name: method, arg: arg}, onSuccess: resolve, onError: reject});
             this.#messageChannelPort.postMessage({taskId, method, arg});
         });
@@ -137,29 +137,35 @@ export class Thread {
         let thread:Thread = null, minTaskCount: number = -1;
 
         // find thread with min tasks in its bucket.
-        this.#threads.loop((th) => {
+        Thread.#threads.loop((th) => {
             if ((minTaskCount === (-1)) || th.#tasks.size < minTaskCount) {
                 minTaskCount = th.#tasks.size;
                 thread = th;
             }
         });
-        if(minTaskCount >= this.#maxTasksPerThread) {
-            if(this.#threads.size < this.#maxThreadsCount) return null;
+        if(minTaskCount >= Thread.#maxTasksPerThread) {
+            if(Thread.#threads.size < Thread.#maxThreadsCount) return null;
             // console.log(`Reached to the maximum allowed Threads and maximum tasks per Thread.`);
         }
         return thread;
     }
 
     static #getThread(): Thread {
-        let thread = this.#availableThread();
+        let thread = Thread.#availableThread();
         if(!thread) {
             thread = new Thread(THREADING.workersIndexFile, Thread.#staticHash);
-            return this.#threads.set(thread._id, thread);
+            return Thread.#threads.set(thread._id, thread);
         }
         return thread;
     }
 
-    static execute(method: string, arg?: any[]) {
-        return this.#getThread().run(method, arg);
+    /**
+     * Execute a method on a thread.
+     * @param method The method to execute.
+     * @param arg The arguments to pass to the method.
+     * @returns A promise that resolves with the result of the method.
+     */
+    static execute<T>(method: string, arg?: unknown[]): Promise<T> {
+        return Thread.#getThread().run(method, arg);
     }
 }

@@ -1,4 +1,4 @@
-type ObjectOf<T=any> = {[x: string]: T};
+type ObjectOf<T=unknown> = {[x: string]: T};
 type Parameter = ParameterWithSchema|ParameterWithContent;
 type ParameterWithSchema = ParameterWithSchemaWithExample|ParameterWithSchemaWithExamples;
 type ParameterWithSchemaWithExample = ParameterWithSchemaWithExampleInPath|ParameterWithSchemaWithExampleInQuery|ParameterWithSchemaWithExampleInHeader|ParameterWithSchemaWithExampleInCookie;
@@ -91,7 +91,7 @@ interface ParameterWithSchemaWithExampleInPath {
   explode?: boolean;
   allowReserved?: boolean;
   schema: Schema|Reference;
-  example?: any;
+  example?: unknown;
 }
 interface Schema {
   title?: string;
@@ -109,7 +109,7 @@ interface Schema {
   maxProperties?: number;
   minProperties?: number;
   required?: [string, ...string[]];
-  enum?: [any, ...any[]];
+  enum?: [unknown, ...unknown[]];
   type?: "array"|"boolean"|"integer"|"number"|"object"|"string";
   not?: Schema|Reference;
   allOf?: (Schema|Reference)[];
@@ -120,12 +120,12 @@ interface Schema {
   additionalProperties?: Schema|Reference|boolean;
   description?: string;
   format?: string;
-  default?: any;
+  default?: unknown;
   nullable?: boolean;
   discriminator?: Discriminator;
   readOnly?: boolean;
   writeOnly?: boolean;
-  example?: any;
+  example?: unknown;
   externalDocs?: ExternalDocumentation;
   deprecated?: boolean;
   xml?: XML;
@@ -155,7 +155,7 @@ interface ParameterWithSchemaWithExampleInQuery {
   explode?: boolean;
   allowReserved?: boolean;
   schema: Schema|Reference;
-  example?: any;
+  example?: unknown;
 }
 interface ParameterWithSchemaWithExampleInHeader {
   name: string;
@@ -168,7 +168,7 @@ interface ParameterWithSchemaWithExampleInHeader {
   explode?: boolean;
   allowReserved?: boolean;
   schema: Schema|Reference;
-  example?: any;
+  example?: unknown;
 }
 interface ParameterWithSchemaWithExampleInCookie {
   name: string;
@@ -181,7 +181,7 @@ interface ParameterWithSchemaWithExampleInCookie {
   explode?: boolean;
   allowReserved?: boolean;
   schema: Schema|Reference;
-  example?: any;
+  example?: unknown;
 }
 interface ParameterWithSchemaWithExamplesInPath {
   name: string;
@@ -199,7 +199,7 @@ interface ParameterWithSchemaWithExamplesInPath {
 interface Example {
   summary?: string;
   description?: string;
-  value?: any;
+  value?: unknown;
   externalValue?: string;
 }
 interface ParameterWithSchemaWithExamplesInQuery {
@@ -252,7 +252,7 @@ interface ParameterWithContentInPath {
 }
 interface MediaTypeWithExample {
   schema?: Schema|Reference;
-  example?: any;
+  example?: unknown;
   encoding?: ObjectOf<Encoding>;
 }
 interface Encoding {
@@ -271,7 +271,7 @@ interface HeaderWithSchemaWithExample {
   explode?: boolean;
   allowReserved?: boolean;
   schema: Schema|Reference;
-  example?: any;
+  example?: unknown;
 }
 interface HeaderWithSchemaWithExamples {
   description?: string;
@@ -321,15 +321,15 @@ interface Response {
 }
 interface LinkWithOperationRef {
   operationRef?: string;
-  parameters?: ObjectOf<any>;
-  requestBody?: any;
+  parameters?: ObjectOf<unknown>;
+  requestBody?: unknown;
   description?: string;
   server?: Server;
 }
 interface LinkWithOperationId {
   operationId?: string;
-  parameters?: ObjectOf<any>;
-  requestBody?: any;
+  parameters?: ObjectOf<unknown>;
+  requestBody?: unknown;
   description?: string;
   server?: Server;
 }
@@ -401,7 +401,7 @@ interface OpenIdConnectSecurityScheme {
   openIdConnectUrl: string;
   description?: string;
 }
-interface SwaggerSchema {
+export interface SwaggerSchema {
   openapi: string;
   info: Info;
   externalDocs?: ExternalDocumentation;
@@ -410,15 +410,4 @@ interface SwaggerSchema {
   tags?: Tag[];
   paths: Paths;
   components?: Components;
-}
-
-export const SWAGGER_JSON: SwaggerSchema = {
-  openapi: '3.0',
-  info: {
-    title: 'Application Name',
-    version: '1.0.0'
-  },
-  paths: {
-    '/': {   }
-  }
 }

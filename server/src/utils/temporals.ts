@@ -1,135 +1,124 @@
-import { Utils } from "./utils.js";
+import { type List, ArrayList } from './ds.js';
+import { Utils } from './utils.js';
 
-export enum ShortMonth {
-    'jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'
+const SHORT_MONTHS: string[] = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+const FULL_MONTHS: string[] = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+const SHORT_WEEK_DAYS: string[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+const FULL_WEEK_DAYS: string[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+export interface Temporals {
+    /**
+     * Checks if the given model is a Date object.
+     * @param model The model to check.
+     * @returns True if the model is a Date object, false otherwise.
+     */
+    isDate(model: unknown): model is Date;
+    /**
+     * Gets the last n years.
+     * @param n The number of years to get.
+     * @returns A list of the last n years.
+     */
+    getLastNYears(n: number): List<number>;
+    /**
+     * Gets the month list.
+     * @param isShort Whether to get the short month names.
+     * @returns A list of the month names.
+     */
+    getMonthList(isShort?: boolean): List<string>;
+    /**
+     * Gets the week day list.
+     * @param isShort Whether to get the short week day names.
+     * @returns A list of the week day names.
+     */
+    getWeekDayList(isShort?: boolean): List<string>;
+    /**
+     * Converts the given date to a Date object.
+     * @param date The date to convert.
+     * @returns The converted Date object.
+     * @throws Error if invalid date provided.
+     */
+    convertToDate(date: string | number | Date): Date;
+    /**
+     * Converts the given date to a timestamp.
+     * @param date The date to convert.
+     * @returns The converted timestamp.
+     */
+    convertToTimeStamp(date: string | number | Date): number;
+    /**
+     * Checks if the given dates are the same.
+     * @param firstDate The first date to compare.
+     * @param secondDate The second date to compare.
+     * @returns True if the dates are the same, false otherwise.
+     */
+    isSameDate(firstDate: Date | number | string, secondDate: Date | number | string): boolean;
+    /**
+     * Checks if the given date is today.
+     * @param date The date to check.
+     * @returns True if the date is today, false otherwise.
+     */
+    isToday(date: Date | number | string): boolean;
 }
-export enum FullMonths {
-    'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'
-}
-export enum ShortWeekDays {
-    'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'
-}
-export enum FullWeekDays {
-    'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
+
+const isDate = (model: unknown): model is Date => {
+    return (model instanceof Date) && !Number.isNaN(model.getTime());
 }
 
-enum DateFormats {
-    'dd-mm-yyyy' = 'dd-mm-yyyy',
-    'yyyy-mm-dd' = 'yyyy-mm-dd',
-    'dd/mm/yyyy' = 'dd/mm/yyyy',
-    'yyyy/mm/dd' = 'yyyy/mm/dd',
-    'dd mmm yyyy' = 'dd mmm yyyy',
-    'mmm dd yyyy' = 'mmm dd yyyy',
-    'day mmm dd yyyy' = 'day mmm dd yyyy',
-    'mmmm dd, yyyy' = 'mmmm dd, yyyy'
+const getLastNYears = (n: number): List<number> => {
+    const cy = new Date().getFullYear();
+    const years = new ArrayList<number>(n);
+    Utils.loop(n, (i) => {
+        years.addOne(cy - i);
+    });
+    return years;
 }
 
-export class Temporals {
-    static #timeRegex: RegExp = /(^([01]?\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$)|(^(0?\d|1[0-2]):([0-5]\d)(:[0-5]\d)?( [AaPp][Mm])$)/;
-    static #monthRegex: RegExp = /(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|(Nov|Dec)(?:ember)?)/i;
-    static #yearRegex: RegExp = /(19|2\d)\d{2}/;
-    static #ddmmyyyyRegex: RegExp = /(^\d{2})(\/|-)(0\d|1[0-2])(\/|-)(\d{4})/;
-
-    static isDate(model: any): model is Date {
-        return (model instanceof Date) // || (this.convertToDate(model) instanceof Date);
-    }
-
-    static getYearList(count = 5): number[] {
-        const currentYear = new Date().getFullYear();
-        const years: number[] = [];
-        for (var i = 0; i < count; i++) {
-            years.push(currentYear - i);
-        }
-        return years;
-    }
-
-    static getMonthList(isShort?: boolean): string[] {
-        const months = isShort ? Object.values(ShortMonth) : Object.values(FullMonths);
-        return Utils.mapLoop(months, (month: string | ShortMonth | FullMonths) => month.toString());
-    }
-
-    /*
-    * Get list of week days
-    * @param isShort: boolean - whether to return short names or full names
-    * @return string[] - list of week days
-    */
-    static getWeekDayList(isShort?: boolean): string[] {
-        const weekDays = isShort ? Object.values(ShortWeekDays) : Object.values(FullWeekDays);
-        return Utils.mapLoop(weekDays, (day: string | ShortWeekDays | FullWeekDays) => day.toString());
-    }
-
-    static convertToDate(date: string | number | Date): Date {
-        if(!date) return null;
-        if(Utils.isString(date)) {
-            if (this.#timeRegex.test(date)) {
-                const time = new Date('2010-01-01 ' + date);
-                return isNaN(time.getDate()) ? null : time;
-            }
-            date = date.replace(this.#ddmmyyyyRegex, "$5$4$3$2$1");
-        }
-        date = new Date(date);
-        return isNaN(date.getDate()) ? null : date;
-    }
-
-    static convertToDateString(date: Date | number | string, format: DateFormats = DateFormats["dd-mm-yyyy"]): string {
-        date = this.convertToDate(date);
-        if(!date) return '';
-        const dd = date.getDate(), mm = date.getMonth();
-        const dateObj = {
-            day: ShortWeekDays[date.getDay()],
-            dd: dd<10 ? `0${dd}` : `${dd}`,
-            mm: mm<9 ? `0${mm+1}` : `${mm+1}`,
-            yyyy: `${date.getFullYear()}`,
-            mmm: ShortMonth[mm],
-            mmmm: FullMonths[mm]
-        };
-        return format.replace(/(day|dd|yyyy|mmmm|mmm|mm)/g, (match: keyof typeof dateObj) => dateObj[match]);
-    }
-
-    static convertToTimeStamp(date: string | number | Date): number {
-        date = this.convertToDate(date);
-        return date ? date.getTime() : 0;
-    }
-
-    static isSameDate(firstDate: Date | number | string, secondDate: Date | number | string): boolean {
-        if(!(firstDate instanceof Date)) firstDate = this.convertToDate(firstDate);
-        if(!(secondDate instanceof Date)) secondDate = this.convertToDate(secondDate);
-        return firstDate && secondDate && firstDate.getFullYear()===secondDate.getFullYear() && firstDate.getMonth()===secondDate.getMonth() && firstDate.getDate()===secondDate.getDate();
-    }
-
-    static isToday(date: Date | number | string): boolean {
-        return this.isSameDate(date, new Date());
-    }
-
-    static convertToTimeString(time: Date | number | string, options ? : {
-            seconds_required ? : boolean,
-            format_12Hour ? : boolean
-    }): string {
-        time = (Utils.isString(time) && this.#timeRegex.test(time)) ? new Date(`2010-01-01 ${time}`) :  new Date(time);
-        let hh = time.getHours(), tt: string;
-        if(!isNaN(hh)) {
-            const mm = time.getMinutes();
-            if(Utils.getValue(options, 'format_12Hour')) {
-                if(hh > 11) {
-                    tt = 'PM';
-                    hh = (hh === 12) ? hh : hh - 12;
-                } else {
-                    tt = 'AM';
-                    hh = (hh === 0) ? 12 : hh;
-                }
-            }
-            let timeStr = `${hh>9 ? hh : `0${hh}`}:${mm>9 ? mm : `0${mm}`}`;
-            if (Utils.getValue(options, 'seconds_required')) {
-                const ss = time.getSeconds();
-                timeStr += `:${(ss > 9) ? ss : ('0' + ss)}`;
-            }
-            return tt ? `${timeStr} ${tt}` : timeStr;
-        }
-        return '';
-    }
-
-    static getMonthAndYearFromString(string='') {
-        const month = string.match(this.#monthRegex), year = string.match(this.#yearRegex);
-        return (month && year) ? `${month[0]} ${year[0]}` : '';
-    }
+const getMonthList = (isShort?: boolean): List<string> => {
+    const months = isShort ? SHORT_MONTHS : FULL_MONTHS;
+    return new ArrayList(months);
 }
+
+const getWeekDayList = (isShort?: boolean): List<string> => {
+    const weekDays = isShort ? SHORT_WEEK_DAYS : FULL_WEEK_DAYS;
+    return new ArrayList(weekDays);
+}
+
+const convertToDate = (date: string | number | Date): Date => {
+    if(isDate(date)) return date;
+    if (date) {
+        const d = new Date(date);
+        if(Number.isNaN(d.getDate())) throw new Error('Invalid date');
+        return d;
+    }
+    throw new Error('Invalid date');
+}
+
+const convertToTimeStamp = (date: string | number | Date): number => {
+    if(Utils.isNumber(date)) return date;
+    date = convertToDate(date);
+    return date ? date.getTime() : 0;
+}
+
+const isSameDate = (firstDate: Date | number | string, secondDate: Date | number | string): boolean => {
+    const fd = convertToDate(firstDate), sd = convertToDate(secondDate);
+    if (fd && sd) {
+        return (fd.getFullYear() === sd.getFullYear()) && (fd.getMonth() === sd.getMonth()) && (fd.getDate() === sd.getDate());
+    }
+    return false;
+}
+
+const isToday = (date: Date | number | string): boolean => {
+    return isSameDate(date, new Date());
+}
+
+export const Temporals = (() => {
+    const Temporals: Temporals = Object.create(null);
+    Temporals.isDate = isDate;
+    Temporals.getLastNYears = getLastNYears;
+    Temporals.getMonthList = getMonthList;
+    Temporals.getWeekDayList = getWeekDayList;
+    Temporals.convertToDate = convertToDate;
+    Temporals.convertToTimeStamp = convertToTimeStamp;
+    Temporals.isSameDate = isSameDate;
+    Temporals.isToday = isToday;
+    return Temporals;
+})();

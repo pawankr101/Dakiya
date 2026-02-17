@@ -1,6 +1,6 @@
 import { fileURLToPath } from "url";
 import { resolve } from "path";
-import { HttpSecurity, HttpVersion } from "./servers/index.js";
+import type { HttpSecurity, HttpVersion } from "./servers/index.js";
 const ROOT_DIR = fileURLToPath(new URL('.', import.meta.url));
 
 export const APP_CONFIG = {

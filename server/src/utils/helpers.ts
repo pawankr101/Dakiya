@@ -1,7 +1,6 @@
 import { v7 as uuid } from 'uuid';
 
-export class Helpers {
-
+export interface Helpers {
     /**
     * Generates a unique identifier.
     *
@@ -21,17 +20,25 @@ export class Helpers {
     * // Get a standard v7 UUID
     * const standardUuid = Helpers.getUuid(true); // e.g., '123e4567-e89b-12d3-a456-426614174000'
     */
-    static getUuid = (() => {
-        let counter = 0;
-        return (original: boolean = false): string => {
-            if(original) return uuid();
-            let uid = uuid().replaceAll('-', '')
-            uid = BigInt(`0x${uid}`).toString(36) + counter.toString(36);
-            counter = counter < 1295 ? counter + 1 : 0; // Reset counter after 'zz' in base-36
-
-            // Ensure the UID is exactly 26 characters long.
-            uid = uid.length > 26 ? uid.substring(0, 26) : uid.padEnd(26, '0');
-            return uid;
-        }
-  })();
+    getUuid(original?: boolean): string;
 }
+
+const getUuid = (() => {
+    let counter = 0;
+    return (original: boolean = false): string => {
+        if(original) return uuid();
+        let uid = uuid().replaceAll('-', '')
+        uid = BigInt(`0x${uid}`).toString(36) + counter.toString(36);
+        counter = counter < 1295 ? counter + 1 : 0; // Reset counter after 'zz' in base-36
+
+        // Ensure the UID is exactly 26 characters long.
+        uid = uid.length > 26 ? uid.substring(0, 26) : uid.padEnd(26, '0');
+        return uid;
+    }
+})();
+
+export const Helpers: Helpers = (() => {
+    const Helpers: Helpers = Object.create(null);
+    Helpers.getUuid = getUuid;
+    return Helpers;
+})();

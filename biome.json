@@ -21,6 +21,9 @@
             "recommended": true,
             "complexity": {
                 "noStaticOnlyClass": "off"
+            },
+            "suspicious": {
+                "useIterableCallbackReturn": "off"
             }
         }
     },

@@ -1,309 +1,485 @@
-import { LoopControl, Utils } from "./index.js";
+import type { ObjectOf } from "../types/index.js";
+
+type LoopCallback<T, U = void> = (item: T, index: number) => LoopControl | U;
+type MapLoopCallback<T, U, V = void> = (item: T, index: number) => LoopControl | U | V;
+type LoopArguments<T, U = void> = LoopCallback<T, U> | boolean;
+
+type DataArray<T> = {
+    [index: number]: T,
+    length: number,
+    copyWithin(target: number, start: number, end?: number): DataArray<T>,
+    slice(start?: number, end?: number): DataArray<T>
+};
+
+export type LoopControl = typeof LoopControl[keyof typeof LoopControl];
+export const LoopControl = (() => {
+    const lc : { break: symbol } = Object.create(null);
+    lc['break'] = Symbol('__BREAK_LOOP');
+    return lc;
+})();
 
 /**
- * A generic Mapper class to manage a collection of data items identified by unique string keys.
- * Provides methods to get, set, delete, and retrieve all items in the collection.
- * @template T - The type of data stored in the collection.
- */
-export class Mapper<T> {
-    #data: {[id: string]: T} = Object.create(null);
-    #size = 0;
+* A generic List interface.
+* * Provides methods to get, set, delete, and manipulate items in the list.
+* @template T - The type of data stored in the linked list.
+*/
+export interface List<T> extends Iterable<T> {
+
+    /** The number of items in the list */
+    readonly size: number;
 
     /**
-     * Constructs a new Mapper instance.
-     * @param source - An optional object to initialize the mapper with existing key-value pairs.
-     */
-    constructor(source?: {[key: string]: T}) {
-        if(source) {
-            Utils.loop(source, (val, key) => {
-                this.#data[key] = val;
-                this.#size++;
-            });
-        }
-    }
+    * Checks if the list is empty.
+    * @returns True if the list is empty, false otherwise.
+    */
+    isEmpty(): boolean;
 
     /**
-     * Retrieves the number of items in the Mapper.
-     */
-    get size(): number {
-        return this.#size;
-    }
+    * Retrieves an item by its index.
+    * @param index - The index of the item to retrieve.
+    * @return The item at the specified index.
+    * @throws {Error} Throws an error if the list is empty.
+    * @throws {Error} Throws an error if the index is out of bounds.
+    */
+    get(index: number): T;
 
     /**
-     * Retrieves a data item by its key.
-     * @param key - The unique key of the item to retrieve.
-     * @returns The data item associated with the given key, or undefined if not found.
-     */
-    get(key: string): T {
-        return this.#data[key];
-    }
+    * Adds one or more items to the end of the list.
+    * @param item - The item(s) to add to the list.
+    * @returns void
+    * @remarks This method mutates the list by adding the specified item(s) to the end. It does not return a new list.
+    */
+    add(...item: T[]): void;
 
     /**
-     * Adds or updates a data item by its key.
-     * @param key - The unique key of the item to add or update.
-     * @param val - The data item to associate with the given key.
-     * @returns The data item that was added or updated.
-     */
-    set(key: string, val: T) {
-        if (!this.#data[key]) this.#size++;
-        this.#data[key] = val
-        return val;
-    }
+    * Adds a single item to the end of the list.
+    * @param item - The item to add to the list.
+    * @return void
+    * @remarks This method mutates the list by adding the specified item to the end. It does not return a new list.
+    */
+    addOne(item: T): void;
 
     /**
-     * Deletes a data item by its key.
-     * @param key - The unique key of the item to delete.
-     * @returns True if the item was deleted, false if it was not found.
-     */
-    delete(key: string) {
-        if(this.#data[key]) {
-            delete this.#data[key];
-            this.#size--;
-            return true;
-        }
-        return false
-    }
+    * Inserts one or more items at the specified index in the list.
+    * @param index - The index at which to insert the item(s).
+    * @param item - The item(s) to insert into the list.
+    * @return void
+    * @remarks This method mutates the list by inserting the specified item(s) at the given index. It does not return a new list.
+    * @throws {Error} Throws an error if the index is out of bounds.
+    * @throws {Error} Throws an error if the list is empty.
+    */
+    insert(index: number, ...item: T[]): void;
 
     /**
-     * Deletes all data items in the collection.
-     */
-    deleteAll() {
-        this.#data = Object.create(null);
-        this.#size = 0;
-    }
+    * Inserts a single item at the specified index in the list.
+    * @param index - The index at which to insert the item.
+    * @param item - The item to insert into the list.
+    * @return void
+    * @remarks This method mutates the list by inserting the specified item at the given index. It does not return a new list.
+    * @throws {Error} Throws an error if the index is out of bounds.
+    * @throws {Error} Throws an error if the list is empty.
+    */
+    insertOne(index: number, item: T): void;
 
     /**
-     * Retrieves all keys of the data items in the collection.
-     * @returns An array of all item keys.
-     */
-    keys() {
-        return Object.keys(this.#data);
-    }
-    /**
-     * Retrieves all data items in the collection.
-     * @returns An array of all data items.
-     */
-    items() {
-        return Object.values(this.#data);
-    }
+    * Updates the item at the specified index in the list.
+    * @param index - The index of the item to update. Must be within bounds (0 to size-1).
+    * @param item - The new item to place at the specified index.
+    * @return The item that was set at the specified index.
+    * @remarks This method mutates the list by replacing the item at the given index with the specified item. It returns the item that was set at the index.
+    * @throws {Error} Throws an error if the list is empty.
+    * @throws {Error} Throws an error if the index is out of bounds.
+    */
+    update(index: number, item: T): T;
 
-    loop(cb: LoopCallback<T>): void {
-        const data = this.#data, keys = Object.keys(data), len = keys.length;
-        let index = 0;
-        while(index < len) {
-            if(cb(data[keys[index]], index) === LoopControl.break) break;
-            index++;
-        }
-    }
+    /**
+    * Removes one or more items from the list starting at the specified index.
+    * @param index - The index of the first item to remove.
+    * @param count - The number of items to remove.
+    * @return void
+    * @remarks This method mutates the list by removing the specified number of items starting from the given index. It does not return a new list.
+    * @throws {Error} Throws an error if the list is empty.
+    * @throws {Error} Throws an error if the index is out of bounds.
+    */
+    delete(index: number, count: number): void;
+
+    /**
+    * Removes one item from the list at the specified index.
+    * @param index - The index of the item to remove.
+    * @return The item that was removed.
+    * @remarks This method mutates the list by removing the item at the given index and returns the removed item.
+    * @throws {Error} Throws an error if the list is empty.
+    * @throws {Error} Throws an error if the index is out of bounds.
+    */
+    deleteOne(index: number): T;
+
+    /**
+    * Deletes all elements from the list.
+    * @returns void
+    * @remarks This method mutates the list by removing all items, effectively resetting it to an empty state. It does not return a new list.
+    */
+    deleteAll(): void;
+
+    /**
+    * Retrieves all items in the list.
+    * @returns An array of all items in the list.
+    */
+    items(): T[];
+
+    /**
+    * Loops through each item in the list, executing the provided callback function.
+    * Can loop in normal or reverse order based on the parameters.
+    * @param cb - The callback function to execute for each item.
+    * @remarks This method iterates over the items in the list and executes the provided callback function for each item. The iteration can be done in normal order (from first to last) or in reverse order (from last to first) based on the parameters. If the callback returns LoopControl.break, the iteration will be terminated early.
+    */
+    loop(cb: LoopCallback<T>): void;
+
+    /**
+    * Loops through each item in the list, executing the provided callback function.
+    * Can loop in normal or reverse order based on the parameters.
+    * @param reverse - If true, loops in reverse order. If false or omitted, loops in normal order.
+    * @param cb - The callback function to execute for each item.
+    * @remarks This method iterates over the items in the list and executes the provided callback function for each item. The iteration can be done in normal order (from first to last) or in reverse order (from last to first) based on the parameters. If the callback returns LoopControl.break, the iteration will be terminated early.
+    */
+    loop(reverse: boolean, cb: LoopCallback<T>): void;
+
+    /**
+    * Maps each item in the list to a new value using the provided callback function.
+    * If the callback returns LoopControl.break, the mapping process is terminated early.
+    * @param cb - The callback function to apply to each item.
+    * @return A new List containing the mapped values.
+    * @remarks This method creates a new list by applying the provided callback function to each item in the original list. If the callback returns LoopControl.break, the mapping process will be terminated early, and the resulting list will contain only the mapped values up to that point. If the callback returns undefined for an item, that item will be skipped in the resulting list.
+    */
+    map<U>(cb: MapLoopCallback<T, U>): List<U>;
+
+    /**
+    * Reduces the list to a single value by applying the provided callback function to each item.
+    * @param cb - The callback function to apply, which takes an accumulator and the current item.
+    * @param initialValue - The initial value for the accumulator.
+    * @return The final accumulated value.
+    * @remarks This method processes each item in the list using the provided callback function, which takes an accumulator and the current item as arguments. The callback function is applied sequentially to each item, with the result of each call being passed as the accumulator to the next call. The final result after processing all items is returned as the accumulated value.
+    */
+    reduce<U>(cb: (accumulator: U, item: T, index: number) => U, initialValue: U): U;
+
+    /**
+    * Filters the list based on the provided callback function.
+    * @param cb - The callback function that determines whether an item should be included in the new list.
+    * @return A new List containing only the items that satisfy the condition defined in the callback.
+    * @remarks This method creates a new list containing only the items from the original list that satisfy the condition defined in the provided callback function. The callback function should return true for items that should be included in the resulting list and false for items that should be excluded.
+    */
+    filter(cb: (item: T, index: number) => boolean): List<T>;
+
+    /**
+    * Finds the first item in the list that satisfies the provided callback function.
+    * @param cb - The callback function that tests each item.
+    * @return The first item that satisfies the condition, or undefined if no such item is found.
+    * @remarks This method iterates through the list and applies the provided callback function to each item. It returns the first item for which the callback function returns true. If no items satisfy the condition, it returns undefined.
+    */
+    find(cb: (item: T, index: number) => boolean): T | undefined;
+
+    /**
+    * Finds the index of the first item in the list that satisfies the provided callback function.
+    * @param cb - The callback function that tests each item.
+    * @return The index of the first item that satisfies the condition, or -1 if no such item is found.
+    * @remarks This method iterates through the list and applies the provided callback function to each item. It returns the index of the first item for which the callback function returns true. If no items satisfy the condition, it returns -1.
+    */
+    findIndex(cb: (item: T, index: number) => boolean): number;
+
+    /**
+    * Creates a shallow copy of the List.
+    * @return A new List instance containing the same items as the original.
+    * @remarks This method creates a new list that is a shallow copy of the original list. The new list will contain the same items in the same order, but it will be a separate instance. Changes to the new list will not affect the original list, and vice versa.
+    */
+    clone(): List<T>;
+
+    /**
+    * Creates a shallow copy of the List.
+    * @param start - The starting index for the slice.
+    * @param end - The ending index for the slice.
+    * @return A new List instance containing the sliced items.
+    * @remarks This method creates a new list that is a shallow copy of the original list, starting from the specified start index and ending at the specified end index. The new list will contain the same items in the same order, but it will be a separate instance. Changes to the new list will not affect the original list, and vice versa.
+    */
+    slice(start: number, end?: number): List<T>;
+
+    /**
+    * Returns a string representation of the List.
+    * @return A string representing the List.
+    * @remarks This method returns a string that represents the contents of the List. The exact format of the string is implementation-dependent, but it typically includes the items in the list in a readable format. This can be useful for debugging or logging purposes.
+    */
+    toString(): string;
 }
 
-type LoopCallback<T> = (item: T, index: number) => LoopControl;
-type LoopArguments<T> = LoopCallback<T> | boolean;
-
 /**
- * A generic List class to manage an ordered collection of data items.
- * Provides methods to get, set, delete, and manipulate items in the list.
- * @template T - The type of data stored in the list.
+ * Constructs a new ArrayList instance.
+ * @template T - The type of elements in the list.
+ * @example
+ * ```ts
+ * const list = new ArrayList<number>();
+ * list.add(1, 2, 3);
+ * console.log(list.items()); // [1, 2, 3]
+ * ```
  */
-export class List<T> {
-    #data: T[] = [];
-    #size = 0;
+export class ArrayList<T> implements List<T> {
+    #data: DataArray<T>;
+    #capacity: number = 10;
+    #size: number;
 
     /**
-     * Constructs a new List instance.
-     * @param source - An optional array to initialize the list with existing items.
+     * Creates a new ArrayList instance.
      */
-    constructor(source?: T[]) {
-        if(source) {
-            this.#data = source.slice();
-            this.#size = this.#data.length;
+    constructor();
+    /**
+     * Creates a new ArrayList instance.
+     * @param initialCapacity - The initial capacity of the ArrayList.
+     */
+    constructor(initialCapacity: number);
+    /**
+     * Creates a new ArrayList instance.
+     * @param source - An array of items to initialize the ArrayList with.
+     */
+    constructor(source: T[]);
+    constructor(input?: number | T[]) {
+        if (Number.isInteger(input)) {
+            this.#capacity = input as number;
+            this.#data = this.#createDataArray(this.#capacity);
+            this.#size = 0;
+        } else if(Array.isArray(input)) {
+            const len = input.length;
+
+            // capacity calculation and DataArray initialization
+            this.#capacity = Math.max(this.#capacity, len);
+            const data = new Array(this.#capacity) as DataArray<T>;
+            Object.assign(data, input);
+
+            this.#data = data;
+            this.#size = len;
+        } else {
+            this.#data = this.#createDataArray(this.#capacity);
+            this.#size = 0;
         }
     }
 
-    /**
-     * Retrieves the number of items in the list.
-     */
+    #createDataArray(capacity: number): DataArray<T> {
+        return new Array(capacity).fill(undefined) as DataArray<T>;
+    }
+
+    #inceaseCapacity(delta: number): void {
+        const size = this.#size;
+
+        // capacity calculation
+        let capacity = this.#capacity, targetSize = size + delta;
+        do {
+            capacity *= 2;
+        } while (targetSize >= capacity);
+
+        // data migration
+        const newData = new Array(capacity) as DataArray<T>, data = this.#data;
+        for (let i = 0; i < size; i++) {
+            newData[i] = data[i];
+        }
+
+        // update reference
+        this.#data = newData;
+        this.#capacity = capacity;
+    }
+
+    #readuceCapacity(): void {
+        const size = this.#size;
+
+        // capacity calculation
+        let capacity = this.#capacity;
+        do {
+            capacity = Math.max(10, Math.floor(capacity / 2));
+        } while (size <= Math.floor(capacity / 4) && (capacity > 10));
+
+        // data migration
+        const newData = new Array(capacity) as DataArray<T>, data = this.#data;
+        for (let i = 0; i < size; i++) {
+            newData[i] = data[i];
+        }
+
+        // update reference
+        this.#data = newData;
+        this.#capacity = capacity;
+    }
+
+    #needToIncrease(size: number, capacity: number): boolean {
+        return size >= capacity;
+    }
+
+    #needToDecerease(size: number, capacity: number): boolean {
+        return size <= Math.floor(capacity / 4) && (capacity > 10);
+    }
+
     get size(): number {
         return this.#size;
     }
 
-    /**
-     * Checks if the list is empty.
-     * @returns True if the list is empty, false otherwise.
-     */
     isEmpty(): boolean {
         return this.#size === 0;
     }
 
-    /**
-     * Retrieves an item by its index.
-     * @param index - The index of the item to retrieve.
-     * @returns The item at the specified index.
-     * @throws {Error} Throws an error if the list is empty.
-     * @throws {Error} Throws an error if the index is out of bounds.
-     */
     get(index: number): T {
-        if(this.#size === 0) throw new Error("List is empty");
-        if(index < 0 || index >= this.#size) throw new Error("Index out of bounds");
+        if(this.#size === 0) throw new Error('List is empty');
+        if(index < 0 || index >= this.#size) throw new Error('Index out of bounds');
 
         return this.#data[index];
     }
 
-    /**
-     * Adds one or more items to the end of the list.
-     * @param item - The item(s) to add to the list.
-     */
-    add(...item: T[]) {
-        this.#data.push(...item);
-        this.#size = this.#data.length;
+    add(...item: T[]): void {
+        const ilen = item.length, size = this.#size;
+        if (this.#needToIncrease(size + ilen, this.#capacity)) {
+            this.#inceaseCapacity(ilen);
+        }
+        let i = 0;
+        while (i < ilen) {
+            this.#data[size + i] = item[i];
+            i++;
+        }
+        this.#size = size + ilen;
     }
 
-    /**
-     * Inserts one or more items at the specified index in the list.
-     * @param index - The index at which to insert the item(s).
-     * @param item - The item(s) to insert into the list.
-     * @throws {Error} Throws an error if the index is out of bounds.
-     */
-    insert(index: number, ...item: T[]) {
-        if(index < 0 || index > this.#size) throw new Error("Index out of bounds");
-
-        this.#data.splice(index, 0, ...item);
-        this.#size = this.#data.length;
+    addOne(item: T): void {
+        const size = this.#size;
+        if (this.#needToIncrease(size + 1, this.#capacity)) {
+            this.#inceaseCapacity(1);
+        }
+        this.#data[size] = item;
+        this.#size = size + 1;
     }
 
-    /**
-     * Updates the item at the specified index in the list.
-     * @param index - The index of the item to update. Must be within bounds (0 to size-1).
-     * @param item - The new item to place at the specified index.
-     * @returns The item that was set at the specified index.
-     * @throws {Error} Throws an error if the list is empty.
-     * @throws {Error} Throws an error if the index is out of bounds.
-     */
+    insert(index: number, ...item: T[]): void {
+        const size = this.#size;
+        if(index < 0 || index > size) throw new Error('Index out of bounds');
+
+        const ilen = item.length;
+        if (this.#needToIncrease(size + ilen, this.#capacity)) {
+            this.#inceaseCapacity(ilen);
+        }
+        const data = this.#data;
+        if (index < size) data.copyWithin(index + ilen, index, size);
+
+        let i = 0;
+        while (i < ilen) {
+            data[index + i] = item[i];
+            i++;
+        }
+        this.#size = size + ilen;
+    }
+
+    insertOne(index: number, item: T): void {
+        const size = this.#size;
+        if (index < 0 || index > size) throw new Error('Index out of bounds');
+        if (this.#needToIncrease(size + 1, this.#capacity)) {
+            this.#inceaseCapacity(1);
+        }
+        const data = this.#data;
+        if (index < size) data.copyWithin(index + 1, index, size);
+        data[index] = item;
+        this.#size = size + 1;
+    }
+
     update(index: number, item: T): T {
-        if(this.#size === 0) throw new Error("List is empty");
-        if(index < 0 || index >= this.#size) throw new Error("Index out of bounds");
+        if(this.#size === 0) throw new Error('List is empty');
+        if(index < 0 || index >= this.#size) throw new Error('Index out of bounds');
 
         this.#data[index] = item;
         return item;
     }
 
-    /**
-     * Removes one or more items from the list starting at the specified index.
-     * @param index - The index of the first item to remove.
-     * @param count - The number of items to remove. Defaults to 1.
-     * @throws {Error} Throws an error if the list is empty.
-     * @throws {Error} Throws an error if the index is out of bounds.
-     */
-    delete(index: number, count: number = 1): void {
-        if(this.#size === 0) throw new Error("List is empty");
-        if(index < 0 || index >= this.#size) throw new Error("Index out of bounds");
+    delete(index: number, count: number): void {
+        const size = this.#size;
+        if(size === 0) throw new Error('List is empty');
+        if (index < 0 || index >= size) throw new Error('Index out of bounds');
+        if (count < 1) throw new Error('Count must be greater than 0');
 
-        this.#data.splice(index, count);
-        this.#size = this.#data.length;
-    }
-
-    /**
-     * Removes one item from the list at the specified index.
-     * @param index - The index of the item to remove.
-     * @returns The item that was removed.
-     * @throws {Error} Throws an error if the list is empty.
-     * @throws {Error} Throws an error if the index is out of bounds.
-     *
-     */
-    deleteOne(index: number): T {
-        if(this.#size === 0) throw new Error("List is empty");
-        if(index < 0 || index >= this.#size) throw new Error("Index out of bounds");
-
-        const item = this.#data[index];
-        this.#data.splice(index, 1);
-        this.#size--;
-        return item
-    }
-
-    /**
-     * Deletes all elements from the list.
-     */
-    deleteAll(): void {
-        this.#data.length = 0;
-        this.#size = 0;
-    }
-
-    /**
-     * Retrieves all items in the list.
-     * @returns An array of all items in the list.
-     */
-    items(): T[] {
-        return this.#data.slice();
-    }
-
-    /**
-     * Internal method to loop through the array in normal or reverse order.
-     * @param cb - The callback function to execute for each item.
-     * @param reverse - If true, loops in reverse order; otherwise, loops in normal order.
-     */
-    #loopArray(cb: LoopCallback<T>, reverse: boolean): void {
         const data = this.#data;
-        if(reverse) {
-            let index = this.#size - 1;
-            while(index>=0) {
-                if(cb(data[index], index) === LoopControl.break) break;
-                index--;
-            }
-        } else {
-            const len = this.#size
-            let index = 0;
-            while(index<len) {
-                if(cb(data[index], index) === LoopControl.break) break;
-                index++;
-            }
+        let deleteTill = index + count;
+        if (deleteTill > size) deleteTill = size;
+        if (deleteTill < size) {
+            data.copyWithin(index, deleteTill, size);
+        }
+        this.#size = size + index - deleteTill;
+        let i = this.#size
+        while(i < size) {
+            data[i] = undefined;
+            i++;
+        }
+        if (this.#needToDecerease(this.#size, this.#capacity)) {
+            this.#readuceCapacity();
         }
     }
 
-    /**
-     * Loops through each item in the list, executing the provided callback function.
-     * Can loop in normal or reverse order based on the parameters.
-     * @param reverse - If true, loops in reverse order. If false or omitted, loops in normal order.
-     * @param cb - The callback function to execute for each item.
-     */
-    loop(reverse: boolean, cb: LoopCallback<T>): void;
+    deleteOne(index: number): T {
+        if(this.#size === 0) throw new Error('List is empty');
+        if(index < 0 || index >= this.#size) throw new Error('Index out of bounds');
+
+        const data = this.#data, size = this.#size, deletedItem = data[index];
+        if (index + 1 < size) {
+            data.copyWithin(index, index + 1, size);
+        }
+        data[size - 1] = undefined;
+        this.#size = size - 1;
+
+        if (this.#needToDecerease(this.#size, this.#capacity)) {
+            this.#readuceCapacity();
+        }
+        return deletedItem;
+    }
+
+    deleteAll(): void {
+        this.#capacity = 10;
+        this.#size = 0;
+        this.#data = this.#createDataArray(this.#capacity);
+    }
+
+    items(): Array<T> {
+        return this.#data.slice(0, this.#size) as Array<T>;
+    }
+
+    #loopList(cb: LoopCallback<T>): void {
+        const data = this.#data;
+        const len = this.#size
+        let index = 0;
+        while(index<len) {
+            if(cb(data[index], index) === LoopControl.break) break;
+            index++;
+        }
+    }
+
+    #loopListReverse(cb: LoopCallback<T>): void {
+        const data = this.#data;
+        let index = this.#size - 1;
+        while(index>=0) {
+            if(cb(data[index], index) === LoopControl.break) break;
+            index--;
+        }
+    }
+
     loop(cb: LoopCallback<T>): void;
-    loop(...args: LoopArguments<T>[]): void {
-        if(args.length === 1) {
-            this.#loopArray(args[0] as LoopCallback<T> , false);
-        } else if(args.length === 2) {
-            this.#loopArray(args[1] as LoopCallback<T>, args[0] as boolean);
-        }
+    loop(reverse: true, cb: LoopCallback<T>): void;
+    loop(larg: LoopArguments<T>, lcb?: LoopCallback<T>): void {
+        const cb = lcb || (larg as LoopCallback<T>);
+        if (larg === true) this.#loopListReverse(cb);
+        else this.#loopList(cb);
     }
 
-    /**
-     * Maps each item in the list to a new value using the provided callback function.
-     * If the callback returns LoopControl.break, the mapping process is terminated early.
-     * @param cb - The callback function to apply to each item.
-     * @returns A new List containing the mapped values.
-     */
-    map<U>(cb: (item: T, index: number) => U | LoopControl): List<U> {
-        const result: List<U> = new List<U>();
-        const data = this.#data, len = this.#size;
+    map<U>(cb: MapLoopCallback<T, U>): List<U> {
+        const data = this.#data, size = this.#size;
+        const result: ArrayList<U> = new ArrayList<U>(size);
 
         let index = 0;
-        while(index < len) {
+        while(index < size) {
             const cbRetun = cb(data[index], index);
-            if(Utils.isDefined(cbRetun)) {
-                if(cbRetun === LoopControl.break) break;
-                result.add(cbRetun as U);
+            if(cbRetun === LoopControl.break) break;
+            else if(cbRetun !== undefined) {
+                result.addOne(cbRetun as U);
             }
             index++;
         }
-
         return result;
     }
 
-    /**
-     * Reduces the list to a single value by applying the provided callback function to each item.
-     * @param cb - The callback function to apply, which takes an accumulator and the current item.
-     * @param initialValue - The initial value for the accumulator.
-     * @returns The final accumulated value.
-     */
     reduce<U>(cb: (accumulator: U, item: T, index: number) => U, initialValue: U): U {
         let accumulator: U = initialValue;
         const data = this.#data, len = this.#size;
@@ -315,101 +491,93 @@ export class List<T> {
         return accumulator;
     }
 
-    /**
-     * Filters the list based on the provided callback function.
-     * @param cb - The callback function that determines whether an item should be included in the new list.
-     * @returns A new List containing only the items that satisfy the condition defined in the callback.
-     */
     filter(cb: (item: T, index: number) => boolean): List<T> {
-        return this.map((item, index) => {
-            if(cb(item, index)) {
-                return item;
+        const data = this.#data, size = this.#size;
+        const result: ArrayList<T> = new ArrayList<T>(size);
+
+        let index = 0;
+        while (index < size) {
+            if (cb(data[index], index)) {
+                result.addOne(data[index]);
             }
-            return undefined;
-        });
+            index++;
+        }
+        return result;
     }
 
-    /**
-     * Finds the first item in the list that satisfies the provided callback function.
-     * @param cb - The callback function that tests each item.
-     * @returns The first item that satisfies the condition, or undefined if no such item is found.
-     */
     find(cb: (item: T, index: number) => boolean): T | undefined {
-        let foundItem: T | undefined = undefined;
-        this.loop((item, index) => {
-            if(cb(item, index)) {
-                foundItem = item;
-                return LoopControl.break;
+        const data = this.#data, size = this.#size;
+
+        let index = 0;
+        while (index < size) {
+            if (cb(data[index], index)) {
+                return data[index];
             }
-        });
-        return foundItem;
+            index++;
+        }
+        return undefined;
     }
 
-    /**
-     * Finds the index of the first item in the list that satisfies the provided callback function.
-     * @param cb - The callback function that tests each item.
-     * @returns The index of the first item that satisfies the condition, or -1 if no such item is found.
-     */
     findIndex(cb: (item: T, index: number) => boolean): number {
-        let foundIndex: number = -1;
-        this.loop((item, index) => {
-            if(cb(item, index)) {
-                foundIndex = index;
-                return LoopControl.break;
+        const data = this.#data, size = this.#size;
+
+        let index = 0;
+        while (index < size) {
+            if (cb(data[index], index)) {
+                return index;
             }
-        });
-        return foundIndex;
+            index++;
+        }
+        return -1;
     }
 
-    /**
-     * Sorts the List in place.
-     *
-     * @param compareFn Function used to determine the order of the elements. It is expected to return
-     * a negative value if the first argument is less than the second argument, zero if they're equal, and a positive
-     * value otherwise. If omitted, the elements are sorted in ascending, UTF-16 code unit order.
-     * @returns void
-     *
-     * @remarks
-     * The default sort order is according to string Unicode code points. If you need a different sort order, you should provide a compare function.
-     * This method mutates the List and does not create a new sorted List.
-     *
-     * @example
-     * ```ts
-     * const list = new List([11,2,22,1]);
-     * list.sort((a, b) => a - b);
-     * console.log(list.items()); // Output: [1,2,11,22]
-     * ```
-     */
-    sort(compareFn?: (a: T, b: T) => number): void {
-        this.#data.sort(compareFn);
+    clone(): List<T> {
+        return new ArrayList<T>(this.items());
     }
 
-    /**
-     * Returns a string representation of the list.
-     * @returns string representation of the list.
-     */
+    slice(start: number, end?: number): List<T> {
+        const size = this.#size;
+        if(start < 0 || start >= size) {
+            throw new Error('Invalid slice parameters');
+        }
+        end = end === undefined ? size : end;
+        if(end <= start || end > size) {
+            throw new Error('Invalid slice parameters');
+        }
+        return new ArrayList<T>(this.#data.slice(start, end) as Array<T>);
+    }
+
     toString(): string {
-        return this.#data.toString();
+        let str = '[';
+        for (let i = 0, size = this.#size, data = this.#data; i < size; i++) {
+            str += data[i];
+            if (i < size - 1) {
+                str += ', ';
+            }
+        }
+        str += ']';
+        return str;
     }
 
     *[Symbol.iterator](): Iterator<T> {
-        const len = this.#size
+        const data = this.#data, size = this.#size
         let index = 0;
-        while(index<len) {
-            yield this.#data[index++];
+        while(index < size) {
+            yield data[index];
+            index++;
         }
     }
 }
 
-
 /**
- * Represents a node in a doubly linked list.
- * @template T The type of value stored in the node.
- * @example
- * ```ts
- * const node = new Node<number>(42);
- * ```
- */
+* Represents a node in a doubly linked list.
+* @template T The type of value stored in the node.
+* @example
+* ```ts
+* const node = new Node<number>(42);
+* console.log(node.value); // 42
+* ```
+*/
 class Node<T> {
     #value: T;
     #next: Node<T>;
@@ -447,56 +615,54 @@ class Node<T> {
 }
 
 /**
- * A generic LinkedList class to manage an ordered collection of data items using a doubly linked list structure.
- * Provides methods to get, set, delete, and manipulate items in the list.
- * @template T - The type of data stored in the linked list.
- */
-export class LinkedList<T> {
+* Constructs a new LinkedList instance.
+* @template T - The type of elements in the list.
+* @example
+* ```ts
+* const list = new LinkedList<number>();
+* list.add(1, 2, 3);
+* console.log(list.items()); // [1, 2, 3]
+* ```
+*/
+export class LinkedList<T> implements List<T> {
     #head: Node<T>;
     #tail: Node<T>;
     #size: number = 0;
 
     /**
-     * Constructs a new LinkedList instance.
-     * @param source - An optional array to initialize the list with existing items.
-     */
+    * Constructs a new LinkedList instance.
+    * @param source - An optional array to initialize the list with existing items.
+    */
     constructor(source?: T[]) {
         if(source) {
             this.add(...source);
         }
     }
 
-    /**
-     * Retrieves the number of items in the list.
-     */
     get size(): number {
         return this.#size;
     }
 
-    /**
-     * Checks if the list is empty.
-     * @returns True if the list is empty, false otherwise.
-     */
     isEmpty(): boolean {
         return this.#size === 0;
     }
 
     /**
-     * Retrieves a node at the specified index in the doubly linked list.
-     *
-     * Uses an optimization strategy that searches from the nearest end:
-     * - Searches from head if index is in the first half
-     * - Searches from tail if index is in the second half
-     *
-     * @param index - The zero-based index of the node to retrieve
-     * @returns The node at the specified index
-     * @throws {Error} If the list is empty
-     * @throws {Error} If the index is out of bounds (negative or >= size)
-     */
-    #getNode(index: number) {
-        const size = this.size;
-        if(size === 0) throw new Error("List is empty");
-        if(index < 0 || index >= size) throw new Error("Index out of bounds");
+    * Retrieves a node at the specified index in the doubly linked list.
+    *
+    * Uses an optimization strategy that searches from the nearest end:
+    * - Searches from head if index is in the first half
+    * - Searches from tail if index is in the second half
+    *
+    * @param index - The zero-based index of the node to retrieve
+    * @returns The node at the specified index
+    * @throws {Error} If the list is empty
+    * @throws {Error} If the index is out of bounds (negative or >= size)
+    */
+    #getNode(index: number): Node<T> {
+        const size = this.#size;
+        if(size === 0) throw new Error('List is empty');
+        if(index < 0 || index >= size) throw new Error('Index out of bounds');
 
         if(index > size/2) {
             let node = this.#tail, currentPosition = size -1;
@@ -516,19 +682,12 @@ export class LinkedList<T> {
         return node;
     }
 
-    /**
-     * Retrieves an item by its index.
-     * @param index - The index of the item to retrieve.
-     * @returns The item at the specified index.
-     * @throws {Error} Throws an error if the list is empty.
-     * @throws {Error} Throws an error if the index is out of bounds.
-     */
     get(index: number): T {
         const node = this.#getNode(index);
         return node.value;
     }
 
-    #buildTempList(...items: T[]) {
+    #buildTempList(...items: T[]): { head: Node<T>, tail: Node<T>, length: number } {
         const res: { head: Node<T>, tail: Node<T>, length: number } = {
             head: undefined, tail: undefined, length: 0
         };
@@ -547,66 +706,81 @@ export class LinkedList<T> {
         return res;
     }
 
-    /**
-     * Adds one or more items to the end of the list.
-     * @param items - The item(s) to add to the list.
-     */
-    add(...items: T[]) {
-        const tempList = this.#buildTempList(...items);
+    add(...items: T[]): void {
+        const { head: tHead, tail: tTail, length: tLen } = this.#buildTempList(...items);
         if(this.isEmpty()) {
-            this.#head = tempList.head;
-            this.#tail = tempList.tail;
-            this.#size = tempList.length;
+            this.#head = tHead;
+            this.#tail = tTail;
+            this.#size = tLen;
         } else {
-            this.#tail.setNext(tempList.head);
-            tempList.head.setPrev(this.#tail);
-            this.#tail = tempList.tail;
-            this.#size += tempList.length;
+            this.#tail.setNext(tHead);
+            tHead.setPrev(this.#tail);
+            this.#tail = tTail;
+            this.#size += tLen;
         }
     }
 
-    /**
-     * Inserts one or more items at the specified index in the list.
-     * @param index - The index at which to insert the item(s).
-     * @param items - The item(s) to insert into the list.
-     * @throws {Error} Throws an error if the index is out of bounds.
-     */
-    insert(index: number, ...items: T[]) {
-        if(index < 0 || index > this.size) throw new Error("Index out of bounds");
+    addOne(item: T): void {
+        const node = new Node(item);
+        if (this.isEmpty()) {
+            this.#head = this.#tail = node;
+            this.#size = 1;
+        } else {
+            this.#tail.setNext(node);
+            node.setPrev(this.#tail);
+            this.#tail = node;
+            this.#size++;
+        }
+    }
 
-        if(this.isEmpty() || index === this.size) return this.add(...items);
+    insert(index: number, ...items: T[]): void {
+        if(index>=0 && index === this.#size) {
+            this.add(...items);
+            return;
+        }
 
-        const tempList = this.#buildTempList(...items);
-        const currentNode = this.#getNode(index);
-        const prevNode = currentNode.prev;
+        const currNode = this.#getNode(index), prevNode = currNode.prev;
+        const { head: tHead, tail: tTail, length: tLen } = this.#buildTempList(...items);
 
         if(prevNode) {
-            prevNode.setNext(tempList.head);
-            tempList.head.setPrev(prevNode);
+            prevNode.setNext(tHead);
+            tHead.setPrev(prevNode);
         } else {
-            this.#head = tempList.head;
+            this.#head = tHead;
         }
-        tempList.tail.setNext(currentNode);
-        currentNode.setPrev(tempList.tail);
-        this.#size += tempList.length;
+        tTail.setNext(currNode);
+        currNode.setPrev(tTail);
+        this.#size += tLen;
     }
 
-    /**
-     * Updates the item at the specified index in the list.
-     * @param index - The index of the item to update. Must be within bounds (0 to size-1).
-     * @param item - The new item to place at the specified index.
-     * @returns The item that was set at the specified index.
-     * @throws {Error} Throws an error if the list is empty.
-     * @throws {Error} Throws an error if the index is out of bounds.
-     */
+    insertOne(index: number, item: T): void {
+        if(index>=0 && index === this.#size) {
+            this.addOne(item);
+            return;
+        }
+
+        const currNode = this.#getNode(index), prevNode = currNode.prev;
+        const newNode = new Node(item);
+
+        if(prevNode) {
+            prevNode.setNext(newNode);
+            newNode.setPrev(prevNode);
+        } else {
+            this.#head = newNode;
+        }
+        currNode.setPrev(newNode);
+        newNode.setNext(currNode);
+        this.#size++;
+    }
+
     update(index: number, item: T): T {
         const node = this.#getNode(index);
         node.setValue(item);
         return item;
     }
 
-    #deleteNodes(node: Node<T>, count: number = 1): void {
-        const prev = node.prev; // undefined
+    delete(index: number, count: number): void {
+        let node = this.#getNode(index), prev = node.prev;
         let deletedCount = 0;
 
         while(deletedCount < count && node) {
@@ -623,199 +797,192 @@ export class LinkedList<T> {
         this.#size -= deletedCount;
     }
 
-    /**
-     * Removes one or more items from the list starting at the specified index.
-     * @param index - The index of the first item to remove.
-     * @param count - The number of items to remove. Defaults to 1.
-     * @throws {Error} Throws an error if the list is empty.
-     * @throws {Error} Throws an error if the index is out of bounds.
-     */
-    delete(index: number, count: number = 1): void {
-        const node = this.#getNode(index);
-        this.#deleteNodes(node, count);
-    }
-
-    /**
-     * Removes one item from the list at the specified index.
-     * @param index - The index of the item to remove.
-     * @returns The item that was removed.
-     * @throws {Error} Throws an error if the list is empty.
-     * @throws {Error} Throws an error if the index is out of bounds.
-     *
-     */
     deleteOne(index: number): T {
-        if(this.#size === 0) throw new Error("List is empty");
-        if(index < 0 || index >= this.#size) throw new Error("Index out of bounds");
+        const node = this.#getNode(index), prev = node.prev, next = node.next;
 
-        const node = this.#getNode(index);
-        this.#deleteNodes(node, 1);
-        return node.value
+        if(prev) prev.setNext(next);
+        else this.#head = next;
+
+        if(next) next.setPrev(prev);
+        else this.#tail = prev;
+
+        this.#size -= 1;
+        return node.value;
     }
 
-    /**
-     * Deletes all elements from the list.
-     */
     deleteAll(): void {
         this.#head = undefined;
         this.#tail = undefined;
         this.#size = 0;
     }
 
-    /**
-     * Retrieves all items in the list.
-     * @returns An array of all items in the list.
-     */
     items(): T[] {
         const items = [];
+        let node = this.#head;
 
-        this.loop((item) => {
-            items.push(item);
-            return undefined
-        })
+        while(node) {
+            items.push(node.value);
+            node = node.next;
+        }
 
         return items;
     }
 
     /**
-     * Internal method to loop through the array in normal or reverse order.
-     * @param cb - The callback function to execute for each item.
-     * @param reverse - If true, loops in reverse order; otherwise, loops in normal order.
-     */
-    #loopArray(cb: LoopCallback<T>, reverse: boolean): void {
-        if(this.size > 0) {
-            let node: Node<T>, index: number;
-            if(reverse) {
-                node = this.#tail; index = this.size - 1;
-                while(node) {
-                    if(cb(node.value, index) === LoopControl.break) break;
-                    node = node.prev;
-                    index--;
-                }
-            } else {
-                node = this.#head; index = 0;
-                while(node) {
-                    if(cb(node.value, index) === LoopControl.break) break;
-                    node = node.next
-                    index++;
-                }
-            }
+    * Loops through the list and calls the provided callback function for each item.
+    * @param cb - The callback function to call for each item.
+    */
+    #loopList(cb: LoopCallback<T>): void {
+        let node = this.#head, index = 0;
+        while(node) {
+            if(cb(node.value, index) === LoopControl.break) break;
+            node = node.next
+            index++;
         }
     }
 
     /**
-     * Loops through each item in the list, executing the provided callback function.
-     * Can loop in normal or reverse order based on the parameters.
-     * @param reverse - If true, loops in reverse order. If false or omitted, loops in normal order.
-     * @param cb - The callback function to execute for each item.
-     */
-    loop(reverse: boolean, cb: LoopCallback<T>): void;
+    * Loops through the list in reverse order and calls the provided callback function for each item.
+    * @param cb - The callback function to call for each item.
+    */
+    #loopListReverse(cb: LoopCallback<T>): void {
+        let node = this.#tail, index = this.#size - 1;
+        while(node) {
+            if(cb(node.value, index) === LoopControl.break) break;
+            node = node.prev;
+            index--;
+        }
+    }
+
     loop(cb: LoopCallback<T>): void;
-    loop(...args: LoopArguments<T>[]): void {
-        if(args.length === 1) {
-            this.#loopArray(args[0] as LoopCallback<T> , false);
-        } else if(args.length === 2) {
-            this.#loopArray(args[1] as LoopCallback<T>, args[0] as boolean);
-        }
+    loop(reverse: true, cb: LoopCallback<T>): void;
+    loop(larg: LoopArguments<T>, lcb?: LoopCallback<T>): void {
+        if(this.#size === 0) return;
+        const cb = lcb || (larg as LoopCallback<T>);
+        if (larg === true) this.#loopListReverse(cb);
+        else this.#loopList(cb);
     }
 
-    /**
-     * Maps each item in the list to a new value using the provided callback function.
-     * If the callback returns LoopControl.break, the mapping process is terminated early.
-     * @param cb - The callback function to apply to each item.
-     * @returns A new LinkedList containing the mapped values.
-     */
-    map<U>(cb: (item: T, index: number) => U | LoopControl): LinkedList<U> {
+    map<U>(cb: MapLoopCallback<T, U>): LinkedList<U> {
         const result: LinkedList<U> = new LinkedList<U>();
+        if (this.#size === 0) return result;
 
-        if(this.size > 0) {
-            let index = 0, node = this.#head;
-            while(node) {
-                const cbRetun = cb(node.value, index);
-                if(Utils.isDefined(cbRetun)) {
-                    if(cbRetun === LoopControl.break) break;
-                    result.add(cbRetun as U);
-                }
-                node = node.next
-                index++;
+        let node = this.#head, index = 0;
+        while(node) {
+            const cbRetun = cb(node.value, index);
+            if(cbRetun === LoopControl.break) break;
+            else if(cbRetun !== undefined) {
+                result.addOne(cbRetun as U);
             }
+            node = node.next;
+            index++;
         }
 
         return result;
     }
 
-    /**
-     * Reduces the list to a single value by applying the provided callback function to each item.
-     * @param cb - The callback function to apply, which takes an accumulator and the current item.
-     * @param initialValue - The initial value for the accumulator.
-     * @returns The final accumulated value.
-     */
     reduce<U>(cb: (accumulator: U, item: T, index: number) => U, initialValue: U): U {
-        let accumulator: U = initialValue;
+        if (this.#size === 0) return initialValue;
 
-        if(this.size > 0) {
-            let index = 0, node = this.#head;
-            while(node) {
-                accumulator = cb(accumulator, node.value, index);
-                node = node.next
-                index++;
+        let acc: U = initialValue, node = this.#head, index = 0;
+        while(node) {
+            acc = cb(acc, node.value, index);
+            node = node.next
+            index++;
+        }
+        return acc;
+    }
+
+    filter(cb: (item: T, index: number) => boolean): List<T> {
+        const result: LinkedList<T> = new LinkedList<T>();
+        if (this.#size === 0) return result;
+
+        let node = this.#head, index = 0;
+        while(node) {
+            if(cb(node.value, index)) {
+                result.addOne(node.value);
             }
+            node = node.next;
+            index++;
+        }
+        return result;
+    }
+
+    find(cb: (item: T, index: number) => boolean): T | undefined {
+        if (this.#size === 0) return undefined;
+
+        let node = this.#head, index = 0;
+        while(node) {
+            if(cb(node.value, index)) {
+                return node.value;
+            }
+            node = node.next;
+            index++;
+        }
+        return undefined;
+    }
+
+    findIndex(cb: (item: T, index: number) => boolean): number {
+        if (this.#size === 0) return -1;
+
+        let node = this.#head, index = 0;
+        while(node) {
+            if(cb(node.value, index)) {
+                return index;
+            }
+            node = node.next;
+            index++;
+        }
+        return -1;
+    }
+
+    clone(): List<T> {
+        const newList = new LinkedList<T>();
+        let node = this.#head;
+
+        while(node) {
+            newList.addOne(node.value);
+            node = node.next;
         }
 
-        return accumulator;
+        return newList;
     }
 
-    /**
-     * Filters the list based on the provided callback function.
-     * @param cb - The callback function that determines whether an item should be included in the new list.
-     * @returns A new LinkedList containing only the items that satisfy the condition defined in the callback.
-     */
-    filter(cb: (item: T, index: number) => boolean): LinkedList<T> {
-        return this.map((item, index) => {
-            if(cb(item, index)) {
-                return item;
-            }
-            return undefined;
-        });
+    slice(start: number, end?: number): List<T> {
+        const size = this.#size;
+        if(start < 0 || start >= size) {
+            throw new Error('Invalid slice parameters');
+        }
+        end = end === undefined ? size : end;
+        if(end <= start || end > size) {
+            throw new Error('Invalid slice parameters');
+        }
+        const newList = new LinkedList<T>();
+        let node = this.#head, index = 0;
+
+        while(node && index < start) {
+            node = node.next;
+            index++;
+        }
+
+        while(node && index < end) {
+            newList.addOne(node.value);
+            node = node.next;
+            index++;
+        }
+
+        return newList;
     }
 
-    /**
-     * Finds the first item in the list that satisfies the provided callback function.
-     * @param cb - The callback function that tests each item.
-     * @returns The first item that satisfies the condition, or undefined if no such item is found.
-     */
-    find(cb: (item: T, index: number) => boolean): T | undefined {
-        let foundItem: T | undefined = undefined;
-        this.loop((item, index) => {
-            if(cb(item, index)) {
-                foundItem = item;
-                return LoopControl.break;
-            }
-        });
-        return foundItem;
-    }
-
-    /**
-     * Finds the index of the first item in the list that satisfies the provided callback function.
-     * @param cb - The callback function that tests each item.
-     * @returns The index of the first item that satisfies the condition, or -1 if no such item is found.
-     */
-    findIndex(cb: (item: T, index: number) => boolean): number {
-        let foundIndex: number = -1;
-        this.loop((item, index) => {
-            if(cb(item, index)) {
-                foundIndex = index;
-                return LoopControl.break;
-            }
-        });
-        return foundIndex;
-    }
-
-    /**
-     * Returns a string representation of the list by converting its items to a string.
-     * @returns string representation of the list.
-     */
     toString(): string {
-        return this.items().toString();
+        let result = '', node = this.#head;
+
+        while(node) {
+            result += node.value.toString() + ', ';
+            node = node.next;
+        }
+
+        return result.trim().slice(0, -1);
     }
 
     *[Symbol.iterator](): Iterator<T> {
@@ -828,132 +995,252 @@ export class LinkedList<T> {
 }
 
 /**
- * A generic Queue class to manage a collection of data items in a FIFO (First In, First Out) manner.
- * Provides methods to enqueue, dequeue, peek, and manipulate items in the queue.
- * @template T - The type of data stored in the queue.
- */
+* A generic Queue class to manage a collection of data items in a FIFO (First In, First Out) manner.
+* Provides methods to enqueue, dequeue, peek, and manipulate items in the queue.
+* @template T - The type of data stored in the queue.
+*/
 export class Queue<T> {
-    #list: LinkedList<T> = new LinkedList<T>();
+    #list: List<T> = new LinkedList<T>();
 
+    /**
+    * Retrieves the number of items in the queue.
+    * @returns The number of items in the queue.
+    */
     get size() {
         return this.#list.size;
     }
 
     /**
-     * Adds an item to the end of the queue.
-     * @param item - The item to add to the queue.
-     */
+    * Adds an item to the end of the queue.
+    * @param item - The item to add to the queue.
+    */
     enqueue(item: T) {
-        this.#list.add(item);
+        this.#list.addOne(item);
     }
 
     /**
-     * Removes and returns the first item in the queue.
-     * @returns The first item in the queue.
-     * @throws Will throw an error if the queue is empty.
-     */
+    * Removes and returns the first item in the queue.
+    * @returns The first item in the queue.
+    * @throws Will throw an error if the queue is empty.
+    */
     dequeue(): T {
-        if(this.#list.isEmpty()) throw new Error("Queue is empty");
-
+        if(this.#list.isEmpty()) throw new Error('Queue is empty');
         return this.#list.deleteOne(0);
     }
 
     /**
-     * Retrieves the first item in the queue without removing it.
-     * @returns The first item in the queue.
-     * @throws Will throw an error if the queue is empty.
-     */
+    * Retrieves the first item in the queue without removing it.
+    * @returns The first item in the queue.
+    * @throws Will throw an error if the queue is empty.
+    */
     peek(): T {
-        if(this.#list.isEmpty()) throw new Error("Queue is empty");
-
+        if(this.#list.isEmpty()) throw new Error('Queue is empty');
         return this.#list.get(0);
     }
 
     /**
-     * Checks if the queue is empty.
-     * @returns True if the queue is empty, false otherwise.
-     */
+    * Checks if the queue is empty.
+    * @returns True if the queue is empty, false otherwise.
+    */
     isEmpty(): boolean {
         return this.#list.isEmpty();
     }
 
     /**
-     * Clears all items from the queue.
-     */
+    * Clears all items from the queue.
+    */
     clear(): void {
         this.#list.deleteAll();
     }
 
     /**
-     * Retrieves all items in the queue.
-     * @returns An array of all items in the queue.
-     */
+    * Retrieves all items in the queue.
+    * @returns An array of all items in the queue.
+    */
     items(): T[] {
         return this.#list.items();
     }
 }
 
 /**
- * A generic Stack class to manage a collection of data items in a LIFO (Last In, First Out) manner.
- * Provides methods to push, pop, peek, and manipulate items in the stack.
- * @template T - The type of data stored in the stack.
- */
+* A generic Stack class to manage a collection of data items in a LIFO (Last In, First Out) manner.
+* Provides methods to push, pop, peek, and manipulate items in the stack.
+* @template T - The type of data stored in the stack.
+*/
 export class Stack<T> {
     #list: LinkedList<T> = new LinkedList<T>();
+
+    /**
+    * Retrieves the number of items in the stack.
+    * @returns The number of items in the stack.
+    */
     get size() {
         return this.#list.size;
     }
 
     /**
-     * Adds an item to the top of the stack.
-     * @param item - The item to add to the stack.
-     */
+    * Adds an item to the top of the stack.
+    * @param item - The item to add to the stack.
+    */
     push(item: T) {
-        this.#list.add(item);
+        this.#list.addOne(item);
     }
 
     /**
-     * Removes and returns the top item from the stack.
-     * @returns The top item from the stack.
-     * @throws Will throw an error if the stack is empty.
-     */
+    * Removes and returns the top item from the stack.
+    * @returns The top item from the stack.
+    * @throws Will throw an error if the stack is empty.
+    */
     pop(): T {
-        if(this.#list.isEmpty()) throw new Error("Stack is empty");
-
+        if(this.#list.isEmpty()) throw new Error('Stack is empty');
         return this.#list.deleteOne(this.size - 1);
     }
 
     /**
-     * Retrieves the top item from the stack without removing it.
-     * @returns The top item from the stack.
-     * @throws Will throw an error if the stack is empty.
-     */
+    * Retrieves the top item from the stack without removing it.
+    * @returns The top item from the stack.
+    * @throws Will throw an error if the stack is empty.
+    */
     peek(): T {
-        if(this.#list.isEmpty()) throw new Error("Stack is empty");
-
+        if(this.#list.isEmpty()) throw new Error('Stack is empty');
         return this.#list.get(this.size - 1);
     }
 
     /**
-     * Checks if the stack is empty.
-     * @returns True if the stack is empty, false otherwise.
-     */
+    * Checks if the stack is empty.
+    * @returns True if the stack is empty, false otherwise.
+    */
     isEmpty(): boolean {
         return this.#list.isEmpty();
     }
 
     /**
-     * Clears all items from the stack.
-     */
+    * Clears all items from the stack.
+    */
     clear(): void {
         this.#list.deleteAll();
     }
 
     /**
-     * Retrieves all items in the stack.
-     * @returns An array of all items in the stack.
-     */
+    * Retrieves all items in the stack.
+    * @returns An array of all items in the stack.
+    */
     items(): T[] {
         return this.#list.items();
+    }
+}
+
+/**
+* A generic Mapper class to manage a collection of data items identified by unique string keys.
+* Provides methods to get, set, delete, and retrieve all items in the collection.
+* @template T - The type of data stored in the collection.
+*/
+export class Dictionary<T> {
+    #data: ObjectOf<T, string> = Object.create(null);
+    #size: number = 0;
+
+    /**
+    * Constructs a new Mapper instance.
+    * @param source - An optional object to initialize the mapper with existing key-value pairs.
+    */
+    constructor(source?: ObjectOf<T>) {
+        if (source) {
+            const keys = Object.keys(source);
+            let index = keys.length-1, key: string;
+            while(index>=0) {
+                key = keys[index];
+                this.#data[key] = source[key];
+                this.#size++;
+                index--;
+            }
+        }
+    }
+
+    /**
+    * Retrieves the number of items in the Mapper.
+    * @returns The number of items in the Mapper.
+    */
+    get size(): number {
+        return this.#size;
+    }
+
+    /**
+    * Retrieves a data item by its key.
+    * @param key - The unique key of the item to retrieve.
+    * @returns The data item associated with the given key, or undefined if not found.
+    */
+    get(key: string): T {
+        return this.#data[key];
+    }
+
+    /**
+    * Adds or updates a data item by its key.
+    * @param key - The unique key of the item to add or update.
+    * @param val - The data item to associate with the given key.
+    * @returns The data item that was added or updated.
+    */
+    set(key: string, val: T): T {
+        if (!(key in this.#data)) this.#size++;
+        this.#data[key] = val;
+        return val;
+    }
+
+    /**
+    * Deletes a data item by its key.
+    * @param key - The unique key of the item to delete.
+    * @returns True if the item was deleted, false if it was not found.
+    */
+    delete(key: string): boolean {
+        if(this.#data[key]) {
+            delete this.#data[key];
+            this.#size--;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+    * Deletes all data items in the collection.
+    */
+    deleteAll(): void {
+        this.#data = Object.create(null);
+        this.#size = 0;
+    }
+
+    /**
+    * Retrieves all keys of the data items in the collection.
+    * @returns An array of all item keys.
+    */
+    keys(): string[] {
+        return Object.keys(this.#data);
+    }
+
+    /**
+    * Retrieves all data items in the collection.
+    * @returns An array of all data items.
+    */
+    items(): T[] {
+        return Object.values(this.#data);
+    }
+
+    /**
+    * Iterates over all data items in the collection.
+    * @param cb - The callback function to execute for each item.
+    */
+    loop(cb: LoopCallback<T>): void {
+        const data = this.#data, keys = Object.keys(data), len = keys.length;
+        let index = 0;
+        while(index < len) {
+            if(cb(data[keys[index]], index) === LoopControl.break) break;
+            index++;
+        }
+    }
+
+    /**
+    * Clones the dictionary.
+    * @returns A new dictionary with the same data.
+    */
+    clone(): Dictionary<T> {
+        return new Dictionary<T>(this.#data);
     }
 }

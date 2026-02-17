@@ -212,7 +212,7 @@ class AppRunner {
                 // 2. Force terminate if it doesn't close in 2 seconds
                 forceExit = new Promise((resolve, reject) => {
                     setTimeout(() => {
-                        if (this.#instance && this.#instance.exitTriggered && !this.#instance.instanceKilled) {
+                        if (this.#instance?.exitTriggered && !this.#instance.instanceKilled) {
                             this.#instance.terminate().then(resolve).catch(reject);
                         } else resolve();
                     }, 2000);
@@ -232,7 +232,7 @@ class AppRunner {
                 // 2. Force SIGKILL if it doesn't close in 2 seconds
                 forceExit = new Promise((resolve) => {
                     setTimeout(() => {
-                        if (this.#instance && this.#instance.exitTriggered && !this.#instance.instanceKilled) {
+                        if (this.#instance?.exitTriggered && !this.#instance.instanceKilled) {
                             this.#instance.kill("SIGKILL");
                         }
                         resolve();
