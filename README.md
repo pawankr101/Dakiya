@@ -1,151 +1,137 @@
 # Dakiya
 
-## 📖 About the Project
+Dakiya is a modern, real-time collaboration platform designed for seamless and secure communication. It enables users to connect through one-to-one or group chats, audio/video calls, and file sharing, with a focus on privacy and user control.
 
-Dakiya is a real-time communication application built with a modern web stack. It facilitates direct, peer-to-peer connections for messaging and data exchange, leveraging WebRTC for low-latency communication and WebSockets for signaling. The project is designed with a clean, modular architecture, making it easy to understand, extend, and maintain.
+The project follows a local-first architectural approach, ensuring that your data is always available on your device, even when you're offline.
 
 ## ✨ Features
 
-- **Real-time Messaging:** Instantaneous text-based communication.
-- **Peer-to-Peer Communication:** Utilizes WebRTC for direct client-to-client connections, ensuring low latency and privacy.
-- **Signaling:** Employs a WebSocket-based signaling server to coordinate WebRTC connections.
-- **Authentication:** Secure authentication flow using JSON Web Tokens (JWT).
-- **Scalable Backend:** The backend is built with Node.js and TypeScript, offering a robust and scalable foundation.
-- **Modern Frontend:** A responsive and interactive user interface built with React and TypeScript.
+Dakiya comes packed with a rich set of features for a complete communication experience.
 
-## 🚀 Getting Started
+### Core Communication
+- **One-to-One & Group Chats:** Real-time text messaging with online status indicators and read receipts.
+- **Rich Media Sharing:** Share pictures, audio, videos, documents (PDF, DOCX), and your location.
+- **Interactive Tools:** Engage with others using polls and event sharing.
+- **Audio/Video Calling:** High-quality, duplex audio and video streams with screen sharing and recording capabilities.
+- **Call Management:** Receive call notifications and acknowledgements, with robust handling for disconnections.
 
-Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
+### User & Profile Management
+- **Flexible Login Options:** Sign in with Email/Username + Password, OTP, or third-party providers (Google, Facebook, LinkedIn, GitHub).
+- **Comprehensive Dashboard:** Easily access your chat list, call history, and contacts.
+- **Profile Customization:** Manage your profile information, including your name, display picture, and bio.
+- **Contact Management:** Organize your contacts by blocking, adding to favorites, or inviting new users.
+
+### Settings & Privacy
+- **Account Control:** Full control over your account, privacy, and security settings.
+- **Data Management:** Options for data backup and restoration.
+- **Custom Notifications:** Configure notification preferences to your liking.
+
+### 🔮 Future Enhancements
+- **Group Call Expansion:** Adding more participants to ongoing calls.
+- **Smart Suggestions:** AI-powered contact suggestions and speech recognition.
+- **Decentralization:** Moving towards a fully decentralized architecture for greater user autonomy.
+
+## 🚀 Tech Stack
+
+Dakiya is built with a modern, robust technology stack to ensure scalability, low latency, and a seamless user experience.
+
+- **Frontend:**
+  - **Framework:** React
+  - **Styling:** Tailwind CSS
+  - **Build Tool:** Esbuild
+
+- **Backend:**
+  - **Framework:** Node.js with Fastify
+  - **Real-time Communication:** WebSockets (`ws`)
+
+- **Database & Storage:**
+  - **Local-First:** WatermelonDB (backed by IndexedDB/SQLite)
+  - **Cloud Database:** PostgreSQL
+  - **Caching & Real-time:** Redis
+
+- **Tooling:**
+  - **Monorepo Management:** npm Workspaces
+  - **Linting & Formatting:** BiomeJS
+  - **Concurrency:** `concurrently`
+
+## 🏗️ Project Structure
+
+The project is organized as a monorepo with two main packages:
+
+- **`/client`**: Contains the single-page web application built with React.
+- **`/server`**: Contains the backend API server built with Node.js and Fastify.
+
+```
+/
+├── client/         # Frontend React application
+│   ├── src/
+│   └── client.js   # Build and development script
+├── server/         # Backend Node.js server
+│   ├── src/
+│   └── server.js   # Build and development script
+├── docs/           # Design documents and project assets
+├── package.json    # Root package configuration and scripts
+└── ...
+```
+
+## 🏁 Getting Started
+
+To get the Dakiya application running on your local machine, follow these steps.
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18 or later)
-- [npm](https://www.npmjs.com/)
-- [MongoDB](https://www.mongodb.com/)
+- Node.js (>= v22)
+- npm (or your preferred package manager)
 
-### Installation
+### Installation & Setup
 
-1.  **Clone the repository:**
+1. **Clone the repository:**
+   ```sh
+   git clone https://github.com/pawankr101/Dakiya.git
+   cd Dakiya
+   ```
 
-    ```bash
-    git clone https://github.com/your-username/dakiya.git
-    cd dakiya
-    ```
+2. **Install dependencies:**
+   The project uses npm workspaces, so dependencies for both the client and server will be installed from the root directory.
+   ```sh
+   npm install
+   ```
 
-2.  **Install server dependencies:**
+3. **Set up environment variables:**
+   You will need to create `.env` files for the `client` and `server` packages based on the required configuration (e.g., database credentials, API keys).
 
-    ```bash
-    cd server
-    npm install
-    ```
+### Running the Application
 
-3.  **Install client dependencies:**
+- **Start both the client and server in development mode:**
+  This command uses `concurrently` to run both applications simultaneously.
+  ```sh
+  npm start
+  ```
+  - The client will be accessible at `http://localhost:3000`.
+  - The server will run on `http://localhost:8000`.
 
-    ```bash
-    cd ../client
-    npm install
-    ```
+## 📜 Available Scripts
 
-### Configuration
+The following scripts are available in the root `package.json` and can be run with `npm run <script_name>`:
 
-1.  **Server:**
-    -   Create a `.env` file in the `server` directory.
-    -   Add the following environment variables:
-        ```env
-        PORT=3000
-        MONGO_URI=mongodb://localhost:27017/dakiya
-        JWT_SECRET=your-secret-key
-        ```
+| Script               | Description                                                                  |
+| -------------------- | ---------------------------------------------------------------------------- |
+| `start`              | Starts both the client and server in development mode.                       |
+| `build`              | Builds both the client and server for development.                           |
+| `build:prod`         | Builds both the client and server for production.                            |
+| `lint`               | Lints the `client` and `server` codebases using BiomeJS.                     |
+| `client:start`       | Starts the client development server.                                        |
+| `client:build`       | Builds the client application.                                               |
+| `server:start`       | Starts the backend server.                                                   |
+| `server:build`       | Builds the backend server.                                                   |
+| `reinstall`          | Removes `node_modules` and `package-lock.json` and reinstalls dependencies.  |
+| `update`             | Checks for and applies dependency updates.                                   |
 
-2.  **Client:**
-    -   The client is configured to connect to the server at `http://localhost:3000`. This can be changed in `client/src/config.ts`.
-
-## 🏃‍♀️ Usage
-
-1.  **Start the MongoDB server.**
-
-2.  **Start the backend server:**
-
-    ```bash
-    cd server
-    npm start
-    ```
-
-3.  **Start the client application:**
-
-    ```bash
-    cd ../client
-    npm start
-    ```
-
-4.  Open your browser and navigate to `http://localhost:8080`.
-
-## 🛠️ Technologies Used
-
-### Backend
-
-- [Node.js](https://nodejs.org/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Express.js](https://expressjs.com/) (assumed)
-- [MongoDB](https://www.mongodb.com/)
-- [Mongoose](https://mongoosejs.com/) (assumed)
-- [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) (`ws` library assumed)
-- [JSON Web Token](https://jwt.io/)
-
-### Frontend
-
-- [React](https://reactjs.org/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [WebRTC](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API)
-
-### Tooling
-
-- [Biome](https://biomejs.dev/) for linting and formatting.
-- [Vite](https://vitejs.dev/) (assumed for frontend tooling)
-
-## Project Structure
-
-<pre>
-/media/pawan/Data/Learning/Coding/Projects/Dakiya/
-├───.gitignore
-├───biome.json
-├───package-lock.json
-├───package.json
-├───README.md
-├───client/
-│   ├───client.js
-│   ├───package.json
-│   ├───tsconfig.json
-│   └───src/
-│       ├───config.ts
-│       ├───index.html
-│       ├───index.tsx
-│       └───...
-└───server/
-    ├───server.js
-    ├───package.json
-    ├───tsconfig.json
-    └───src/
-        ├───config.ts
-        ├───index.ts
-        └───...
-</pre>
-
-A brief explanation of the directory structure:
-
--   **`client/`**: Contains the React frontend application.
-    -   **`src/`**: The source code of the client application.
-    -   **`client.js`**: Build and development script for the client.
--   **`server/`**: Contains the Node.js backend application.
-    -   **`src/`**: The source code of the server application.
-    -   **`server.js`**: Build and startup script for the server.
--   **`docs/`**: Documentation files.
--   **`biome.json`**: Configuration for the Biome toolchain.
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/your-username/dakiya/issues).
+Contributions are welcome! If you have ideas for improvements or want to fix a bug, please open an issue or submit a pull request.
 
-## 📝 License
+## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the ISC License. See the [LICENSE.md](LICENSE.md) file for details.
