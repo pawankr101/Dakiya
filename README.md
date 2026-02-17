@@ -80,7 +80,7 @@ To get the Dakiya application running on your local machine, follow these steps.
 
 ### Prerequisites
 
-- Node.js (>= v22)
+- Node.js (>= v24)
 - npm (or your preferred package manager)
 
 ### Installation & Setup

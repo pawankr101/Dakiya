@@ -6,7 +6,7 @@
     "type": "module",
     "engine-strict": true,
     "engines": {
-        "node": ">=22"
+        "node": ">=24"
     },
     "scripts": {
         "client:build": "cd ./client && npm run build",
