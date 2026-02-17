@@ -26,7 +26,7 @@ export class Thread {
     static readonly #threads: Dictionary<Thread> = new Dictionary<Thread>();
 
     #worker: Worker;
-    #messageChannelPort: MessagePort
+    #messageChannelPort: MessagePort;
     readonly #tasks: Dictionary<Task> = new Dictionary<Task>();
     #terminationTimeout: NodeJS.Timeout = null;
 
