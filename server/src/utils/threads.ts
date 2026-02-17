@@ -33,16 +33,17 @@ export class Thread {
     _id:string;
 
     readonly #onChannelMessage = (result: WorkerResult) => {
-        const task = this.#tasks.get(result.taskId);
-        if(task) this.#tasks.delete(result.taskId);
+        const { taskId, error, result: data } = result;
+        const task = this.#tasks.get(taskId);
+        if(task) this.#tasks.delete(taskId);
         if(!this.#tasks.size) {
             this.#terminationTimeout = setTimeout(() => {
                 this.stop();
             }, Thread.#workerIdleTimeInMS);
         }
         if(task) {
-            if(result.error) task.onError(result.error);
-            else if(result.result) task.onSuccess(result.result);
+            if(error) task.onError(error);
+            else if(data) task.onSuccess(data);
         }
     }
 
@@ -60,16 +61,17 @@ export class Thread {
     }
 
     readonly #onWorkerMessage = (result: WorkerResult) => {
-        const task  = this.#tasks.get(result.taskId);
-        if(task) this.#tasks.delete(result.taskId);
+        const { taskId, error, result: data } = result;
+        const task  = this.#tasks.get(taskId);
+        if(task) this.#tasks.delete(taskId);
         if(!this.#tasks.size) {
             this.#terminationTimeout = setTimeout(() => {
                 this.stop();
             }, Thread.#workerIdleTimeInMS);
         }
         if(task) {
-            if(result.error) task.onError(result.error);
-            else if(result.result) task.onSuccess(result.result);
+            if(error) task.onError(error);
+            else if(data) task.onSuccess(data);
         }
     }
 
