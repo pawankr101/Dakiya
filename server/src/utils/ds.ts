@@ -14,7 +14,7 @@ type DataArray<T> = {
 export type LoopControl = typeof LoopControl[keyof typeof LoopControl];
 export const LoopControl = (() => {
     const lc : { break: symbol } = Object.create(null);
-    lc['break'] = Symbol('__BREAK_LOOP');
+    lc.break = Symbol('__BREAK_LOOP');
     return lc;
 })();
 
@@ -978,7 +978,7 @@ export class LinkedList<T> implements List<T> {
         let result = '', node = this.#head;
 
         while(node) {
-            result += node.value.toString() + ', ';
+            result += `${node.value.toString()}, `;
             node = node.next;
         }
 

@@ -1,5 +1,4 @@
-import { type List, ArrayList } from './ds.js';
-import { Utils } from './utils.js';
+import { ArrayList, type List, Utils } from './index.js';
 
 const SHORT_MONTHS: string[] = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 const FULL_MONTHS: string[] = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];

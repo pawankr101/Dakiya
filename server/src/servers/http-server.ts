@@ -1,10 +1,10 @@
-import http from 'http';
-import https from 'https';
-import http2 from 'http2';
-import { ListenOptions } from 'net';
-import { WSServer } from './index.js';
+import http from 'node:http';
+import http2 from 'node:http2';
+import https from 'node:https';
+import type { ListenOptions } from 'node:net';
 import { Exception } from '../exceptions/index.js';
 import { Helpers } from '../utils/index.js';
+import { WSServer } from './index.js';
 
 /* ***** Type Declarations: Start ***** */
 
@@ -76,8 +76,8 @@ export class HttpServer<hv extends HttpVersion, hs extends HttpSecurity> {
      * Subsequent calls will return the previously created instance.
      */
     static build<hv extends HttpVersion, hs extends HttpSecurity>(httpVer: hv, httpSec: hs, options?: ServerOptions<hv,hs>) {
-        if(!this.#httpServer) this.#httpServer = new HttpServer<hv, hs>(httpVer, httpSec, options, HttpServer.#staticHash);
-        return this.#httpServer;
+        if(!HttpServer.#httpServer) HttpServer.#httpServer = new HttpServer<hv, hs>(httpVer, httpSec, options, HttpServer.#staticHash);
+        return HttpServer.#httpServer;
     }
 
     /**
@@ -100,7 +100,7 @@ export class HttpServer<hv extends HttpVersion, hs extends HttpSecurity> {
 
             // Handle client errors globally for the server
             this.#server.addListener('clientError', (err, socket) => {
-                if(err['code'] !== 'ECONNRESET' && socket.writable) {
+                if(err.code !== 'ECONNRESET' && socket.writable) {
                     console.error(new Exception('Client Error', { cause: err, code: 400 }));
                     socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
                 }
@@ -149,7 +149,7 @@ export class HttpServer<hv extends HttpVersion, hs extends HttpSecurity> {
         cb = cb || {};
         if(cb.onError) {
             this.#server.on('error', (err) => {
-                cb.onError(err['code'] === 'EADDRINUSE' ? new Exception(`Port ${options.port} is already occupied.`, { cause: err }) : new Exception(err));
+                cb.onError(err.code === 'EADDRINUSE' ? new Exception(`Port ${options.port} is already occupied.`, { cause: err }) : new Exception(err));
             });
         }
         this.#server.listen(options, cb.listener);

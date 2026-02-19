@@ -1,4 +1,4 @@
-import type { ObjectOf, DynamicType, PossibleTypes, Func } from '../types/index.js';
+import type { DynamicType, Func, ObjectOf, PossibleTypes } from '../types/index.js';
 import { LoopControl } from './ds.js';
 
 type LoopCallback<U = void> = () => LoopControl | U;
@@ -459,7 +459,7 @@ const bytesToSize = (bytes: number): string => {
     if (bytes <= 0) return '0 B';
     const i = Math.floor(Math.log(bytes) / Math.log(1024)),
     sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-    return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
+    return `${(bytes / (1024 ** i)).toFixed(2)} ${sizes[i]}`;
 }
 
 export const Utils = (() => {

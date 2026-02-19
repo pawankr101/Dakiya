@@ -1,8 +1,8 @@
-import { cpus } from 'os';
-import { Worker, MessageChannel, type MessagePort } from "worker_threads";
+import { cpus } from 'node:os';
+import { MessageChannel, type MessagePort, Worker } from "node:worker_threads";
 import { THREADING } from "../config.js";
 import { Exception } from "../exceptions/index.js";
-import { Helpers, Dictionary } from './index.js';
+import { Dictionary, Helpers } from './index.js';
 
 type WorkerResult = { taskId: string, result?: unknown, error?: unknown };
 type Task = {
@@ -48,7 +48,7 @@ export class Thread {
     }
 
     readonly #onChannelMessageerror = (error: Error) => {
-        console.log('channel Message Error: ' + error.message);
+        console.log(`channel Message Error: ${error.message}`);
     }
 
     #buildMessageChannel() {
@@ -76,15 +76,15 @@ export class Thread {
     }
 
     readonly #onWorkerMessageerror = (error: Error) => {
-        console.log('worker Message Error: ' + error.message);
+        console.log(`worker Message Error: ${error.message}`);
     }
 
     readonly #onWorkerError = (error: Error) => {
-        console.log('worker Error: ' + error.message);
+        console.log(`worker Error: ${error.message}`);
     }
 
     readonly #onWorkerExit = (exitCode: number) => {
-        console.log('exit code: ' + exitCode);
+        console.log(`exit code: ${exitCode}`);
     }
 
     #buildWorker(workerFilePath: string) {
