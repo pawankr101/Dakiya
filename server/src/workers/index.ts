@@ -1,12 +1,11 @@
-import { type MessagePort, parentPort, workerData } from 'worker_threads';
+import { parentPort } from 'worker_threads';
 import methods from './methods.js';
 import { Utils } from '../utils/index.js';
 
 type WorkerInput = { workerExit?: boolean, taskId?: string, method?: string, arg?: unknown[] };
 type Fn = (...args: unknown[]) => unknown;
 
-const messageChannelPort: MessagePort = Utils.getValue(workerData, 'messageChannelPort', parentPort);
-messageChannelPort.on('message', (data: WorkerInput) => onMessageAtMessageChannelPort(data));
+parentPort.on('message', (data: WorkerInput) => onMessageAtMessageChannelPort(data));
 
 function onMessageAtMessageChannelPort(data: WorkerInput) {
     if(data.workerExit) {
@@ -18,10 +17,10 @@ function onMessageAtMessageChannelPort(data: WorkerInput) {
         const result = method(...data.arg);
         if(result instanceof Promise) {
             result.then(res => {
-                messageChannelPort.postMessage({taskId: data.taskId, result: res});
+                parentPort.postMessage({taskId: data.taskId, result: res});
             }).catch(err => {
-                messageChannelPort.postMessage({taskId: data.taskId, error: err});
+                parentPort.postMessage({taskId: data.taskId, error: err});
             })
-        } else messageChannelPort.postMessage({taskId: data.taskId, result: result});
+        } else parentPort.postMessage({taskId: data.taskId, result: result});
     }
 }
