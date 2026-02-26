@@ -36,22 +36,22 @@
         "ws": "^8.19.0"
     },
     "devDependencies": {
-        "@biomejs/biome": "2.4.2",
+        "@biomejs/biome": "2.4.4",
         "@nozbe/watermelondb": "^0.28.0",
         "@types/jws": "^3.2.11",
-        "@types/node": "^25.2.3",
-        "@types/nodemailer": "^7.0.10",
+        "@types/node": "^25.3.1",
+        "@types/nodemailer": "^7.0.11",
         "@types/react": "^19.2.14",
         "@types/react-dom": "^19.2.3",
         "@types/ws": "^8.18.1",
         "concurrently": "^9.2.1",
         "esbuild": "^0.27.3",
         "esbuild-plugin-tailwindcss": "^2.1.0",
-        "npm-check-updates": "^19.3.2",
+        "npm-check-updates": "^19.5.0",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",
-        "react-router-dom": "^7.13.0",
-        "tailwindcss": "^4.1.18",
+        "react-router-dom": "^7.13.1",
+        "tailwindcss": "^4.2.1",
         "typescript": "^5.9.3"
     },
     "keywords": [
