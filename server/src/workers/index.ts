@@ -1,6 +1,6 @@
-import { parentPort } from 'worker_threads';
-import methods from './methods.js';
+import { parentPort } from 'node:worker_threads';
 import { Utils } from '../utils/index.js';
+import methods from './methods.js';
 
 type WorkerInput = { workerExit?: boolean, taskId?: string, method?: string, arg?: unknown[] };
 type Fn = (...args: unknown[]) => unknown;
