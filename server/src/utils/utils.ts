@@ -62,7 +62,7 @@ export interface Utils {
     /**
     * Checks if the input is a number.
     * @param input The input to check.
-    * @returns True if the input is a number, false otherwise.
+    * @returns True if the input is a number and not NaN, false otherwise.
     */
     isNumber(input: unknown): input is number;
 
@@ -274,7 +274,7 @@ const isString = (input: unknown): input is string => {
 }
 
 const isNumber = (input: unknown): input is number => {
-    return typeof input === 'number';
+    return typeof input === 'number' && !Number.isNaN(input);
 }
 
 const isBoolean = (input: unknown): input is boolean => {

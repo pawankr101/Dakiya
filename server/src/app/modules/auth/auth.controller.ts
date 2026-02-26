@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { AuthService } from "./auth.service.js";
+// import { AuthService } from "./auth.service.js";
 import { Exception } from "../../../exceptions/exception.js";
 
 export class AuthController {
@@ -14,7 +14,7 @@ export class AuthController {
     }>, response: FastifyReply) {
         try {
             const { uidEmailOrPhone, password } = request.body;
-            const token = await AuthService.login(uidEmailOrPhone, password, request.headers['user-agent'], request.ip);
+            // const token = await AuthService.login(uidEmailOrPhone, password, request.headers['user-agent'], request.ip);
 
             response.header('Content-Type', 'application/json').send({ message: 'Login successful', token });
         } catch (error) {

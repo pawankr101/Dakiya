@@ -2,6 +2,7 @@ import http from 'node:http';
 import http2 from 'node:http2';
 import https from 'node:https';
 import type { ListenOptions } from 'node:net';
+import type { Duplex } from 'node:stream';
 import { Exception } from '../exceptions/index.js';
 import { Helpers } from '../utils/index.js';
 import { WSServer } from './index.js';
@@ -19,13 +20,12 @@ export type StartCallbacks = { onError?: (err: Exception) => void, listener?: ()
 
 /* ***** Type Declarations: End ***** */
 
-export class HttpServer<hv extends HttpVersion, hs extends HttpSecurity> {
+export class HttpServer<hv extends HttpVersion = 'http1', hs extends HttpSecurity = 'http'> {
     /** #### Random Hash for Private Constructor */
     static readonly #staticHash: string = Helpers.getUuid();
     static #httpServer: HttpServer<HttpVersion, HttpSecurity> = null;
 
     #server: Server<hv, hs>;
-    #isRequestListenerAdded: boolean = false;
 
     #buildServer(httpVer: hv, httpSec: hs, options?: ServerOptions<hv, hs>): Server<hv, hs> {
         const server = (httpVer==='http2')
@@ -82,39 +82,44 @@ export class HttpServer<hv extends HttpVersion, hs extends HttpSecurity> {
 
     /**
      * Attaches a request listener and a global client error handler to the server.
-     *
-     * This method is idempotent; it ensures that listeners are only attached on the
-     * first call. On the initial call, it adds:
-     * 1. A global 'clientError' listener to gracefully handle socket errors,
-     *    logging them and responding with a 400 Bad Request.
-     * 2. The provided `requestListener` to handle incoming 'request' events.
-     *
-     * Subsequent calls will have no effect.
-     *
      * @param requestListener - The callback function to execute for each incoming request.
      * @returns The underlying Node.js server instance, allowing for method chaining.
+     * @remarks
+     * * This method is idempotent.
+     * * It ensures that the handler is only attached on the first call.
+     * * On the initial call, it adds the provided `handler` as a listener for the 'request' event on the underlying server.
+     * * Subsequent calls will have no effect.
      */
-    addRequestListener(requestListener: RequestListener<hv>) {
-        // Attach the request listener only once
-        if(!this.#isRequestListenerAdded) {
-
-            // Handle client errors globally for the server
-            this.#server.addListener('clientError', (err, socket) => {
-                if(err.code !== 'ECONNRESET' && socket.writable) {
-                    console.error(new Exception('Client Error', { cause: err, code: 400 }));
-                    socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
-                }
-            });
-
-            // Attach the provided request listener
-            this.#server.addListener('request', requestListener);
-
-            this.#isRequestListenerAdded = true;
+    addRequestListener = (() => {
+        let isListenerAdded = false;
+        return (listener: RequestListener<hv>): Server<hv, hs> => {
+            if(!isListenerAdded) {
+                this.#server.addListener('request', listener);
+                isListenerAdded = true;
+            }
+            return this.#server;
         }
+    })();
 
-        return this.#server;
-    }
-
+    /**
+     * Attaches a client error handler to the server.
+     * @param handler - The callback function to execute when a client error occurs. It receives the error object and the socket as parameters.
+     * @remarks
+     * * This method is idempotent.
+     * * It ensures that the handler is only attached on the first call.
+     * * On the initial call, it adds the provided `handler` as a listener for the 'clientError' event on the underlying server.
+     * * Subsequent calls will have no effect.
+     * * The client error handler is crucial for gracefully handling errors that occur during the client's request processing, such as malformed requests or connection issues.
+     */
+    addClientErrorHandler = (() => {
+        let isHandlerAdded = false;
+        return (handler: (err: Error & { code: string }, socket: Duplex) => void): void => {
+            if (!isHandlerAdded) {
+                this.#server.addListener('clientError', handler);
+                isHandlerAdded = true;
+            }
+        }
+    })();
 
     /**
      * Enables WebSocket support on the HTTP server.

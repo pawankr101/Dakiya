@@ -44,6 +44,20 @@ export interface List<T> extends Iterable<T> {
     get(index: number): T;
 
     /**
+    * Retrieves the first item in the list.
+    * @return The first item in the list.
+    * @throws {Error} Throws an error if the list is empty.
+    */
+    getFirst(): T;
+
+    /**
+    * Retrieves the last item in the list.
+    * @return The last item in the list.
+    * @throws {Error} Throws an error if the list is empty.
+    */
+    getLast(): T;
+
+    /**
     * Adds one or more items to the end of the list.
     * @param item - The item(s) to add to the list.
     * @returns void
@@ -54,10 +68,10 @@ export interface List<T> extends Iterable<T> {
     /**
     * Adds a single item to the end of the list.
     * @param item - The item to add to the list.
-    * @return void
+    * @return The added item.
     * @remarks This method mutates the list by adding the specified item to the end. It does not return a new list.
     */
-    addOne(item: T): void;
+    addOne(item: T): T;
 
     /**
     * Inserts one or more items at the specified index in the list.
@@ -74,12 +88,12 @@ export interface List<T> extends Iterable<T> {
     * Inserts a single item at the specified index in the list.
     * @param index - The index at which to insert the item.
     * @param item - The item to insert into the list.
-    * @return void
+    * @return The inserted item.
     * @remarks This method mutates the list by inserting the specified item at the given index. It does not return a new list.
     * @throws {Error} Throws an error if the index is out of bounds.
     * @throws {Error} Throws an error if the list is empty.
     */
-    insertOne(index: number, item: T): void;
+    insertOne(index: number, item: T): T;
 
     /**
     * Updates the item at the specified index in the list.
@@ -184,6 +198,14 @@ export interface List<T> extends Iterable<T> {
     * @remarks This method iterates through the list and applies the provided callback function to each item. It returns the index of the first item for which the callback function returns true. If no items satisfy the condition, it returns -1.
     */
     findIndex(cb: (item: T, index: number) => boolean): number;
+
+    /**
+     * Finds the first item in the list that satisfies the provided callback function and deletes it from the list.
+     * @param cb - The callback function that tests each item.
+     * @return The item that was found and deleted, or undefined if no such item is found.
+     * @remarks This method iterates through the list and applies the provided callback function to each item. It deletes the first item for which the callback function returns true. If no items satisfy the condition, it returns undefined.
+     */
+    findAndDelete(cb: (item: T) => boolean): T | undefined;
 
     /**
     * Creates a shallow copy of the List.
@@ -326,6 +348,16 @@ export class ArrayList<T> implements List<T> {
         return this.#data[index];
     }
 
+    getFirst(): T {
+        if(this.isEmpty()) throw new Error('List is empty');
+        return this.#data[0];
+    }
+
+    getLast(): T {
+        if(this.isEmpty()) throw new Error('List is empty');
+        return this.#data[this.#size - 1];
+    }
+
     add(...item: T[]): void {
         const ilen = item.length, size = this.#size;
         if (this.#needToIncrease(size + ilen, this.#capacity)) {
@@ -339,13 +371,14 @@ export class ArrayList<T> implements List<T> {
         this.#size = size + ilen;
     }
 
-    addOne(item: T): void {
+    addOne(item: T): T {
         const size = this.#size;
         if (this.#needToIncrease(size + 1, this.#capacity)) {
             this.#inceaseCapacity(1);
         }
         this.#data[size] = item;
         this.#size = size + 1;
+        return item;
     }
 
     insert(index: number, ...item: T[]): void {
@@ -367,7 +400,7 @@ export class ArrayList<T> implements List<T> {
         this.#size = size + ilen;
     }
 
-    insertOne(index: number, item: T): void {
+    insertOne(index: number, item: T): T {
         const size = this.#size;
         if (index < 0 || index > size) throw new Error('Index out of bounds');
         if (this.#needToIncrease(size + 1, this.#capacity)) {
@@ -377,6 +410,7 @@ export class ArrayList<T> implements List<T> {
         if (index < size) data.copyWithin(index + 1, index, size);
         data[index] = item;
         this.#size = size + 1;
+        return item;
     }
 
     update(index: number, item: T): T {
@@ -529,6 +563,18 @@ export class ArrayList<T> implements List<T> {
             index++;
         }
         return -1;
+    }
+
+    findAndDelete(cb: (item: T) => boolean): T | undefined {
+        const data = this.#data, size = this.#size;
+        let index = 0;
+        while (index < size) {
+            if (cb(data[index])) {
+                return this.deleteOne(index);
+            }
+            index++;
+        }
+        return undefined;
     }
 
     clone(): List<T> {
@@ -687,6 +733,16 @@ export class LinkedList<T> implements List<T> {
         return node.value;
     }
 
+    getFirst(): T {
+        if(this.isEmpty()) throw new Error('List is empty');
+        return this.#head.value;
+    }
+
+    getLast(): T {
+        if(this.isEmpty()) throw new Error('List is empty');
+        return this.#tail.value;
+    }
+
     #buildTempList(...items: T[]): { head: Node<T>, tail: Node<T>, length: number } {
         const res: { head: Node<T>, tail: Node<T>, length: number } = {
             head: undefined, tail: undefined, length: 0
@@ -720,7 +776,7 @@ export class LinkedList<T> implements List<T> {
         }
     }
 
-    addOne(item: T): void {
+    addOne(item: T): T {
         const node = new Node(item);
         if (this.isEmpty()) {
             this.#head = this.#tail = node;
@@ -731,6 +787,7 @@ export class LinkedList<T> implements List<T> {
             this.#tail = node;
             this.#size++;
         }
+        return item;
     }
 
     insert(index: number, ...items: T[]): void {
@@ -753,10 +810,9 @@ export class LinkedList<T> implements List<T> {
         this.#size += tLen;
     }
 
-    insertOne(index: number, item: T): void {
+    insertOne(index: number, item: T): T {
         if(index>=0 && index === this.#size) {
-            this.addOne(item);
-            return;
+            return this.addOne(item);
         }
 
         const currNode = this.#getNode(index), prevNode = currNode.prev;
@@ -771,6 +827,7 @@ export class LinkedList<T> implements List<T> {
         currNode.setPrev(newNode);
         newNode.setNext(currNode);
         this.#size++;
+        return item;
     }
 
     update(index: number, item: T): T {
@@ -934,6 +991,25 @@ export class LinkedList<T> implements List<T> {
             index++;
         }
         return -1;
+    }
+
+    findAndDelete(cb: (item: T) => boolean): T | undefined {
+        if (this.#size === 0) return undefined;
+
+        let node = this.#head;
+        while(node) {
+            if(cb(node.value)) {
+                const prev: Node<T> = node.prev, next: Node<T> = node.next;
+                if(prev) prev.setNext(next);
+                if(next) next.setPrev(prev);
+                if(node === this.#head) this.#head = next;
+                if(node === this.#tail) this.#tail = prev;
+                this.#size--;
+                return node.value;
+            }
+            node = node.next;
+        }
+        return undefined;
     }
 
     clone(): List<T> {
@@ -1145,14 +1221,8 @@ export class Dictionary<T> {
     */
     constructor(source?: ObjectOf<T>) {
         if (source) {
-            const keys = Object.keys(source);
-            let index = keys.length-1, key: string;
-            while(index>=0) {
-                key = keys[index];
-                this.#data[key] = source[key];
-                this.#size++;
-                index--;
-            }
+            Object.assign(this.#data, source);
+            this.#size = Object.keys(source).length;
         }
     }
 
@@ -1162,6 +1232,14 @@ export class Dictionary<T> {
     */
     get size(): number {
         return this.#size;
+    }
+
+    /**
+    * Checks if the Dictionary is empty.
+    * @return True if the Dictionary is empty, false otherwise.
+    */
+    isEmpty(): boolean {
+        return this.#size === 0;
     }
 
     /**
@@ -1188,15 +1266,19 @@ export class Dictionary<T> {
     /**
     * Deletes a data item by its key.
     * @param key - The unique key of the item to delete.
-    * @returns True if the item was deleted, false if it was not found.
+    * @returns The data item that was deleted, or undefined if not found.
+    * @remarks This method checks if the specified key exists in the collection. If it does, it retrieves the associated value, deletes the key-value pair from the collection, and decrements the size counter. Finally, it returns the deleted value. If the key does not exist, it returns undefined.
     */
-    delete(key: string): boolean {
-        if(this.#data[key]) {
-            delete this.#data[key];
-            this.#size--;
-            return true;
+    delete(key: string): T {
+        const data = this.#data;
+        if (key in data) {
+            const value = data[key];
+            if (delete data[key]) {
+                this.#size--;
+                return value;
+            }
         }
-        return false;
+        return undefined;
     }
 
     /**

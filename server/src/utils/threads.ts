@@ -1,183 +1,214 @@
 import { cpus } from 'node:os';
-import { MessageChannel, type MessagePort, Worker } from "node:worker_threads";
+import { Worker } from "node:worker_threads";
 import { THREADING } from "../config.js";
 import { Exception } from "../exceptions/index.js";
-import { Dictionary, Helpers } from './index.js';
+import { Dictionary, Helpers, LinkedList, type List, Queue, Utils } from './index.js';
 
-type WorkerResult = { taskId: string, result?: unknown, error?: unknown };
-type Task = {
-    _id: string,
-    method: { name: string, arg?: unknown[] },
-    onSuccess: (result?: unknown) => void,
-    onError: (error?: unknown) => void
+interface WorkerTask {
+    id: string;
+    method: { name: string; arg?: unknown[] };
+    onSuccess: (result?: unknown) => void;
+    onError: (error?: Exception) => void;
+    attempt: number;
 }
 
+interface WorkerResult {
+    taskId: string;
+    result?: unknown;
+    error?: string;
+}
+
+const [ WORKER_FILE, MAX_THREADS, MAX_TASKS_PER_THREAD, MAX_IDLE_TIME, MAX_TRY_ATTEMPT ] = [
+    THREADING.workersIndexFile,
+    THREADING.maxThreadsAllowed || Math.max(1, cpus().length - 1),
+    THREADING.maxTasksAllowedPerThread,
+    THREADING.maxThreadIdleTimeInMS,
+    THREADING.maxTryAttempt
+];
+
 export class Thread {
+    /*************************** Static members: Start *******************************/
     /** Random Hash for Private Constructor */
     static readonly #staticHash: string = Helpers.getUuid();
+    /** List of active threads in the pool */
+    static readonly #threads: List<Thread> = new LinkedList<Thread>();
+    /** Global queue for tasks waiting to be executed by any thread */
+    static readonly #globalTaskQueue: Queue<WorkerTask> = new Queue<WorkerTask>();
+    /**************************** Static members: End ********************************/
 
-    /**
-     * Maximum allowed Workers to create.
-     * * Default value is count of logical CPU core.
-     */
-    static readonly #maxThreadsCount = THREADING.maxThreadsAllowed || cpus().length;
-    static readonly #maxTasksPerThread = THREADING.maxTasksAllowedPerThread || 20;
-    static readonly #workerIdleTimeInMS = THREADING.maxThreadIdleTimeInMS || 60000;
-    static readonly #threads: Dictionary<Thread> = new Dictionary<Thread>();
-
+    /************************** Instance members: Start ******************************/
+    /** Unique identifier for the thread */
+    id: string;
+    /** Worker instance associated with the thread */
     #worker: Worker;
-    #messageChannelPort: MessagePort;
-    readonly #tasks: Dictionary<Task> = new Dictionary<Task>();
+    /** Timeout for thread termination */
     #terminationTimeout: NodeJS.Timeout = null;
+    /** Dictionary of tasks assigned to the thread */
+    readonly #tasks: Dictionary<WorkerTask> = new Dictionary<WorkerTask>();
+    /*************************** Instance members: End *******************************/
 
-    _id:string;
+    /************************** Instance Methods: Start ******************************/
+    // Instance methods related to task management, worker communication, and thread lifecycle.
 
-    readonly #onChannelMessage = (result: WorkerResult) => {
-        const { taskId, error, result: data } = result;
-        const task = this.#tasks.get(taskId);
-        if(task) this.#tasks.delete(taskId);
-        if(!this.#tasks.size) {
-            this.#terminationTimeout = setTimeout(() => {
-                this.stop();
-            }, Thread.#workerIdleTimeInMS);
-        }
-        if(task) {
-            if(error) task.onError(error);
-            else if(data) task.onSuccess(data);
-        }
-    }
-
-    readonly #onChannelMessageerror = (error: Error) => {
-        console.log(`channel Message Error: ${error.message}`);
-    }
-
-    #buildMessageChannel() {
-        const { port1, port2 } = new MessageChannel();
-        this.#messageChannelPort = port1;
-        this.#messageChannelPort.on('close', () => {
-            this.#messageChannelPort = null;
-        }).on('message', this.#onChannelMessage).on('messageerror', this.#onChannelMessageerror);
-        return port2;
-    }
-
-    readonly #onWorkerMessage = (result: WorkerResult) => {
-        const { taskId, error, result: data } = result;
-        const task  = this.#tasks.get(taskId);
-        if(task) this.#tasks.delete(taskId);
-        if(!this.#tasks.size) {
-            this.#terminationTimeout = setTimeout(() => {
-                this.stop();
-            }, Thread.#workerIdleTimeInMS);
-        }
-        if(task) {
-            if(error) task.onError(error);
-            else if(data) task.onSuccess(data);
-        }
-    }
-
-    readonly #onWorkerMessageerror = (error: Error) => {
-        console.log(`worker Message Error: ${error.message}`);
-    }
-
-    readonly #onWorkerError = (error: Error) => {
-        console.log(`worker Error: ${error.message}`);
-    }
-
-    readonly #onWorkerExit = (exitCode: number) => {
-        console.log(`exit code: ${exitCode}`);
-    }
-
-    #buildWorker(workerFilePath: string) {
-        const workerMessageChannelPort = this.#buildMessageChannel();
-        this.#worker = new Worker(workerFilePath, {
-            name: this._id,
-            workerData: {
-                messageChannelPort: workerMessageChannelPort
-            },
-            transferList: [ workerMessageChannelPort ]
-        });
-
-        this.#worker.on('online', () => {
-            console.log('online');
-        }).on('message', this.#onWorkerMessage)
-          .on('messageerror', this.#onWorkerMessageerror)
-          .on('error', this.#onWorkerError)
-          .on('exit', this.#onWorkerExit);
-    }
-
+    /** Private constructor to prevent direct instantiation */
     private constructor(workerFilePath: string, privateHash:string) {
-        if(!privateHash || privateHash!==Thread.#staticHash) throw new Exception(`'Thread' class constructor can not be called from outside.`);
+        if(privateHash!==Thread.#staticHash) throw new Exception(`'Thread' class constructor can not be called from outside.`);
         if(!workerFilePath) throw new Exception(`'workerFilePath' is required to create Thread Object.`);
-        this._id = Helpers.getUuid();
-        this.#buildWorker(workerFilePath);
+        this.id = Helpers.getUuid();
+        this.#worker = this.#buildWorker(workerFilePath);
     }
 
     /**
-     * Run a method in a worker thread.
-     * @param method The method to run.
-     * @param arg The arguments to pass to the method.
-     * @returns A promise that resolves with the result of the method.
+     * Builds a new Worker instance and sets up event listeners for communication and error handling.
+     * @param workerFilePath - The file path to the worker script.
+     * @returns A new Worker instance.
      */
-    run<T>(method: string, arg?: unknown[]) {
-        return new Promise((resolve: (value?: T) => void, reject:(reason?: unknown) => void) => {
-            if(this.#terminationTimeout) {
+    #buildWorker(workerFilePath: string) {
+        const worker = new Worker(workerFilePath, { name: this.id }),
+        onThreadOnline = () => {
+            this.#executeNextTask();
+        },
+        onWorkerMessage = (data: WorkerResult) => {
+            const { taskId, error, result } = data;
+            const task = this.#tasks.delete(taskId);
+            if (this.#tasks.size < MAX_TASKS_PER_THREAD) {
+                this.#executeNextTask();
+            }
+            if (task) {
+                if (error) task.onError(new Exception(error));
+                else task.onSuccess(result);
+            }
+        },
+        cleanup = (error?: Error) => {
+            if (this.#terminationTimeout) {
                 clearTimeout(this.#terminationTimeout);
                 this.#terminationTimeout = null;
             }
-            const taskId = Helpers.getUuid();
-            this.#tasks.set(taskId, {_id: taskId, method: {name: method, arg: arg}, onSuccess: resolve, onError: reject});
-            this.#messageChannelPort.postMessage({taskId, method, arg});
-        });
+            this.#tasks.loop((task) => {
+                if (task.attempt <= MAX_TRY_ATTEMPT) {
+                    task.attempt++;
+                    Thread.#globalTaskQueue.enqueue(task);
+                    console.warn(`Worker ${this.id} died. Re-queueing task ${task.id} (Attempt ${task.attempt})`);
+                } else {
+                    task.onError(new Exception(`Task ${task.id} failed after ${MAX_TRY_ATTEMPT} attempts.`, { cause: error }));
+                }
+            });
+            this.#tasks.deleteAll();
+            if (this.#worker) {
+                this.#worker.removeAllListeners();
+                this.#worker = null;
+            }
+            Thread.#threads.findAndDelete((th) => th.id === this.id);
+        },
+        onWorkerError = (error: Error) => {
+            console.log(`worker Error: ${error.message}`);
+            this.stop();
+        },
+        onWorkerExit = (exitCode: number) => {
+            if (exitCode) cleanup(new Error(`Worker exited with code ${exitCode}`));
+            else cleanup();
+        };
+
+        worker
+            .on('online', onThreadOnline)
+            .on('message', onWorkerMessage)
+            .on('messageerror', onWorkerError)
+            .on('error', onWorkerError)
+            .on('exit', onWorkerExit);
+        return worker;
     }
 
     /**
-     * Stop the worker thread.
-     * @returns A promise that resolves when the thread is stopped.
+     * Executes the next task in the thread's task queue. If there are no tasks in the thread, it checks the global task queue for pending tasks. If a task is found, it is assigned to the thread and sent to the worker for execution. If there are no tasks in either queue, it initiates a soft termination of the worker.
      */
-    async stop() {
-        try {
-            await this.#worker.terminate();
-            Thread.#threads.delete(this._id);
-            return true;
-        } catch(error) {
-            console.log(error);
-            return false;
+    #executeNextTask() {
+        while (this.#tasks.size < MAX_TASKS_PER_THREAD && !Thread.#globalTaskQueue.isEmpty()) {
+            const task = Thread.#globalTaskQueue.dequeue();
+            if (this.#terminationTimeout) {
+                clearTimeout(this.#terminationTimeout);
+                this.#terminationTimeout = null;
+            }
+            this.#tasks.set(task.id, task);
+            const { id: taskId, method: {name: method, arg: args} } = task;
+            this.#worker.postMessage({ taskId, method, args });
+        }
+        if (this.#tasks.isEmpty()) {
+            this.#softWorkerTermination();
         }
     }
 
-    static #availableThread() {
-        let thread:Thread = null, minTaskCount: number = -1;
+    /**
+     * Initiates a soft termination of the worker after a period of inactivity. If there are no pending tasks in the thread or the global queue, the worker will be terminated. Otherwise, it will attempt to execute the next task.
+     */
+    #softWorkerTermination() {
+        this.#terminationTimeout = setTimeout(() => {
+            if (this.#tasks.isEmpty()) {
+                if (Thread.#globalTaskQueue.isEmpty()) {
+                    if(this.#worker) this.#worker.postMessage({ workerExit: true });
+                } else {
+                    this.#executeNextTask()
+                }
+            }
+        }, MAX_IDLE_TIME);
+    }
 
-        // find thread with min tasks in its bucket.
-        Thread.#threads.loop((th) => {
-            if ((minTaskCount === (-1)) || th.#tasks.size < minTaskCount) {
-                minTaskCount = th.#tasks.size;
-                thread = th;
+    /**
+     * Immediately terminates the worker and cleans up resources. This method is called when the worker encounters an error or exits unexpectedly.
+     */
+    stop() {
+        if (this.#worker) {
+            this.#worker.terminate();
+        }
+    }
+
+    /*************************** Instance Methods: End *******************************/
+
+    /*************************** Static methods: Start *******************************/
+    // static members and methods related to managing the pool of threads and task distribution.
+
+    /**
+     * Retrieves the least busy thread from the pool. If all threads are at maximum capacity, it checks if a new thread can be created. If a new thread can be created, it is added to the pool and returned. If all threads are busy and the maximum number of threads has been reached, it returns undefined, indicating that the task will be queued until a thread is available.
+     * @returns The least busy thread or undefined if all threads are busy and the maximum number of threads has been reached.
+     */
+    static #getLeastBusyThread(): Thread {
+        const pool = Thread.#threads;
+        if (!pool.isEmpty()) {
+            const leastBusyThread = pool.reduce((leastBusy, current) => {
+                if(current.#tasks.size < leastBusy.#tasks.size) return current;
+                return leastBusy;
+            }, pool.getFirst());
+            if(leastBusyThread.#tasks.size < MAX_TASKS_PER_THREAD) {
+                return leastBusyThread;
+            }
+        }
+        if(pool.size < MAX_THREADS) {
+            return pool.addOne(new Thread(WORKER_FILE, Thread.#staticHash));
+        }
+        console.log(`All threads are busy. Task will be queued until a thread is available.`);
+        return undefined;
+    }
+
+    /**
+     * Executes a method in a worker thread. The method is identified by its name and can accept any number of arguments. The method returns a promise that resolves with the result of the method execution or rejects with an error if the execution fails. The task is added to the global task queue and will be executed by the least busy thread when it becomes available.
+     * @param methodName - The name of the method to execute in the worker thread.
+     * @param arg - The arguments to pass to the method being executed.
+     * @returns A promise that resolves with the result of the method execution or rejects with an error if the execution fails.
+     */
+    static execute<T = unknown>(methodName: string, ...arg: unknown[]): Promise<T> {
+        return new Promise((resolve: (value: T) => void, reject: (reason: Error) => void) => {
+            const task: WorkerTask = {
+                id: Helpers.getUuid(),
+                method: { name: methodName, arg },
+                onSuccess: resolve,
+                onError: reject,
+                attempt: 1
+            };
+            Thread.#globalTaskQueue.enqueue(task);
+            const thread = Thread.#getLeastBusyThread();
+            if (Utils.isDefined(thread)) {
+                thread.#executeNextTask();
             }
         });
-        if(minTaskCount >= Thread.#maxTasksPerThread) {
-            if(Thread.#threads.size < Thread.#maxThreadsCount) return null;
-            // console.log(`Reached to the maximum allowed Threads and maximum tasks per Thread.`);
-        }
-        return thread;
     }
-
-    static #getThread(): Thread {
-        let thread = Thread.#availableThread();
-        if(!thread) {
-            thread = new Thread(THREADING.workersIndexFile, Thread.#staticHash);
-            return Thread.#threads.set(thread._id, thread);
-        }
-        return thread;
-    }
-
-    /**
-     * Execute a method on a thread.
-     * @param method The method to execute.
-     * @param arg The arguments to pass to the method.
-     * @returns A promise that resolves with the result of the method.
-     */
-    static execute<T>(method: string, arg?: unknown[]): Promise<T> {
-        return Thread.#getThread().run(method, arg);
-    }
+    /**************************** Static methods: End ********************************/
 }

@@ -14,7 +14,7 @@ type ExceptionJson = {
 
 /* ***** Type Declarations: End ***** */
 
-function isExceptionOrError(error: any) : error is Exception|Error {
+function isExceptionOrError(error: unknown) : error is Exception|Error {
     return ((error instanceof Exception) || (error instanceof Error))
 }
 
@@ -29,8 +29,8 @@ export class Exception extends Error {
      * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause}
      */
     cause?: Exception|Error;
-  
-    
+
+
     /**
      * An optional numeric code associated with the exception, typically corresponding
      * to an HTTP status code. This can be used to provide more specific error
@@ -84,7 +84,7 @@ export class Exception extends Error {
 
         // Call the parent constructor with the message
         super(message);
-        
+
         // Set the prototype explicitly. This is necessary when extending built-in classes like Error.
         Object.setPrototypeOf(this, Exception.prototype);
 

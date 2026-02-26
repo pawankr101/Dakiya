@@ -20,8 +20,8 @@ const CONFIG = {
         { in: resolvePath(CWD, "src", "workers/index.ts"), out: "worker" }
     ],
     target: ["node24", "ES2022"],
-    host: "localhost",
-    port: 3600,
+    host: process.env.HOST || "127.0.0.1",
+    port: parseInt(process.env.PORT, 10) || 4500,
     watcherDelay: 2000
 };
 /********************* CONFIGURATIONS: End *********************/
@@ -75,7 +75,7 @@ class ProjectBuilder {
         if (privateHash !== ProjectBuilder.#staticHash) throw new Error(`'ProjectBuilder' class constructor can not be called from outside.`);
 
         /** @type {boolean} */
-        this.isProd = isProd ? true : false;
+        this.isProd = Boolean(isProd);
 
         /** @type {BuildOptions} */
         this.buildOptions = {

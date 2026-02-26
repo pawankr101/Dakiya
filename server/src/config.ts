@@ -1,6 +1,7 @@
-import { fileURLToPath } from "url";
-import { resolve } from "path";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { HttpSecurity, HttpVersion } from "./servers/index.js";
+
 const ROOT_DIR = fileURLToPath(new URL('.', import.meta.url));
 
 export const APP_CONFIG = {
@@ -16,8 +17,8 @@ export const APP_CONFIG = {
 export const HTTP_SERVER: { httpVersion: HttpVersion, httpSecurity: HttpSecurity, host: string, port: number } = {
     httpVersion: 'http1',
     httpSecurity: 'http',
-    host: process.env['HOST'] || '127.0.0.1',
-    port: parseInt(process.env['PORT']) || 4000
+    host: process.env.HOST || '127.0.0.1',
+    port: parseInt(process.env.PORT, 10) || 4500
 }
 
 export const ENV = {
@@ -27,9 +28,10 @@ export const ENV = {
 
 export const THREADING = {
     workersIndexFile: resolve(ROOT_DIR, 'workers', 'index.js'),
-    maxThreadsAllowed: 4,
-    maxTasksAllowedPerThread: 5,
-    maxThreadIdleTimeInMS: 600000
+    maxThreadsAllowed: 4, // setting 0 will set the number of threads to the number of CPU cores available
+    maxTasksAllowedPerThread: 10,
+    maxThreadIdleTimeInMS: 60000,
+    maxTryAttempt: 3
 }
 
 export const AUTH = {
