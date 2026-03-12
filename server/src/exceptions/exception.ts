@@ -1,6 +1,6 @@
+import { Utils } from "../utils/index.js";
 
-/* ***** Type Declarations: Start ***** */
-
+/****** Type Declarations: Start ******/
 type Message = string;
 type Reason = Message|Exception|Error;
 type ExceptionOptions = { code?: number, cause?: Exception|Error };
@@ -11,11 +11,49 @@ type ExceptionJson = {
     cause?: ExceptionJson|{ name: string, message: string },
     stack?: string,
 };
+/****** Type Declarations: End ******/
 
-/* ***** Type Declarations: End ***** */
-
+/**
+ * Checks if the given error is an instance of `Exception` or `Error`.
+ * @param error The error to check.
+ * @returns `true` if the error is an `Exception` or `Error`, otherwise `false`.
+ */
 function isExceptionOrError(error: unknown) : error is Exception|Error {
-    return ((error instanceof Exception) || (error instanceof Error))
+    return ((error instanceof Exception) || (error instanceof Error));
+}
+
+/**
+ * Validates if the provided code is a valid HTTP status code.
+ * A valid HTTP status code is a number between 100 and 599 inclusive.
+ * @param code The code to validate.
+ * @returns `true` if the code is a valid HTTP status code, otherwise `false`.
+ */
+function isValidHTTPCode(code: unknown): code is number {
+    return (Utils.isNumber(code) && (code > 99) && (code < 600));
+}
+
+/**
+ * Builds the components of an `Exception` based on the provided reason and options.
+ * This function determines the message, cause, and code for the exception based on the input parameters.
+ * It handles various scenarios, such as when the reason is a string message or when it is an existing `Error` or `Exception`.
+ * @param reason The reason for the exception, which can be a string message or an existing error object.
+ * @param [options] Optional configuration for the exception, including a code and/or cause.
+ * @returns An array containing the message, cause (if any), and code (if any) for the exception.
+ */
+function buildException(reason: Reason, options?: ExceptionOptions) {
+    options = options || {};
+    const ex = new Array(3) as [string, Exception | Error, number];
+    if(isExceptionOrError(reason)) {
+        ex[0] = reason.message;
+        ex[1] = reason;
+        const code: number = isValidHTTPCode((reason as Exception).code) ? (reason as Exception).code : options.code;
+        if (code) ex[2] = code;
+        return ex;
+    }
+    ex[0] = reason;
+    if (options.cause) ex[1] = options.cause;
+    if (options.code) ex[2] = options.code;
+    return ex;
 }
 
 export class Exception extends Error {
@@ -29,7 +67,6 @@ export class Exception extends Error {
      * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause}
      */
     cause?: Exception|Error;
-
 
     /**
      * An optional numeric code associated with the exception, typically corresponding
@@ -72,23 +109,20 @@ export class Exception extends Error {
      * throw new Exception("User not found", { code: 404 });
      *
      * @example
-     * // With a message, code, and a cause
+     * // With a message, code and a cause
      * const dbError = new Error("DB connection failed");
      * throw new Exception("Could not retrieve user data", { cause: dbError, code: 500 });
      */
     constructor(reason: Reason, options?: ExceptionOptions) {
-        const isException = isExceptionOrError(reason);
-        const message = isException ? (reason as Exception|Error).message : (reason as Message);
-        const cause = isException ? (reason as Exception|Error) : options?.cause;
-        const code = cause && (cause as Exception).code ? (cause as Exception).code : options?.code;
+        const [ message, cause, code ] = buildException(reason, options);
 
-        // Call the parent constructor with the message
+        // Call the parent constructor with the message.
         super(message);
 
         // Set the prototype explicitly. This is necessary when extending built-in classes like Error.
         Object.setPrototypeOf(this, Exception.prototype);
 
-        // Set the name property to the class name for better identification
+        // Set the name property to the class name for better identification.
         this.name = 'Exception';
 
         // Assign the code and cause properties if they exist
@@ -111,9 +145,9 @@ export class Exception extends Error {
             code: this.code,
             cause: this.cause ? (this.cause instanceof Exception ? this.cause.toJson() : {
                 name: this.cause.name,
-                message: this.cause.message,
+                message: this.cause.message
             }) : undefined,
-            stack: this.stack,
+            stack: this.stack
         }
     }
 }

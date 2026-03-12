@@ -5,6 +5,8 @@ type LoopCallback<U = void> = () => LoopControl | U;
 type LoopCallbackWithIndex<U = void> = (index: number) => LoopControl | U;
 type LoopDataCallback<T, K extends string | number = number, U = void> = (item: T, index: K) => LoopControl | U;
 type MapLoopCallback<T, U, V = void> = (item: T, index: number) => LoopControl | U | V;
+type ValueErrorRangeType = { toValue?: number, error?: number, errorPercentage?: number, lowerRange?: number, upperRange?: number, distance?: number };
+type NumberComparatorType = number | { toValue: number, error: number } | { toValue: number, errorPercentage: number } | { lowerRange: number, upperRange: number } | { lowerRange: number, distance: number } | { upperRange: number, distance: number };
 type LoopFunctionOverloads = {
     (cb: LoopCallback): void;
     (iterationCount: number, cb: LoopCallbackWithIndex): void;
@@ -12,9 +14,6 @@ type LoopFunctionOverloads = {
     <T>(model: Array<T>, cb: LoopDataCallback<T, number>): void;
     <T>(model: Array<T>, reverse: boolean, cb: LoopDataCallback<T, number>): void;
 };
-
-type ValueErrorRangeType = { toValue?: number, error?: number, errorPercentage?: number, lowerRange?: number, upperRange?: number, distance?: number };
-type NumberComparatorType = number | { toValue: number, error: number } | { toValue: number, errorPercentage: number } | { lowerRange: number, upperRange: number } | { lowerRange: number, distance: number } | { upperRange: number, distance: number };
 
 export interface Utils {
     /**

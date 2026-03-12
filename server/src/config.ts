@@ -38,13 +38,13 @@ export const AUTH = {
     jwtSecret: 'SecretKeyForJWT',
 }
 
-export const MONGO_DB = {
-    connectionUrl: 'mongodb+srv://<username>:<password>@dakiya-dev.slolmyp.mongodb.net/?retryWrites=true&w=majority&appName=dakiya-dev',
-    dbName: 'dakiya',
-    username: 'akshaykr101',
+export const DB = {
+    host: '127.0.0.1',
+    port: 5432,
+    database: 'dakiya',
+    user: 'dakiyapg',
     password: 'aDZRI9ccoxQAFn2G',
-    collections: {
-        users: 'users',
-        sessions: 'sessions',
-    }
+    maxPoolSize: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000
 }
