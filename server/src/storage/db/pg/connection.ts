@@ -297,8 +297,9 @@ export const PG = (() => {
         }
     });
 
-    PG.init = async () => {
-        if (!isConnected) await createConnection();
+    PG.init = () => {
+        if (!isConnected) return createConnection();
+        Promise.resolve();
     };
 
     PG.close = async () => {

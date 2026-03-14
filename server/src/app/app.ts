@@ -4,6 +4,7 @@ import { type HttpSecurity, HttpServer, type HttpVersion, type RequestListener, 
 import { Helpers } from '../utils/helpers.js';
 import { Utils } from '../utils/utils.js';
 import { AppRoutes } from './app.route.js';
+import { PG } from '../storage/index.js';
 
 type ApplicationOptions<hv extends HttpVersion = 'http1', hs extends HttpSecurity = 'http'> = {
     httpVersion: hv;
@@ -39,6 +40,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
 
     async #setupDatabases() {
         // Placeholder for database setup logic. This method can be expanded to include actual database connection and initialization code.
+        await PG.init();
     }
 
     #setupAppLevelErrorHandling() {
@@ -110,8 +112,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
                     });
                 }
             });
-        }
-        catch (error) {
+        } catch (error) {
             console.error("Application failed to start:", error);
             process.exit(1);
         }
@@ -121,7 +122,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
         let app: Application<HttpVersion, HttpSecurity> | null = null;
         return <hv extends HttpVersion, hs extends HttpSecurity>(hv: hv, hs: hs): Application<hv, hs> => {
             if (!hv) throw new Exception(`'httpVersion' is required to get Application instance.`);
-            if(!hs) throw new Exception(`'httpSecurity' is required to get Application instance.`);
+            if (!hs) throw new Exception(`'httpSecurity' is required to get Application instance.`);
             if (Utils.isNull(app)) {
                 app = new Application(hv, hs, Application.#staticHash);
             }
@@ -130,12 +131,12 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
     })();
 
 
-    static async run<hv extends HttpVersion, hs extends HttpSecurity>(options: ApplicationOptions<hv, hs>) {
+    static run<hv extends HttpVersion, hs extends HttpSecurity>(options: ApplicationOptions<hv, hs>) {
         const { httpVersion: hv, httpSecurity: hs, host, port } = options;
         const app = Application.#getApplication(hv, hs);
         if (Utils.isString(host) && Utils.isNumber(port)) {
-            await app.start(host, port);
+            return app.start(host, port);
         }
-        throw new Exception(`'host' and 'port' are required to start the application server.`);
+        return Promise.reject(new Exception(`'host' and 'port' are required to start the application server.`));
     }
 }
