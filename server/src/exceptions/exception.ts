@@ -127,7 +127,11 @@ export class Exception extends Error {
 
         // Assign the code and cause properties if they exist
         if(code) this.code = code;
-        if(cause) this.cause = cause;
+        if (cause) this.cause = cause;
+    }
+
+    getCombinedStack(): string | undefined {
+        return (this.cause instanceof Exception) ? this.cause.getCombinedStack() : this.stack;
     }
 
     /**

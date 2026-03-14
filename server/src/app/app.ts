@@ -54,7 +54,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
         // Handle global Application errors
         this.#fastifyApp.setErrorHandler((error: unknown, _request: FastifyRequest, response: FastifyReply) => {
             const err = error instanceof Exception ? error : new Exception('Internal Server Error', { cause: error as Error, code: 500 });
-            response.status(err.code).send({ error: err.message, code: err.code });
+            response.status(err.code).type('application/json').send({ error: err.message, code: err.code });
         });
     }
 
@@ -62,7 +62,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
         try {
             this.#setupAppLevelErrorHandling();
             await this.#setupDatabases();
-            this.#fastifyApp.register(AppRoutes);
+            await this.#fastifyApp.register(AppRoutes);
         } catch (error) {
             throw new Exception("Application setup failed.", { code: 500, cause: error as Error });
         }
@@ -93,27 +93,21 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
     async start(host: string, port: number) {
         try {
             await this.#setupApplication();
-            this.#fastifyApp.ready((appError) => {
-                if (appError) {
-                    console.log(`\u001b[31m  [S] Api Server Could not get started.`);
-                    console.log(`\u001b[31m      ERROR: ${appError.message}`);
-                    process.exit();
-                } else {
-                    this.#httpServer.start({ host, port }, {
-                        onError: (error) => {
-                            console.log(`\u001b[33m  [S] Api Server stopped.`);
-                            console.log(`\u001b[33m      ERROR: ${error.message}`);
-                            process.exit();
-                        },
-                        listener: () => {
-                            console.log(`\u001b[34m  [S] Server Started:`);
-                            console.log(`\u001b[34m  [S] Server info:\n\u001b[34m      Base Route: ${this.#httpSecurity}://${host}:${port}\n\u001b[34m      Network Protocol: ${this.#httpVersion}\n\u001b[34m      Process id: ${process.pid}`);
-                        }
-                    });
+            await this.#fastifyApp.ready();
+            this.#httpServer.start({ host, port }, {
+                onError: (error) => {
+                    console.log(`\u001b[33m  [S] Api Server stopped.`);
+                    console.log(`\u001b[33m      ERROR: ${error.message}`);
+                    process.exit(1);
+                },
+                listener: () => {
+                    console.log(`\u001b[34m  [S] Server Started:`);
+                    console.log(`\u001b[34m  [S] Server info:\n\u001b[34m      Base Route: ${this.#httpSecurity}://${host}:${port}\n\u001b[34m      Network Protocol: ${this.#httpVersion}\n\u001b[34m      Process id: ${process.pid}`);
                 }
             });
         } catch (error) {
-            console.error("Application failed to start:", error);
+            console.log(`\u001b[31m  [S] Api Server Could not get started.`);
+            console.log(`\u001b[31m      ERROR: ${error.message}`);
             process.exit(1);
         }
     }
