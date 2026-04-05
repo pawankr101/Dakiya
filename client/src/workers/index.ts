@@ -18,7 +18,7 @@ worker.onmessage = async (event: MessageEvent<WorkerMessageDataInput>) => {
             worker.postMessage({output});
         } else worker.postMessage({error: {message: "input data not provided to worker."}});
     } catch(error) {
-        worker.postMessage({error: {message: error.message}});
+        worker.postMessage({error: {message: (error as Error).message}});
     }
 }
 
