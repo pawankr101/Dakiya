@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: "OpenSans";
+    src: url("./assets/fonts/OpenSans.ttf") format("ttf"), url("./assets/fonts/OpenSans-Italic.ttf") format("ttf");
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    outline: none;
+    font-family: "OpenSans";
+}
+
+*:focus {
+    outline: none;
+}
+
+main.main {
+    width: 100vw;
+    height: 100vh;
+}

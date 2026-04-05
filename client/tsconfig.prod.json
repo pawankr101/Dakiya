@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    /* 1. Base Environment */
+    "target": "es2024",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2024", "DOM", "DOM.Iterable", "WebWorker"],
+    "jsx": "react-jsx",
+
+    /* 2. Path Resolution (Future-proof / No baseUrl) */
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "paths": {
+      "*": ["./src/*"],
+      "@dakiya/shared": [ "../packages/shared/src/index.ts" ],
+      "@dakiya/shared/*": [ "../packages/shared/src/*" ]
+    },
+
+    /* 3. Strictness (The Production "Guardrails") */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "strictPropertyInitialization": false,
+
+    /* 4. Connectivity & Compatibility */
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+
+    /* 5. Build Artifacts */
+    "noEmit": true,
+    "declaration": false,
+    "removeComments": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+
+    "experimentalDecorators": true,
+    "typeRoots": [ "./node_modules/@types" ]
+  },
+  "include": ["./src/**/*"],
+  "exclude": [ "node_modules", "dist" ]
+}

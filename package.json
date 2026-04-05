@@ -1,0 +1,88 @@
+{
+    "name": "dakiya",
+    "version": "1.0.0",
+    "description": "this is a chat app which provide end to end communication solution.",
+    "private": true,
+    "type": "module",
+    "engine-strict": true,
+    "engines": {
+        "node": ">=24"
+    },
+    "scripts": {
+        "client:build": "cd ./client && npm run build",
+        "client:start": "cd ./client && npm start",
+        "client:lint": "cd ./client && npm run lint",
+        "client:test": "cd ./client && npm run test",
+        "server:build": "cd ./server && npm run build",
+        "server:build:prod": "cd ./server && npm run build:prod",
+        "server:start": "cd ./server && npm start",
+        "server:start:process": "cd ./server && npm run start:process",
+        "server:lint": "cd ./server && npm run lint",
+        "server:test": "cd ./server && npm run test",
+        "shared:build": "cd ./packages/shared && npm run build",
+        "build": "concurrently --kill-others \"npm run server:build\" \"npm run client:build\"",
+        "build:prod": "concurrently --kill-others \"npm run server:build:prod\" \"npm run client:build\"",
+        "lint": "concurrently --kill-others \"npm run server:lint\" \"npm run client:lint\"",
+        "start": "concurrently --kill-others \"npm run server:start\" \"npm run client:start\"",
+        "reinstall": "rm -rf node_modules && rm -f package-lock.json && npm install && npm run shared:build",
+        "update": "ncu -u && npm run reinstall"
+    },
+    "workspaces": [
+        "client",
+        "server",
+        "packages/*"
+    ],
+    "dependencies": {
+        "@dakiya/shared": "^1.0.0",
+        "fastify": "^5.8.4",
+        "ioredis": "^5.10.1",
+        "jws": "^4.0.1",
+        "mime": "^4.1.0",
+        "nodemailer": "^8.0.4",
+        "postgres": "^3.4.8",
+        "uuid": "^13.0.0",
+        "ws": "^8.20.0"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "2.4.10",
+        "@nozbe/watermelondb": "^0.28.0",
+        "@types/jws": "^3.2.11",
+        "@types/node": "^25.5.2",
+        "@types/nodemailer": "^7.0.11",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "@types/ws": "^8.18.1",
+        "concurrently": "^9.2.1",
+        "esbuild": "^0.28.0",
+        "esbuild-plugin-tailwindcss": "^2.2.0",
+        "npm-check-updates": "^20.0.0",
+        "react": "^19.2.4",
+        "react-dom": "^19.2.4",
+        "react-router-dom": "^7.14.0",
+        "tailwindcss": "^4.2.2",
+        "typescript": "^6.0.2"
+    },
+    "keywords": [
+        "chat",
+        "call"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/pawankr101/Dakiya.git"
+    },
+    "homepage": "https://github.com/pawankr101/Dakiya#readme",
+    "bugs": {
+        "url": "https://github.com/pawankr101/Dakiya/issues"
+    },
+    "author": {
+        "name": "Akshay Kumar",
+        "email": "pawan.akshaykr@gmail.com"
+    },
+    "contributors": [
+        {
+            "name": "Akshay Kumar",
+            "email": "pawan.akshaykr@gmail.com"
+        }
+    ],
+    "license": "ISC"
+}

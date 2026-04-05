@@ -1,0 +1,15 @@
+{
+    "name": "dakiya-server",
+    "version": "1.0.0",
+    "description": "This application is Backend Api server For Dakiya",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "node ./server.js --build",
+        "build:prod": "node ./server.js --build --prod",
+        "start": "node ./server.js",
+        "start:process": "node ./server.js --process",
+        "lint": "biome check --config-path=../biome.json ./src",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    }
+}

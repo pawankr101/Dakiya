@@ -1,0 +1,34 @@
+{
+    "compilerOptions": {
+        /* 1. Base Environment */
+        "target": "es2024",
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "lib": [ "ES2024" ],
+
+        /* 2. Path Resolution */
+        "rootDir": "./src",
+        "outDir": "./dist",
+        "paths": {
+            "*": [ "./src/*" ]
+        },
+
+        /* 3. Connectivity & Compatibility */
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "strictNullChecks": false,
+        "noImplicitAny": false,
+
+        /* 4. Build Artifacts */
+        "incremental": true,
+        "declaration": true,
+        "declarationMap": true,
+        "emitDeclarationOnly": true,
+        "tsBuildInfoFile": "./dist/.tsbuildinfo",
+
+        "typeRoots": [ "../../node_modules/@types" ]
+    },
+    "include": [ "./src/**/*" ]
+}

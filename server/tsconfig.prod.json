@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+      /* 1. Base Environment */
+      "target": "es2024",
+      "module": "esnext",
+      "moduleResolution": "bundler",
+      "lib": [ "ES2024" ],
+
+      /* 2. Path Resolution */
+      "rootDir": "./src",
+      "outDir": "./dist",
+      "paths": {
+          "*": [ "./src/*" ],
+          "@dakiya/shared": [ "../packages/shared/src/index.ts" ],
+          "@dakiya/shared/*": [ "../packages/shared/src/*" ]
+      },
+
+      /* 3. Connectivity & Compatibility */
+      "skipLibCheck": true,
+      "removeComments": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "forceConsistentCasingInFileNames": true,
+      "strictPropertyInitialization": false,
+
+      /* 4. Build Artifacts */
+      "noEmit": true,
+      "incremental": true,
+      "inlineSources": true,
+      "inlineSourceMap": true,
+      "tsBuildInfoFile": "./dist/.tsbuildinfo",
+
+      "typeRoots": [ "../node_modules/@types" ]
+  },
+  "include": [ "./src/**/*" ]
+}
