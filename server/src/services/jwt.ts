@@ -1,7 +1,6 @@
-
 import type { Readable } from "node:stream";
 import { Exception, Guards, type ObjectOf } from "@dakiya/shared";
-import { Algorithm, decode, DecodeOptions, sign, Signature, SignOptions, verify } from "jws";
+import { type Algorithm, type DecodeOptions, decode, type Signature, type SignOptions, sign, verify } from "jws";
 import { AUTH } from "../config.js";
 
 const signAsync = (option: SignOptions) => {
@@ -27,7 +26,7 @@ const verifyAsync = (signature: string, algorithm: Algorithm, secretOrKey: strin
 const decodeAsync = (signature: string, options?: DecodeOptions) => {
     return new Promise<Signature>((resolve, reject) => {
         try {
-            const decoded = decode(signature, options)
+            const decoded = decode(signature, options);
             if (Guards.isNull(decoded)) {
                 reject(new Exception("JWT signature is invalid or malformed", { code: "DAKIYA_JWT_ERROR"}))
             } else resolve(decoded);
@@ -86,16 +85,12 @@ export const Jwt = (() => {
     };
 
     Jwt.verifyAndDecode = async <T = unknown>(token: string): Promise<T> => {
-        try {
-            const isValid = await Jwt.isValid(token);
-            if(isValid) {
-                const decoded = await decodeAsync(token);
-                return decoded.payload as T;
-            }
-            throw new Exception("Invalid token", { code: 'DAKIYA_JWT_ERROR' });
-        } catch (err) {
-            throw err;
+        const isValid = await Jwt.isValid(token);
+        if(isValid) {
+            const decoded = await decodeAsync(token);
+            return decoded.payload as T;
         }
+        throw new Exception("Invalid token", { code: 'DAKIYA_JWT_ERROR' });
     };
 
     return Jwt;
