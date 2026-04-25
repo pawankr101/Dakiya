@@ -34,17 +34,17 @@
     ],
     "dependencies": {
         "@dakiya/shared": "^1.0.0",
-        "fastify": "^5.8.4",
+        "fastify": "^5.8.5",
         "ioredis": "^5.10.1",
         "jws": "^4.0.1",
         "mime": "^4.1.0",
-        "nodemailer": "^8.0.5",
+        "nodemailer": "^8.0.6",
         "postgres": "^3.4.9",
-        "uuid": "^13.0.0",
+        "uuid": "^14.0.0",
         "ws": "^8.20.0"
     },
     "devDependencies": {
-        "@biomejs/biome": "2.4.11",
+        "@biomejs/biome": "2.4.13",
         "@nozbe/watermelondb": "^0.28.0",
         "@types/jws": "^3.2.11",
         "@types/node": "^25.6.0",
@@ -55,12 +55,13 @@
         "concurrently": "^9.2.1",
         "esbuild": "^0.28.0",
         "esbuild-plugin-tailwindcss": "^2.2.0",
-        "npm-check-updates": "^20.0.1",
+        "eslint": "^10.2.1",
+        "npm-check-updates": "^21.0.3",
         "react": "^19.2.5",
         "react-dom": "^19.2.5",
-        "react-router-dom": "^7.14.0",
-        "tailwindcss": "^4.2.2",
-        "typescript": "^6.0.2"
+        "react-router-dom": "^7.14.2",
+        "tailwindcss": "^4.2.4",
+        "typescript": "^6.0.3"
     },
     "keywords": [
         "chat",

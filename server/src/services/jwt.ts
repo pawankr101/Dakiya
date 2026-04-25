@@ -3,6 +3,12 @@ import { Exception, Guards, type ObjectOf } from "@dakiya/shared";
 import { type Algorithm, type DecodeOptions, decode, type Signature, type SignOptions, sign, verify } from "jws";
 import { AUTH } from "../config.js";
 
+/**
+ * Asynchronously signs a JWT signature.
+ * @param option The options required for signing the JWT (header, payload, secret).
+ * @returns A Promise that resolves with the signed JWT string.
+ * @throws Will reject with a DAKIYA_JWT_ERROR if the signing process fails.
+ */
 const signAsync = (option: SignOptions) => {
     return new Promise<string>((resolve, reject) => {
         try {
@@ -13,6 +19,14 @@ const signAsync = (option: SignOptions) => {
     });
 };
 
+/**
+ * Asynchronously verifies a JWT signature.
+ * @param signature The JWT signature to verify.
+ * @param algorithm The algorithm used for signing.
+ * @param secretOrKey The secret or key used for verification.
+ * @returns A Promise that resolves with `true` if the signature is valid, `false` otherwise.
+ * @throws Will reject with a DAKIYA_JWT_ERROR if the verification process fails.
+ */
 const verifyAsync = (signature: string, algorithm: Algorithm, secretOrKey: string | Buffer) => {
     return new Promise<boolean>((resolve, reject) => {
         try {
@@ -23,6 +37,13 @@ const verifyAsync = (signature: string, algorithm: Algorithm, secretOrKey: strin
     });
 };
 
+/**
+ * Asynchronously decodes a JWT signature.
+ * @param signature The JWT signature to decode.
+ * @param options Optional decoding options.
+ * @returns A Promise that resolves with the decoded signature.
+ * @throws Will reject with a DAKIYA_JWT_ERROR if the decoding process fails.
+ */
 const decodeAsync = (signature: string, options?: DecodeOptions) => {
     return new Promise<Signature>((resolve, reject) => {
         try {
