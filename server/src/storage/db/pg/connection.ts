@@ -1,6 +1,6 @@
+import { Exception } from '@dakiya/shared';
 import { default as postgres, type Sql } from 'postgres';
 import { DB } from '../../../config.js';
-import { Exception } from '@dakiya/shared';
 
 export interface PG {
     /**

@@ -1,28 +1,27 @@
+import type { Duplex } from 'node:stream';
+import { type WebSocket as Ws, WebSocketServer as Wss } from 'ws';
+import type { Request } from './index.js';
 
-import { WebSocket as Ws, WebSocketServer as Wss } from 'ws';
-import { Duplex } from 'stream';
-import { Server, Request } from './index.js';
+class WSServer {
+    #wss: Wss;
 
-export class WSServer {
-    static #wss: Wss = new Wss({ noServer: true });
-
-    static setupConnectionUpgrade(server: Server) {
-        server.addListener('upgrade', (request: Request, socket: Duplex, head: Buffer) => {
-            if(request.url === '/ws') {
-                this.#wss.handleUpgrade(request, socket, head, (ws: Ws, req: Request) => this.handleConnection(ws, req));
-            } else socket.destroy();
-        });
+    constructor() {
+        this.#wss = new Wss({ noServer: true });
     }
 
-    static handleWsUpgrade(request: Request, socket: Duplex, head: Buffer) {
+    handleWsUpgrade(request: Request, socket: Duplex, head: Buffer) {
         if(request.url === '/ws') {
-            this.#wss.handleUpgrade(request, socket, head, (ws: Ws, req: Request) => this.handleConnection(ws, req));
+            this.#wss.handleUpgrade(request, socket, head, this.handleConnection);
         } else socket.destroy();
     }
 
-    static handleConnection(ws: Ws, request: Request) {
+    handleConnection(ws: Ws, request: Request) {
         ws.on('message', (data) => {
             // Handle incoming messages
+            console.log(request.url)
+            console.log(data);
         });
     }
 }
+
+export const WSSERVER = new WSServer();

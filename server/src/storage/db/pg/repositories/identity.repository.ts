@@ -15,9 +15,8 @@ export const IdentityRepository = {
             `;
             if (!user) throw new Exception("User not found", { code: 'NOT_FOUND' });
             return user;
-        } catch (err) {
-            if (err instanceof Exception) throw err;
-            throw new Exception(err);
+        } catch (error) {
+            throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
         }
     },
 

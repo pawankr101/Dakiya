@@ -1,8 +1,8 @@
-import Fastify, { type FastifyServerFactory, type FastifyInstance, type FastifyReply, type FastifyRequest } from 'fastify';
+import { Exception, Guards, getUuid } from '@dakiya/shared';
+import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest, type FastifyServerFactory } from 'fastify';
 import { type HttpSecurity, HttpServer, type HttpVersion, type RequestListener, type Server, type ServerOptions } from '../servers/index.js';
-import { Exception, getUuid, Guards } from '@dakiya/shared';
+import { Cache, PG } from '../storage/index.js';
 import { AppRoutes } from './app.route.js';
-import { PG, Cache } from '../storage/index.js';
 import { APIException } from './exception.js';
 
 type ApplicationOptions<hv extends HttpVersion = 'http1', hs extends HttpSecurity = 'http'> = {
@@ -26,10 +26,8 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
         this.#httpVersion = hv;
         this.#httpSecurity = hs;
         const serverOptions: ServerOptions<hv, hs> = {};
-        if (hv === 'http2') {
-            if (hs === 'https') {
-                (serverOptions as ServerOptions<'http2', 'https'>).allowHTTP1 = true;
-            }
+        if (hv === 'http2' && hs === 'https') {
+            (serverOptions as ServerOptions<'http2', 'https'>).allowHTTP1 = true;
         }
         this.#httpServer = HttpServer.build(hv, hs, serverOptions);
         this.#fastifyApp = Fastify({

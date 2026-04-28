@@ -3,8 +3,8 @@ import http2 from 'node:http2';
 import https from 'node:https';
 import type { ListenOptions } from 'node:net';
 import type { Duplex } from 'node:stream';
-import { WSServer } from './index.js';
-import { getUuid, Exception } from '@dakiya/shared';
+import { Exception, getUuid } from '@dakiya/shared';
+import { WSSERVER } from './index.js';
 
 /* ***** Type Declarations: Start ***** */
 
@@ -131,7 +131,7 @@ export class HttpServer<hv extends HttpVersion = 'http1', hs extends HttpSecurit
      * @see {@link WSServer.handleWsUpgrade}
      */
     enableWebSocketConnection() {
-        this.#server.on('upgrade', WSServer.handleWsUpgrade);
+        this.#server.on('upgrade', WSSERVER.handleWsUpgrade);
     }
 
     /**

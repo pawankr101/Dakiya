@@ -1,6 +1,3 @@
-
-import { SessionsQuery, UsersQuery } from "../../../storage/index.js";
-import { APIException } from "../../exception.js";
 import { Jwt } from "../../../services/index.js";
 
 /**
@@ -14,15 +11,15 @@ export class AuthService {
         return { message: 'Registration successful' };
     }
 
-    static async login(uidEmailOrPhone: string, password: string, userAgent: string, reqIp: string): Promise<string> {
-        const user = await UsersQuery.validateUserCredentials(uidEmailOrPhone, password, ['uid', 'email', 'phone']);
-        if (!user) throw new APIException("Invalid credentials", { httpCode: 401 });
+    static async login(uidEmailOrPhone: string, password: string): Promise<string> {
+        // validate login credential.
+        // to be done
 
         // Generate a new session for the user
-        const session = await SessionsQuery.createSession(user.uid, userAgent, reqIp);
+        // to be done.
 
         // Generate a JWT token for the user
-        const token = Jwt.generateToken({ ...user, sessionId: session.sessionId });
+        const token = Jwt.generateToken({ uid: uidEmailOrPhone, sessionId: 'sessionId' });
 
         return token;
     }

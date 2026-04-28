@@ -1,7 +1,7 @@
 import { cpus } from 'node:os';
 import { Worker } from "node:worker_threads";
+import { Dictionary, Exception, Guards, getUuid, LinkedList, type List, Queue } from '@dakiya/shared';
 import { THREADING } from "../config.js";
-import { Dictionary, getUuid, LinkedList, type List, Queue, Exception, Guards } from '@dakiya/shared';
 
 interface WorkerTask {
     id: string;
