@@ -20,7 +20,7 @@
         "rules": {
             "recommended": true,
             "complexity": {
-                "noStaticOnlyClass": "off"
+                "noBannedTypes": "off"
             },
             "suspicious": {
                 "useIterableCallbackReturn": "off"

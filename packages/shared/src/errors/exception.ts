@@ -1,7 +1,9 @@
 import { Guards } from "../guards/index.js";
 
 /****** Type Declarations: Start ******/
-export type Message = string;
+export interface Message extends String {
+    readonly ___brand?: 'Message';
+}
 export type Reason = Message|Exception|Error;
 export type ExceptionOptions = { code?: string, cause?: Exception|Error };
 export type ExceptionJson = {
@@ -33,7 +35,7 @@ function isExceptionOrError(error: unknown) : error is Exception|Error {
 function buildException(reason: Reason, options?: ExceptionOptions) {
     options = options || {};
     options.code = Guards.isDefinedAndNotNull(options.code) ? `${options.code}` : 'INTERNAL_ERROR';
-    const ex = new Array(3) as [string, string, Exception | Error | undefined];
+    const ex = new Array(3) as [Message, string, Exception | Error | undefined];
     if(isExceptionOrError(reason)) {
         ex[0] = reason.message;
         ex[1] = Guards.isDefinedAndNotNull((<Exception>reason).code) ? `${(<Exception>reason).code}` : options.code;
@@ -108,7 +110,7 @@ export class Exception extends Error {
         const [ message, code, cause ] = buildException(reason, options);
 
         // Call the parent constructor with the message.
-        super(message);
+        super(message as string);
 
         // Set the prototype explicitly. This is necessary when extending built-in classes like Error.
         Object.setPrototypeOf(this, Exception.prototype);
