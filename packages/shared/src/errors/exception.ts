@@ -136,10 +136,20 @@ export class Exception extends Error {
      * @returns `ExceptionJson` A JSON representation of the exception, including its name, message, code, cause, and stack trace.
      */
     toJson(): ExceptionJson {
-        const cause = this.cause ? (this.cause instanceof Exception ? this.cause.toJson() : {
-            name: this.cause.name,
-            message: this.cause.message
-        }) : undefined;
+        let cause: ExceptionJson | {
+            name: string;
+            message: string;
+        };
+        if (this.cause) {
+            if (this.cause instanceof Exception) {
+                cause = this.cause.toJson();
+            } else {
+                cause = {
+                    name: this.cause.name,
+                    message: this.cause.message
+                };
+            }
+        }
         return {
             name: this.name,
             message: this.message,

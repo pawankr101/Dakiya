@@ -16,7 +16,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
     /** Random Hash for Private Constructor */
     static readonly #staticHash: string = getUuid();
 
-    readonly #httpVersion: hv; #httpSecurity: hs;
+    readonly #httpVersion: hv; readonly #httpSecurity: hs;
     readonly #httpServer: HttpServer<hv, hs>;
     readonly #fastifyApp: FastifyInstance;
 

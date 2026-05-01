@@ -16,9 +16,9 @@ export async function callWorkerMethod<T>(method: string, arg: unknown[]) {
             worker.onmessage = (event: MessageEvent<WorkerMessageDataOutput<T>>) => {
                 if(event.data?.error) reject(new Exception(event.data.error));
                 else if(event.data?.output) resolve(event.data.output);
-                else reject(new Exception(`Message from ${worker}`));
+                else reject(new Exception(`Message from Event ${event.lastEventId}`));
             }
-            worker.postMessage({method, arg});
+            worker.postMessage({method, arg} as WorkerMessageDataInput);
         }
     })
 }
