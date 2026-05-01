@@ -1,4 +1,4 @@
-import type { DynamicType, Func, PossibleTypes } from "../types.js";
+import type { DynamicType, Func, HttpCode, PossibleTypes } from "../types.js";
 
 export interface Guards {
     /**
@@ -92,6 +92,13 @@ export interface Guards {
      * @returns True if the model is a Date object, false otherwise.
      */
     isDate(model: unknown): model is Date;
+
+    /**
+     * check if the given code is a valid HTTP status code
+     * @param code The code to be checked.
+     * @returns True if the code is a valid HTTP status code, false otherwise.
+     */
+    isHttpCode(code: unknown): code is HttpCode;
 }
 
 const isDefined = <T>(input: T): input is Exclude<typeof input, undefined> => {
@@ -155,6 +162,10 @@ const isDate = (model: unknown): model is Date => {
     return (model instanceof Date) && !Number.isNaN(model.getTime());
 }
 
+const isHttpCode: (code: unknown) => code is HttpCode = (code: unknown): code is HttpCode => {
+    return isNumber(code) && (code >= 100 && code <= 599);
+}
+
 export const Guards = (() => {
     const Guards: Guards = Object.create(null);
 
@@ -171,6 +182,7 @@ export const Guards = (() => {
     Guards.isArrayOf = isArrayOf;
     Guards.isNotEmptyArray = isNotEmptyArray;
     Guards.isDate = isDate;
+    Guards.isHttpCode = isHttpCode;
 
     return Guards;
 })();

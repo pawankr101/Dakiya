@@ -24,17 +24,15 @@ export class HttpServer<hv extends HttpVersion = 'http1', hs extends HttpSecurit
     static readonly #staticHash: string = getUuid();
     static #httpServer: HttpServer<HttpVersion, HttpSecurity> = null as unknown as HttpServer<HttpVersion, HttpSecurity>;
 
-    #server: Server<hv, hs>;
+    readonly #server: Server<hv, hs>;
 
     #buildServer(httpVer: hv, httpSec: hs, options?: ServerOptions<hv, hs>): Server<hv, hs> {
-        const server = (httpVer==='http2')
-            ? ((httpSec==='https')
-                ? http2.createSecureServer(<ServerOptions<'http2', 'https'>>options)
-                : http2.createServer(<ServerOptions<'http2'>>options))
-            : ((httpSec==='https')
-                ? https.createServer(<ServerOptions<'http1', 'https'>>options)
-                : http.createServer(<ServerOptions>options));
-        return <Server<hv, hs>>server;
+        if (httpVer === 'http2') {
+            if (httpSec === 'https') return http2.createSecureServer(<ServerOptions<'http2', 'https'>>options) as Server<hv, hs>;
+            return http2.createServer(<ServerOptions<'http2'>>options) as Server<hv, hs>;
+        }
+        if (httpSec === 'https') return https.createServer(<ServerOptions<'http1', 'https'>>options) as Server<hv, hs>;
+        return http.createServer(<ServerOptions>options) as Server<hv, hs>;
     }
 
     /**

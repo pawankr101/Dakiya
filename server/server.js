@@ -1,12 +1,10 @@
-
-import { resolve as resolvePath } from "node:path";
-import { loadEnvFile } from "node:process";
-import { Worker } from "node:worker_threads";
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { fileURLToPath } from "node:url";
-import { pathToFileURL } from "node:url";
 import { rm, watch } from "node:fs";
+import { resolve as resolvePath } from "node:path";
+import { loadEnvFile } from "node:process";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { Worker } from "node:worker_threads";
 import { build as esbuild } from "esbuild";
 
 /******************** CONFIGURATIONS: Start ********************/
@@ -339,11 +337,11 @@ class AppRunner {
 
         if(watchDir) {
             watch(watchDir, { recursive: true }, () => {
-                if(!isBuilding) {
+                if(isBuilding) {
+                    needRebuild = true;
+                } else {
                     if(timer) clearTimeout(timer);
                     timer = setTimeout(rebuild, watcherDelay);
-                } else {
-                    needRebuild = true;
                 }
             });
         }

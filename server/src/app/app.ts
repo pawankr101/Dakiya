@@ -16,9 +16,9 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
     /** Random Hash for Private Constructor */
     static readonly #staticHash: string = getUuid();
 
-    #httpVersion: hv; #httpSecurity: hs;
-    #httpServer: HttpServer<hv, hs>;
-    #fastifyApp: FastifyInstance;
+    readonly #httpVersion: hv; #httpSecurity: hs;
+    readonly #httpServer: HttpServer<hv, hs>;
+    readonly #fastifyApp: FastifyInstance;
 
     private constructor(hv: hv, hs: hs, privateHash: string) {
         if (privateHash !== Application.#staticHash) throw new Exception(`'Application' class constructor can not be called from outside.`, { code: 'DAKIYA_APP_ERROR' });
@@ -111,7 +111,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
         }
     }
 
-    static #getApplication = (() => {
+    static readonly #getApplication = (() => {
         let app: Application<HttpVersion, HttpSecurity> | null = null;
         return <hv extends HttpVersion, hs extends HttpSecurity>(hv: hv, hs: hs): Application<hv, hs> => {
             if (!hv) throw new Exception(`'httpVersion' is required to get Application instance.`, { code: 'DAKIYA_APP_ERROR' });
@@ -122,7 +122,6 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
             return app as Application<hv, hs>;
         }
     })();
-
 
     static run<hv extends HttpVersion, hs extends HttpSecurity>(options: ApplicationOptions<hv, hs>) {
         const { httpVersion: hv, httpSecurity: hs, host, port } = options;

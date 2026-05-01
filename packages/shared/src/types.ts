@@ -11,3 +11,7 @@ export type DynamicType<T extends PossibleTypes=never, AO extends PossibleTypes=
     : T extends 'function' ? Func : unknown;
 
 export type ObjectOf<T = unknown, K extends string | number | symbol = string> = { [x in K]: T };
+
+type Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+type OneToFive = 1 | 2 | 3 | 4 | 5;
+export type HttpCode = `${OneToFive}${Digit}${Digit}` extends `${infer N extends number}` ? N : never;

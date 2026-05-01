@@ -133,7 +133,7 @@ class ProjectBuilder {
             throw new Error(`'ProjectBuilder' class constructor can not be called from outside.`);
         }
 
-        this.#isProd = isProd ? true : false;
+        this.#isProd = Boolean(isProd);
 
         this.#buildOptions = {
             ...ProjectBuilder.#DEFAULT_BUILD_OPTIONS,
@@ -152,8 +152,8 @@ class ProjectBuilder {
         } else {
             this.#buildOptions.sourcemap = 'inline';
 
-            this.#cachesIndexHtml = cachesIndexHtml ? true: false;
-            this.#logBuildResult = logBuildResult ? true: false;
+            this.#cachesIndexHtml = Boolean(cachesIndexHtml);
+            this.#logBuildResult = Boolean(logBuildResult);
             this.cache = new StaticFiles();
         }
     }
@@ -286,7 +286,7 @@ class StaticServer {
     static #getRequestedFile(url) {
         if (!StaticServer.#fileSource) return null;
         let path = url.split("?")[0];
-        if (path[0] === "/") path = path.slice(1);
+        if (path.startsWith('/')) path = path.slice(1);
         if (!path) path = "index.html";
 
         let file = StaticServer.#fileSource.getFile(path);
@@ -306,17 +306,17 @@ class StaticServer {
      */
     static #requestHandler = (request, response) => {
         const file = this.#getRequestedFile(request.url);
-        if (!file) {
-            response.writeHead(404, "Resource not found.", {
-                "content-type": MIME.getType("json"),
-            });
-            response.end('{"message": "Resource not found."}');
-        } else {
+        if (file) {
             response.writeHead(200, "Success", {
                 "content-type": MIME.getType(file.name),
                 "content-length": file.size,
             });
             response.end(file.contents);
+        } else {
+            response.writeHead(404, "Resource not found.", {
+                "content-type": MIME.getType("json"),
+            });
+            response.end('{"message": "Resource not found."}');
         }
     };
 
@@ -371,11 +371,11 @@ class StaticServer {
         }
 
         watch(watchDir, { recursive: true }, () => {
-            if(!isBuilding) {
+            if(isBuilding) {
+                needRebuild = true;
+            } else {
                 if(timer) clearTimeout(timer);
                 timer = setTimeout(rebuild, watcherDelay);
-            } else {
-                needRebuild = true;
             }
         });
     }

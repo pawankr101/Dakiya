@@ -9,7 +9,7 @@ type WorkerMessageDataOutput<T> = {
     },
     output: T
 }
-const worker = <DedicatedWorkerGlobalScope><unknown>self;
+const worker = <DedicatedWorkerGlobalScope><unknown>globalThis;
 
 worker.onmessage = async (event: MessageEvent<WorkerMessageDataInput>) => {
     try {

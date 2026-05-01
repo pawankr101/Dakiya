@@ -29,7 +29,7 @@ type NumberComparatorType = number | { toValue: number, error: number } | { toVa
 *  getValue(model, 'key4', 'default_value'); // 'default_value'
 *  getValue(model, 'key4'); // null
 */
-export const getValue = <T>(model: ObjectOf<T|unknown>, key: string | number, defaultValue?: T): T | null => {
+export const getValue = <T=unknown>(model: ObjectOf<T>, key: string | number, defaultValue?: T): T | null => {
     defaultValue = Guards.isDefined(defaultValue) ? defaultValue : null;
     if(Guards.isUndefinedOrNull(model)) return defaultValue;
 
@@ -37,7 +37,7 @@ export const getValue = <T>(model: ObjectOf<T|unknown>, key: string | number, de
         const keys = key.split('.'), keyCount = keys.length;
         let index = 0, value = model;
         while(index < keyCount) {
-            value = value[keys[index]] as ObjectOf<T|unknown>;
+            value = value[keys[index]] as ObjectOf<T>;
             if(Guards.isUndefined(value)) return defaultValue;
             if(Guards.isNull(value)) return value;
             index++;
@@ -68,7 +68,7 @@ export const clone = (() => {
         if (visited.has(data as object)) return visited.get(data as object) as T;
 
         // Handle special cases for cloning
-        if (data instanceof Date) return new Date(data.getTime()) as T; // Clone Date object
+        if (data instanceof Date) return new Date(data) as T; // Clone Date object
         if (data instanceof RegExp) return new RegExp(data.source, data.flags) as T; // Clone RegExp object
 
         const copiedData = Guards.isArray(data) ? [] : Object.create(Object.getPrototypeOf(data));

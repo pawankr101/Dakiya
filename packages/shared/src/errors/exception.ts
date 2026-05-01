@@ -67,7 +67,7 @@ export class Exception extends Error {
      * 3. If the `options` object has a `code`, that code is used.
      * 4. If none of the above provide a code, it defaults to 'INTERNAL_ERROR'.
      */
-    #code: string;
+    readonly #code: string;
 
     /**
      * Creates an instance of Exception.
@@ -136,15 +136,16 @@ export class Exception extends Error {
      * @returns `ExceptionJson` A JSON representation of the exception, including its name, message, code, cause, and stack trace.
      */
     toJson(): ExceptionJson {
+        const cause = this.cause ? (this.cause instanceof Exception ? this.cause.toJson() : {
+            name: this.cause.name,
+            message: this.cause.message
+        }) : undefined;
         return {
             name: this.name,
             message: this.message,
             code: this.#code,
-            cause: this.cause ? (this.cause instanceof Exception ? this.cause.toJson() : {
-                name: this.cause.name,
-                message: this.cause.message
-            }) : undefined,
-            stack: this.stack
+            stack: this.stack,
+            cause
         }
     }
 

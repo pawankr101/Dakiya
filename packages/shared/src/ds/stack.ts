@@ -6,7 +6,7 @@ import { LinkedList, type List } from "./list.js";
 * @template T - The type of data stored in the stack.
 */
 export class Stack<T> {
-    #list: List<T> = new LinkedList<T>();
+    readonly #list: List<T> = new LinkedList<T>();
 
     /**
     * Retrieves the number of items in the stack.

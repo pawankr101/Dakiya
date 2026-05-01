@@ -7,7 +7,7 @@ import { ENV, HTTP_SERVER } from './config.js';
  * This function iterates through the `ENV` configuration object and assigns each key-value pair to the `process.env` object, making them available throughout the application.
  */
 function setupEnv() {
-    for(var key in ENV) {
+    for(const key in ENV) {
         process.env[key] = ENV[key as keyof typeof ENV].toString();
     }
 }

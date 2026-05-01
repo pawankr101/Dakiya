@@ -1,17 +1,13 @@
-import { Exception, type ExceptionOptions, Guards } from "@dakiya/shared";
+import { Exception, type ExceptionOptions, Guards, type HttpCode } from "@dakiya/shared";
 
-type APIExceptionOptions = ExceptionOptions & { httpCode?: number };
-
-const isHttpCode = (code: number) => {
-    return Guards.isNumber(code) && (code >= 100 && code <= 599);
-}
+type APIExceptionOptions = ExceptionOptions & { httpCode?: HttpCode };
 
 export class APIException extends Exception {
-    httpCode: number;
+    readonly httpCode: HttpCode;
 
     constructor(reason: string | Exception | Error, options?: APIExceptionOptions) {
         options = options || {};
         super(reason, options);
-        this.httpCode = (isHttpCode(options.httpCode as number) ? options.httpCode : 500) as number;
+        this.httpCode = (Guards.isHttpCode(options.httpCode) ? options.httpCode : 500);
     }
 }

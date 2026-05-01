@@ -576,11 +576,8 @@ export class ArrayList<T> implements List<T> {
 
     slice(start: number, end?: number): List<T> {
         const size = this.#size;
-        if(start < 0 || start >= size) {
-            throw new Error('Invalid slice parameters');
-        }
-        end = end === undefined ? size : end;
-        if(end <= start || end > size) {
+        end ??= size;
+        if(start < 0 || start >= size || end <= start || end > size) {
             throw new Error('Invalid slice parameters');
         }
         return new ArrayList<T>(this.#data.slice(start, end) as Array<T>);
@@ -847,8 +844,8 @@ export class LinkedList<T> implements List<T> {
         this.#size -= deletedCount;
     }
 
-    deleteOne(index: number): T {
-        const node = this.#getNode(index), prev = node.prev, next = node.next;
+    #deleteNode(node: Node<T>): T {
+        const prev = node.prev, next = node.next;
 
         if(prev) prev.setNext(next);
         else this.#head = next;
@@ -858,6 +855,11 @@ export class LinkedList<T> implements List<T> {
 
         this.#size -= 1;
         return node.value;
+    }
+
+    deleteOne(index: number): T {
+        const node = this.#getNode(index);
+        return this.#deleteNode(node);
     }
 
     deleteAll(): void {
@@ -987,18 +989,10 @@ export class LinkedList<T> implements List<T> {
     }
 
     findAndDelete(cb: (item: T) => boolean): T | undefined {
-        if (this.#size === 0) return undefined;
-
         let node = this.#head;
         while(node) {
-            if(cb(node.value)) {
-                const prev: Node<T> = node.prev, next: Node<T> = node.next;
-                if(prev) prev.setNext(next);
-                if(next) next.setPrev(prev);
-                if(node === this.#head) this.#head = next;
-                if(node === this.#tail) this.#tail = prev;
-                this.#size--;
-                return node.value;
+            if (cb(node.value)) {
+                return this.#deleteNode(node);
             }
             node = node.next;
         }
@@ -1019,11 +1013,8 @@ export class LinkedList<T> implements List<T> {
 
     slice(start: number, end?: number): List<T> {
         const size = this.#size;
-        if(start < 0 || start >= size) {
-            throw new Error('Invalid slice parameters');
-        }
-        end = end === undefined ? size : end;
-        if(end <= start || end > size) {
+        end ??= size;
+        if(start < 0 || start >= size || end <= start || end > size) {
             throw new Error('Invalid slice parameters');
         }
         const newList = new LinkedList<T>();

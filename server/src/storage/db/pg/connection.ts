@@ -1,5 +1,5 @@
 import { Exception } from '@dakiya/shared';
-import { default as postgres, type Sql } from 'postgres';
+import postgres, { type Sql } from 'postgres';
 import { DB } from '../../../config.js';
 
 export interface PG {
@@ -39,22 +39,18 @@ const createDbIfNotExists = async () => {
 }
 
 const initTables = async (connection: Sql) => {
-    try {
-        await createRequiredEnums(connection);
-        await createUserTable(connection);
-        await createUserSettingsTable(connection);
-        await createDevicesTable(connection);
-        await createConversationsTable(connection);
-        await createConversationMembersTable(connection);
-        await createMessagesTable(connection);
-        await createMessageReactionsTable(connection);
-        await createMessageEditsTable(connection);
-        await createMediaTable(connection);
-        await createDeliveryQueueTable(connection);
-        await createIndexes(connection);
-    } catch (error) {
-        throw error;
-    }
+    await createRequiredEnums(connection);
+    await createUserTable(connection);
+    await createUserSettingsTable(connection);
+    await createDevicesTable(connection);
+    await createConversationsTable(connection);
+    await createConversationMembersTable(connection);
+    await createMessagesTable(connection);
+    await createMessageReactionsTable(connection);
+    await createMessageEditsTable(connection);
+    await createMediaTable(connection);
+    await createDeliveryQueueTable(connection);
+    await createIndexes(connection);
 }
 const createRequiredEnums = async (connection: Sql) => {
     try {
