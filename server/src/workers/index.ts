@@ -2,7 +2,7 @@ import { parentPort } from 'node:worker_threads';
 import { Guards, getValue } from '@dakiya/shared';
 import methods from './methods.js';
 
-type WorkerInput = { workerExit?: boolean, taskId?: string, method?: string, arg?: unknown[] };
+type WorkerInput = { taskId: string, method: string, arg?: unknown[] };
 type Fn = (...args: unknown[]) => unknown;
 
 function getMessageChannelPort() {
@@ -14,12 +14,12 @@ function getMessageChannelPort() {
 
 const onMessageAtMessageChannelPort = (port: MessagePort) => {
     return (data: WorkerInput) => {
-        if (data.workerExit) {
+        if ((data as unknown as {workerExit: boolean}).workerExit) {
             process.exit(0);
         } else {
-            const method: Fn = getValue(methods, data.method as string, () => {
-                return Promise.reject('Method not found');
-            }) as Fn;
+            const method: Fn = getValue(methods, data.method, (() => {
+                return Promise.reject(new Error('Method not found'));
+            }) as unknown) as Fn;
             const result = method(...(data.arg || []));
             if (result instanceof Promise) {
                 result.then(res => {

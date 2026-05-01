@@ -3,7 +3,7 @@ import { type WebSocket as Ws, WebSocketServer as Wss } from 'ws';
 import type { Request } from './index.js';
 
 class WSServer {
-    #wss: Wss;
+    readonly #wss: Wss;
 
     constructor() {
         this.#wss = new Wss({ noServer: true });

@@ -20,9 +20,11 @@ export type StartCallbacks = { onError: (err: Exception) => void, listener: () =
 /* ***** Type Declarations: End ***** */
 
 export class HttpServer<hv extends HttpVersion = 'http1', hs extends HttpSecurity = 'http'> {
-    /** #### Random Hash for Private Constructor */
+    /** Random Hash for Private Constructor */
     static readonly #staticHash: string = getUuid();
-    static #httpServer: HttpServer<HttpVersion, HttpSecurity> = null as unknown as HttpServer<HttpVersion, HttpSecurity>;
+
+    /** HttpServer Instance */
+    static #httpServer: HttpServer<HttpVersion, HttpSecurity>;
 
     readonly #server: Server<hv, hs>;
 
