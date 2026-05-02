@@ -24,7 +24,7 @@ export class HttpServer<hv extends HttpVersion = 'http1', hs extends HttpSecurit
     static readonly #staticHash: string = getUuid();
 
     /** HttpServer Instance */
-    static #httpServer: HttpServer<HttpVersion, HttpSecurity>;
+    static #httpServerInstance: HttpServer<HttpVersion, HttpSecurity> = null as unknown as HttpServer<HttpVersion, HttpSecurity>;
 
     readonly #server: Server<hv, hs>;
 
@@ -75,8 +75,8 @@ export class HttpServer<hv extends HttpVersion = 'http1', hs extends HttpSecurit
      * Subsequent calls will return the previously created instance.
      */
     static build<hv extends HttpVersion, hs extends HttpSecurity>(httpVer: hv, httpSec: hs, options?: ServerOptions<hv,hs>) {
-        if(!HttpServer.#httpServer) HttpServer.#httpServer = new HttpServer<hv, hs>(httpVer, httpSec, options, HttpServer.#staticHash);
-        return HttpServer.#httpServer;
+        if(!HttpServer.#httpServerInstance) HttpServer.#httpServerInstance = new HttpServer<hv, hs>(httpVer, httpSec, options, HttpServer.#staticHash);
+        return HttpServer.#httpServerInstance;
     }
 
     /**
