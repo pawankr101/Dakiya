@@ -54,5 +54,6 @@ export const CACHE = {
     port: Number.parseInt(process.env.DAKIYA_CACHE_PORT, 10),
     database: process.env.DAKIYA_CACHE_DATABASE,
     user: process.env.DAKIYA_CACHE_USER,
-    password: process.env.DAKIYA_CACHE_PASSWORD
+    password: process.env.DAKIYA_CACHE_PASSWORD,
+    maxTTL: 24 * 60 * 60 // 24 hours in seconds
 }
