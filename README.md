@@ -58,6 +58,7 @@ Dakiya is built on the principles of **Consistency**, **Partition Tolerance**, a
 ## 📂 System Architecture & Directory Structure
 
 Dakiya maintains a dual-state database architecture. **Cloud Storage (Postgres)** maintains global uniqueness, delivery queues, and authentication payloads. **Local Storage (WatermelonDB)** stores a fast, serialized profile state, custom user settings, and offline conversation histories.
+
 ```bash
 Dakiya/
 ├── client/                 # React 19 Frontend SPA
@@ -92,6 +93,7 @@ Dakiya/
 ├── docs/                   # DB Schemas, Design Specs, and JSON configurations
 ├── biome.json              # Unified Monorepo Linter/Formatter rules
 └── package.json            # Workspace orchestration
+```
 
 ---
 
