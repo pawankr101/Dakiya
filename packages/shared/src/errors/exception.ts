@@ -33,7 +33,7 @@ function isExceptionOrError(error: unknown) : error is Exception|Error {
  * @returns An array containing the message, code, and cause for the exception, which will be used to construct the `Exception` instance.
  */
 function buildException(reason: Reason, options?: ExceptionOptions) {
-    options = options || {};
+    options = options ?? {};
     options.code = Guards.isDefinedAndNotNull(options.code) ? `${options.code}` : 'INTERNAL_ERROR';
     const ex = new Array(3) as [Message, string, Exception | Error | undefined];
     if(isExceptionOrError(reason)) {
@@ -44,7 +44,7 @@ function buildException(reason: Reason, options?: ExceptionOptions) {
     }
     ex[0] = reason;
     ex[1] = options.code;
-    ex[2] = options.cause || undefined;
+    ex[2] = options.cause ?? undefined;
     return ex;
 }
 

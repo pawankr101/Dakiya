@@ -44,7 +44,7 @@ export const getValue = <T=unknown>(model: ObjectOf<T>, key: string | number, de
         }
         return value as T;
     }
-    return Guards.isDefined(model[key]) ? model[key] as T : defaultValue;
+    return Guards.isDefined(model[key]) ? model[key] : defaultValue;
 }
 
 /**
@@ -96,14 +96,14 @@ export const clone = (() => {
                 }
             }
         }
-        return copiedData as T;
+        return copiedData;
     };
     const cloneData = <T>(data: T, toJson: boolean, visited: WeakMap<object, object>): T => {
         if(typeof(data) === 'object' && data !== null) {
             return cloneObject(data, toJson, visited);
         }
         if(typeof(data) === 'function' && !toJson) {
-            return data as T;
+            return data; // Do not clone function, return as is
         }
         return data;
     }
