@@ -106,8 +106,15 @@ export class Thread {
             this.status = ThreadStatus.idle;
             const { error, result } = data;
             if (task) {
-                if (error) task.onError(new Exception(error, { code: 'DAKIYA_WORKER_ERROR' }));
-                else task.onSuccess(result);
+                if (error) {
+                    queueMicrotask(() => {
+                        task.onError(new Exception(error, { code: 'DAKIYA_WORKER_ERROR' }));
+                    });
+                } else {
+                    queueMicrotask(() => {
+                        task.onSuccess(result);
+                    });
+                }
             }
             this.#executeNextTask();
         },
@@ -152,12 +159,15 @@ export class Thread {
             }
         } catch (error) {
             if (this.#activeTask) {
-                this.#activeTask.attempt++;
-                if (this.#activeTask.attempt < MAX_TRY_ATTEMPT) {
-                    Thread.#pendingTasksQueue.enqueue(this.#activeTask);
-                    console.warn(new Exception(`Failed to send task to Worker with id: ${this.id}. Re-queueing task ${this.#activeTask.id} (Attempt ${this.#activeTask.attempt})`, { cause: error as Error, code : 'DAKIYA_WORKER_ERROR' }));
+                const task = this.#activeTask;
+                task.attempt++;
+                if (task.attempt < MAX_TRY_ATTEMPT) {
+                    Thread.#pendingTasksQueue.enqueue(task);
+                    console.warn(new Exception(`Failed to send task to Worker with id: ${this.id}. Re-queueing task ${task.id} (Attempt ${task.attempt})`, { cause: error as Error, code : 'DAKIYA_WORKER_ERROR' }));
                 } else {
-                    this.#activeTask.onError(new Exception(`Failed to send task to Worker with id: ${this.id}. Task ${this.#activeTask.id} has reached max retry attempts.`, { cause: error as Error, code: 'DAKIYA_WORKER_ERROR' }));
+                    queueMicrotask(() => {
+                        task.onError(new Exception(`Failed to send task to Worker with id: ${this.id}. Task ${task.id} has reached max retry attempts.`, { cause: error as Error, code: 'DAKIYA_WORKER_ERROR' }));
+                    })
                 }
                 this.#activeTask = null;
             } else {
@@ -206,12 +216,15 @@ export class Thread {
             this.#terminationTimeout = null;
         }
         if (this.#activeTask) {
-            this.#activeTask.attempt++;
-            if (this.#activeTask.attempt < MAX_TRY_ATTEMPT) {
-                Thread.#pendingTasksQueue.enqueue(this.#activeTask);
-                console.warn(new Exception(`Worker ${this.id} died. Re-queueing task ${this.#activeTask.id} (Attempt ${this.#activeTask.attempt})`, { cause: error, code : 'DAKIYA_WORKER_ERROR' }));
+            const task = this.#activeTask;
+            task.attempt++;
+            if (task.attempt < MAX_TRY_ATTEMPT) {
+                Thread.#pendingTasksQueue.enqueue(task);
+                console.warn(new Exception(`Worker ${this.id} died. Re-queueing task ${task.id} (Attempt ${task.attempt})`, { cause: error, code : 'DAKIYA_WORKER_ERROR' }));
             } else {
-                this.#activeTask.onError(new Exception(`Task ${this.#activeTask.id} failed after ${MAX_TRY_ATTEMPT} attempts.`, { cause: error, code : 'DAKIYA_WORKER_ERROR' }));
+                queueMicrotask(() => {
+                    task.onError(new Exception(`Task ${task.id} failed after ${MAX_TRY_ATTEMPT} attempts.`, { cause: error, code: 'DAKIYA_WORKER_ERROR' }));
+                });
             }
             this.#activeTask = null;
         }
