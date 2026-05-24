@@ -235,6 +235,11 @@ export class Thread {
         if (!Thread.#threadPool.delete(this.id)) {
             Thread.#sleepingThreads.delete(this.id)
         }
+        if (!Thread.#pendingTasksQueue.isEmpty()) {
+            if (!Thread.#awakenSleepingThread()) {
+                Thread.#createNewThread();
+            }
+        }
     }
 
     #softWorkerTermination() {
@@ -273,6 +278,17 @@ export class Thread {
     /*************************** Static methods: Start *******************************/
     // static members and methods related to managing the pool of threads and task distribution.
 
+    static #awakenSleepingThread() {
+        const th = Thread.#sleepingThreads.pop();
+        if (th) {
+            if (th.status === ThreadStatus.idle) {
+                th.wakeUp();
+                return true;
+            }
+        }
+        return false;
+    }
+
     static #createNewThread() {
         if (Thread.#threadPool.size < MAX_THREADS) {
             const th = new Thread(WORKER_FILE, Thread.#staticHash);
@@ -291,14 +307,9 @@ export class Thread {
             };
             Thread.#pendingTasksQueue.enqueue(task);
 
-            const th = Thread.#sleepingThreads.pop();
-            if (th) {
-                if (th.status === ThreadStatus.idle) {
-                    th.wakeUp();
-                    return;
-                }
+            if (!Thread.#awakenSleepingThread()) {
+                Thread.#createNewThread();
             }
-            Thread.#createNewThread();
         });
     }
     /**************************** Static methods: End ********************************/
