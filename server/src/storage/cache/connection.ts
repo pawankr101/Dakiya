@@ -1,5 +1,5 @@
 import { Exception, Guards } from "@dakiya/shared";
-import { connect, type NatsConnection, type KV, StorageType } from "nats";
+import { connect, type KV, type NatsConnection, StorageType } from "nats";
 import { CACHE } from "../../config.js";
 
 export interface Cache {
@@ -83,7 +83,7 @@ export const Cache: Cache = (() => {
     const CacheObj: Cache = Object.create(null);
 
     const createConnection = async () => {
-        let tempConnection: NatsConnection | undefined = undefined;
+        let tempConnection: NatsConnection | undefined;
         try {
             tempConnection = await connectServer();
             const kv = await buildStore(tempConnection);
