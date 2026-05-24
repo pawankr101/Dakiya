@@ -54,7 +54,7 @@ export interface Cache {
 
 function connectServer() {
     return connect({
-        name: 'dakiya-cache',
+        name: 'dakiya-nats',
         servers: `nats://${CACHE.host}:${CACHE.port}`,
         user: CACHE.user,
         pass: CACHE.password,

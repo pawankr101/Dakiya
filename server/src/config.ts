@@ -29,7 +29,6 @@ export const ENV = {
 export const THREADING = {
     workersIndexFile: resolve(ROOT_DIR, 'workers', 'index.js'),
     maxThreadsAllowed: 4, // setting 0 will set the number of threads to the number of CPU cores available
-    maxTasksAllowedPerThread: 10,
     maxThreadIdleTimeInMS: 60000,
     maxTryAttempt: 3
 }
