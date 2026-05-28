@@ -179,8 +179,8 @@ export class Thread {
     #executeNextTask() {
         const worker = this.#worker;
         if (!worker) {
-            if (this.status !== ThreadStatus.starting && this.status !== ThreadStatus.terminating) {
-                if (this.status !== ThreadStatus.error) this.status = ThreadStatus.dead;
+            if (this.status !== ThreadStatus.error) this.status = ThreadStatus.dead;
+            if (this.status === ThreadStatus.dead) {
                 this.#cleanup();
             }
             return;
