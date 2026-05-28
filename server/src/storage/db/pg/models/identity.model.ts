@@ -17,6 +17,8 @@ export interface User {
     updatedAt: Date;
 }
 
+type PrivacyLevel = 'everyone' | 'contacts' | 'nobody';
+
 export interface UserSettings {
     uid: string;
     userId: string;
@@ -43,9 +45,9 @@ export interface UserSettings {
     privacy: {
         blockedContacts: string[];
         readReceipts: boolean;
-        lastSeen: 'everyone' | 'contacts' | 'nobody';
-        dp: 'everyone' | 'contacts' | 'nobody';
-        about: 'everyone' | 'contacts' | 'nobody';
+        lastSeen: PrivacyLevel;
+        dp: PrivacyLevel;
+        about: PrivacyLevel;
     };
     backup: {
         enabled: boolean;
