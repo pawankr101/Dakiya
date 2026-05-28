@@ -5,14 +5,10 @@ import { THREADING } from "../config.js";
 
 interface Task {
     id: string;
-    method: { name: string; arg?: unknown[] };
+    method: { name: string; args?: unknown[] };
     onSuccess: (result?: unknown) => void;
     onError: (error: Exception) => void;
     attempt: number;
-}
-
-interface WorkExitTask {
-    workerExit: true;
 }
 
 interface WorkerResult {
@@ -145,67 +141,64 @@ export class Thread {
         return worker;
     }
 
-    #sendTaskToWorker(exitTask?: WorkExitTask) {
+    #sendExitSignalToWorker(worker: Worker) {
         try {
-            if (this.#worker) {
-                if (exitTask) {
-                    this.#worker.postMessage(exitTask);
-                    return true;
-                } else if (this.#activeTask) {
-                    const { method: { name: method, arg: args } } = this.#activeTask as Task;
-                    this.#worker.postMessage({ method, args });
-                    return true;
-                } else throw new Exception(`No active task to send to Worker with id: ${this.id}.`, { code : 'DAKIYA_WORKER_ERROR' });
-            }
+            worker.postMessage({ workerExit: true });
+            return true;
         } catch (error) {
-            if (this.#activeTask) {
-                const task = this.#activeTask;
-                task.attempt++;
-                if (task.attempt < MAX_TRY_ATTEMPT) {
-                    Thread.#pendingTasksQueue.enqueue(task);
-                    console.warn(new Exception(`Failed to send task to Worker with id: ${this.id}. Re-queueing task ${task.id} (Attempt ${task.attempt})`, { cause: error as Error, code : 'DAKIYA_WORKER_ERROR' }));
-                } else {
-                    queueMicrotask(() => {
-                        task.onError(new Exception(`Failed to send task to Worker with id: ${this.id}. Task ${task.id} has reached max retry attempts.`, { cause: error as Error, code: 'DAKIYA_WORKER_ERROR' }));
-                    })
-                }
-                this.#activeTask = null;
-            } else {
-                console.error(new Exception(`Failed to send task to Worker with id: ${this.id}. No task is currently assigned to the thread.`, { cause: error as Error, code : 'DAKIYA_WORKER_ERROR' }));
-            }
+            console.error(new Exception(`Failed to send exit signal to Worker with id: ${this.id}.`, { cause: error as Error, code: 'DAKIYA_WORKER_ERROR' }));
+            return false;
         }
-        return false;
+    }
+
+    #sendTaskToWorker(worker: Worker, task: Task) {
+        const threadId = this.id;
+        try {
+            const { method: { name: method, args } } = task;
+            worker.postMessage({ method, args });
+            this.#activeTask = task;
+            if (!Thread.#threadPool.get((threadId))) {
+                const th = Thread.#sleepingThreads.delete(threadId) ?? this;
+                Thread.#threadPool.set(threadId, th);
+            }
+            return true;
+        } catch (error) {
+            task.attempt++;
+            if (task.attempt < MAX_TRY_ATTEMPT) {
+                Thread.#pendingTasksQueue.enqueue(task);
+                console.warn(new Exception(`Failed to send task to Worker with id: ${threadId}. Re-queueing task ${task.id} (Attempt ${task.attempt})`, { cause: error as Error, code : 'DAKIYA_WORKER_ERROR' }));
+            } else {
+                queueMicrotask(() => {
+                    task.onError(new Exception(`Failed to send task to Worker with id: ${threadId}. Task ${task.id} has reached max retry attempts.`, { cause: error as Error, code: 'DAKIYA_WORKER_ERROR' }));
+                })
+            }
+            return false;
+        }
     }
 
     #executeNextTask() {
-        let consecutiveFailures = 0;
-        while (this.#worker) {
-            if (Thread.#pendingTasksQueue.isEmpty()) {
-                if (!this.#terminationTimeout) this.#softWorkerTermination();
-                return;
+        const worker = this.#worker;
+        if (!worker) {
+            if (this.status !== ThreadStatus.starting && this.status !== ThreadStatus.terminating) {
+                if (this.status !== ThreadStatus.error) this.status = ThreadStatus.dead;
+                this.#cleanup();
             }
+            return;
+        }
+
+        let consecutiveFailures = 0;
+
+        while (consecutiveFailures < MAX_TRY_ATTEMPT) {
+            if (this.#standbyIfEmptyQueue()) return;
+
             const task = Thread.#pendingTasksQueue.dequeue();
             this.status = ThreadStatus.busy;
-            this.#activeTask = task;
-            if (this.#sendTaskToWorker()) {
-                const thid = this.id;
-                if (!Thread.#threadPool.get((thid))) {
-                    const th = Thread.#sleepingThreads.delete(thid) ?? this;
-                    Thread.#threadPool.set(thid, th);
-                }
-                return;
-            }
+            if (this.#sendTaskToWorker(worker, task)) return;
+
             this.status = ThreadStatus.idle;
             consecutiveFailures++;
-            if (consecutiveFailures >= MAX_TRY_ATTEMPT) {
-                this.#worker.terminate().catch(console.error);
-                return;
-            }
         }
-        if (this.status !== ThreadStatus.starting && this.status !== ThreadStatus.terminating) {
-            if(this.status !== ThreadStatus.error) this.status = ThreadStatus.dead;
-            this.#cleanup();
-        }
+        worker.terminate().catch(console.error);
     }
 
     #cleanup(error?: Error) {
@@ -242,17 +235,21 @@ export class Thread {
         }
     }
 
-    #softWorkerTermination() {
-        if (!this.#terminationTimeout) {
-            const th = Thread.#threadPool.delete(this.id) ?? this;
-            this.#terminationTimeout = setTimeout(() => {
-                this.status = ThreadStatus.terminating;
-                if (!this.#sendTaskToWorker({ workerExit: true })) {
-                    if (this.#worker) this.#worker.terminate().catch(console.error)
+    #standbyIfEmptyQueue () {
+        if (!Thread.#pendingTasksQueue.isEmpty()) return false;
+        if(this.#terminationTimeout) return true;
+
+        const th = Thread.#threadPool.delete(this.id) ?? this;
+        this.#terminationTimeout = setTimeout(() => {
+            this.status = ThreadStatus.terminating;
+            if (this.#worker) {
+                if (!this.#sendExitSignalToWorker((this.#worker))) {
+                    this.#worker.terminate().catch(console.error);
                 }
-            }, MAX_IDLE_TIME);
-            Thread.#sleepingThreads.push(th);
-        }
+            }
+        }, MAX_IDLE_TIME);
+        Thread.#sleepingThreads.push(th);
+        return true;
     }
 
     wakeUp() {
@@ -264,11 +261,12 @@ export class Thread {
     }
 
     stop(force = false) {
-        if (this.#worker) {
+        const worker = this.#worker;
+        if (worker) {
             this.status = ThreadStatus.terminating;
-            if (force) this.#worker.terminate().catch(console.error);
-            else if (!this.#sendTaskToWorker({ workerExit: true })) {
-                this.#worker.terminate().catch(console.error);
+            if (force) worker.terminate().catch(console.error);
+            else if (!this.#sendExitSignalToWorker((worker))) {
+                worker.terminate().catch(console.error);
             }
         }
     }
@@ -296,11 +294,11 @@ export class Thread {
         }
     }
 
-    static execute<T=unknown>(methodName: string, ...arg: unknown[]): Promise<T> {
+    static execute<T=unknown>(methodName: string, ...args: unknown[]): Promise<T> {
         return new Promise((resolve: (result: T) => void, reject: (reason: Exception) => void) => {
             const task: Task = {
                 id: getUuid(),
-                method: { name: methodName, arg },
+                method: { name: methodName, args },
                 onSuccess: resolve as (result?: unknown) => void,
                 onError: reject,
                 attempt: 0

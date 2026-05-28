@@ -144,6 +144,7 @@ interface XML {
   attribute?: boolean;
   wrapped?: boolean;
 }
+type ParameterStyle = "form" | "spaceDelimited" | "pipeDelimited" | "deepObject";
 interface ParameterWithSchemaWithExampleInQuery {
   name: string;
   in: "query";
@@ -151,7 +152,7 @@ interface ParameterWithSchemaWithExampleInQuery {
   required?: boolean;
   deprecated?: boolean;
   allowEmptyValue?: boolean;
-  style?: "form"|"spaceDelimited"|"pipeDelimited"|"deepObject";
+  style?: ParameterStyle;
   explode?: boolean;
   allowReserved?: boolean;
   schema: Schema|Reference;
@@ -209,7 +210,7 @@ interface ParameterWithSchemaWithExamplesInQuery {
   required?: boolean;
   deprecated?: boolean;
   allowEmptyValue?: boolean;
-  style?: "form"|"spaceDelimited"|"pipeDelimited"|"deepObject";
+  style?: ParameterStyle;
   explode?: boolean;
   allowReserved?: boolean;
   schema: Schema|Reference;
@@ -258,7 +259,7 @@ interface MediaTypeWithExample {
 interface Encoding {
   contentType?: string;
   headers?: ObjectOf<Header>;
-  style?: "form"|"spaceDelimited"|"pipeDelimited"|"deepObject";
+  style?: ParameterStyle;
   explode?: boolean;
   allowReserved?: boolean;
 }
