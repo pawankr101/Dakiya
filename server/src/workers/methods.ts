@@ -47,12 +47,12 @@ const add = (() => {
             result = sum + result;
         }
         while(num1DigitIndex>=0) {
-            const {sum, carry} = addDigit(num1[num1DigitIndex--] as Digit, '0' as Digit, sumCarry);
+            const {sum, carry} = addDigit(num1[num1DigitIndex--] as Digit, '0', sumCarry);
             sumCarry = carry;
             result = sum + result;
         }
         while(num2DigitIndex>=0) {
-            const {sum, carry} = addDigit('0' as Digit, num2[num2DigitIndex--] as Digit, sumCarry);
+            const {sum, carry} = addDigit('0', num2[num2DigitIndex--] as Digit, sumCarry);
             sumCarry = carry;
             result = sum + result;
         }

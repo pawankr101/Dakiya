@@ -1,5 +1,5 @@
 import { parentPort } from 'node:worker_threads';
-import { type Func, Guards, type ObjectOf } from '@dakiya/shared';
+import type { Func, ObjectOf } from '@dakiya/shared';
 import methods from './methods.js';
 
 interface WorkerInput {
@@ -14,12 +14,7 @@ interface WorkerResult {
 }
 
 const METHOD_REGISTRY: ObjectOf<Func> = methods as ObjectOf<Func>;
-const PORT: MessagePort = (() => {
-    if(Guards.isNull(parentPort)) {
-        throw new Error('This file should be run as a worker thread');
-    }
-    return parentPort;
-})();
+const PORT = parentPort as MessagePort;
 
 const defaultMethod = (errorMessage: string) => {
     return (() => Promise.reject(new Error(errorMessage))) as Func;
