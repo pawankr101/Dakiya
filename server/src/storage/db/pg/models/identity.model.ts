@@ -1,6 +1,6 @@
 
 export interface User {
-    uid: string; // UUID v7
+    id: string; // UUID v7
     username: string;
     email: string;
     mobile: string;
@@ -20,7 +20,7 @@ export interface User {
 type PrivacyLevel = 'everyone' | 'contacts' | 'nobody';
 
 export interface UserSettings {
-    uid: string;
+    id: string;
     userId: string;
     language: string;
     timezone: string;
@@ -63,7 +63,7 @@ export interface UserSettings {
 }
 
 export interface Device {
-    uid: string;
+    id: string;
     userId: string;
     deviceName?: string;
     platform: 'iOS' | 'Android' | 'Web' | 'Desktop';

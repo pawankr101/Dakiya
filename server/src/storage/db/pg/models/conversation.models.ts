@@ -1,5 +1,5 @@
 export interface Conversation {
-    uid: string;
+    id: string;
     isGroup: boolean;
     groupName?: string;
     groupDp?: string;
@@ -16,7 +16,7 @@ export interface Conversation {
 }
 
 export interface ConversationMember {
-    uid: string;
+    id: string;
     conversationId: string;
     userId: string;
     muteUntil: number; // 0 for not muted

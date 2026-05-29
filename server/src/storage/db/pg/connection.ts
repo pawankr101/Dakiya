@@ -87,7 +87,7 @@ const createUserTable = async (connection: Sql) => {
     try {
         await connection`
             CREATE TABLE IF NOT EXISTS users (
-                uid UUID PRIMARY KEY DEFAULT uuidv7(),
+                id UUID PRIMARY KEY DEFAULT uuidv7(),
                 username VARCHAR(50) UNIQUE NOT NULL,
                 email VARCHAR(255) UNIQUE NOT NULL,
                 mobile VARCHAR(20) UNIQUE NOT NULL,
@@ -112,8 +112,8 @@ const createUserSettingsTable = async (connection: Sql) => {
     try {
         await connection`
             CREATE TABLE IF NOT EXISTS user_settings (
-                uid UUID PRIMARY KEY DEFAULT uuidv7(),
-                user_id UUID NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+                id UUID PRIMARY KEY DEFAULT uuidv7(),
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 language VARCHAR(10) DEFAULT 'en',
                 timezone TEXT DEFAULT 'UTC',
                 chats JSONB DEFAULT '{
@@ -164,8 +164,8 @@ const createDevicesTable = async (connection: Sql) => {
     try {
         await connection`
             CREATE TABLE IF NOT EXISTS devices (
-                uid UUID PRIMARY KEY DEFAULT uuidv7(),
-                user_id UUID NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+                id UUID PRIMARY KEY DEFAULT uuidv7(),
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 device_name TEXT,
                 platform platform_enum NOT NULL,
                 os_name TEXT,
@@ -186,12 +186,12 @@ const createConversationsTable = async (connection: Sql) => {
     try {
         await connection`
             CREATE TABLE IF NOT EXISTS conversations (
-                uid UUID PRIMARY KEY DEFAULT uuidv7(),
+                id UUID PRIMARY KEY DEFAULT uuidv7(),
                 is_group BOOLEAN DEFAULT FALSE,
                 group_name TEXT,
                 group_dp TEXT,
                 description TEXT,
-                created_by UUID REFERENCES users(uid),
+                created_by UUID REFERENCES users(id),
                 settings JSONB DEFAULT '{
                     "allow_invites": true,
                     "admin_only_messages": false,
@@ -210,16 +210,16 @@ const createConversationMembersTable = async (connection: Sql) => {
     try {
         await connection`
             CREATE TABLE IF NOT EXISTS conversation_members (
-                uid UUID PRIMARY KEY DEFAULT uuidv7(),
-                conversation_id UUID NOT NULL REFERENCES conversations(uid) ON DELETE CASCADE,
-                user_id UUID NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+                id UUID PRIMARY KEY DEFAULT uuidv7(),
+                conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+                user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 mute_until TIMESTAMP WITH TIME ZONE DEFAULT TO_TIMESTAMP(0),
                 is_archived BOOLEAN DEFAULT FALSE,
                 is_pinned BOOLEAN DEFAULT FALSE,
                 last_read_at TIMESTAMP WITH TIME ZONE,
                 is_deleted BOOLEAN DEFAULT FALSE,
                 joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                added_by UUID REFERENCES users(uid),
+                added_by UUID REFERENCES users(id),
                 is_admin BOOLEAN DEFAULT FALSE,
                 has_left BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -235,16 +235,16 @@ const createMessagesTable = async (connection: Sql) => {
     try {
         await connection`
             CREATE TABLE IF NOT EXISTS messages (
-                uid UUID PRIMARY KEY DEFAULT uuidv7(),
-                conversation_id UUID NOT NULL REFERENCES conversations(uid) ON DELETE CASCADE,
-                sender_id UUID NOT NULL REFERENCES users(uid),
+                id UUID PRIMARY KEY DEFAULT uuidv7(),
+                conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+                sender_id UUID NOT NULL REFERENCES users(id),
                 type message_type_enum NOT NULL,
                 content JSONB NOT NULL, -- Flexible structure for text, poll, location, etc.
                 status message_status_enum DEFAULT 'sent',
                 sent_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                 delivered_at TIMESTAMP WITH TIME ZONE,
                 read_at TIMESTAMP WITH TIME ZONE,
-                reply_to_message_id UUID REFERENCES messages(uid),
+                reply_to_message_id UUID REFERENCES messages(id),
                 is_forwarded BOOLEAN DEFAULT FALSE,
                 is_encrypted BOOLEAN DEFAULT FALSE,
                 encryption_algorithm TEXT,
@@ -261,9 +261,9 @@ const createMessageReactionsTable = async (connection: Sql) => {
     try {
         await connection`
             CREATE TABLE IF NOT EXISTS message_reactions (
-                uid UUID PRIMARY KEY DEFAULT uuidv7(),
-                message_id UUID NOT NULL REFERENCES messages(uid) ON DELETE CASCADE,
-                user_id UUID NOT NULL REFERENCES users(uid),
+                id UUID PRIMARY KEY DEFAULT uuidv7(),
+                message_id UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+                user_id UUID NOT NULL REFERENCES users(id),
                 reaction TEXT NOT NULL, -- Emoji string
                 is_removed BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -278,9 +278,9 @@ const createMessageEditsTable = async (connection: Sql) => {
     try {
         await connection`
             CREATE TABLE IF NOT EXISTS message_edits (
-                uid UUID PRIMARY KEY DEFAULT uuidv7(),
-                message_id UUID NOT NULL REFERENCES messages(uid) ON DELETE CASCADE,
-                editor_id UUID NOT NULL REFERENCES users(uid),
+                id UUID PRIMARY KEY DEFAULT uuidv7(),
+                message_id UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+                editor_id UUID NOT NULL REFERENCES users(id),
                 previous_type message_type_enum,
                 previous_content JSONB,
                 new_type message_type_enum,
@@ -297,7 +297,7 @@ const createMediaTable = async (connection: Sql) => {
     try {
         await connection`
             CREATE TABLE IF NOT EXISTS media (
-                uid UUID PRIMARY KEY DEFAULT uuidv7(),
+                id UUID PRIMARY KEY DEFAULT uuidv7(),
                 parent_type media_parent_enum NOT NULL,
                 parent_id UUID NOT NULL, -- Can point to user, message, or conversation
                 type media_type_enum NOT NULL,
@@ -320,8 +320,8 @@ const createDeliveryQueueTable = async (connection: Sql) => {
     try {
         await connection`
             CREATE TABLE IF NOT EXISTS delivery_queue (
-                uid UUID PRIMARY KEY DEFAULT uuidv7(),
-                recipient_device_id UUID NOT NULL REFERENCES devices(uid) ON DELETE CASCADE,
+                id UUID PRIMARY KEY DEFAULT uuidv7(),
+                recipient_device_id UUID NOT NULL REFERENCES devices(id) ON DELETE CASCADE,
                 delivery_item_type delivery_item_enum NOT NULL,
                 delivery_item_id UUID NOT NULL,
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

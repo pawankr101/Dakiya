@@ -3,8 +3,6 @@ import { type AppSchema, type TableSchema, appSchema, tableSchema } from "@nozbe
 const USER_TABLE_SCHEMA: TableSchema = tableSchema({
     name: 'users',
     columns: [
-        { name: 'uid', type: 'string', isIndexed: true },
-
         //-- Public Identifiers
         { name: 'username', type: 'string', isIndexed: true },
         { name: 'email', type: 'string', isIndexed: true },
@@ -32,12 +30,12 @@ const USER_TABLE_SCHEMA: TableSchema = tableSchema({
 });
 
 const CONVERSATION_TABLE_SCHEMA: TableSchema = tableSchema({
-    name: '',
-    columns:[
-        { name: 'uid', type: 'string', isIndexed: true },
-
+    name: 'conversations',
+    columns: [
+        //-- Conversation Identifiers
         { name: 'is_group', type: 'boolean' },
 
+        // Group Conversation Details
         { name: 'group_name', type: 'string', isOptional: true },
         { name: 'description', type: 'string', isOptional: true },
         { name: 'created_by', type: 'string', isOptional: true },
@@ -52,9 +50,8 @@ const CONVERSATION_TABLE_SCHEMA: TableSchema = tableSchema({
 })
 
 const CONVERSATION_MEMBER_TABLE_SCHEMA: TableSchema = tableSchema({
-    name: '',
+    name: 'conversation_members',
     columns:[
-        { name: 'uid', type: 'string', isIndexed: true },
         { name: 'conversation_id', type: 'string', isIndexed: true },
         { name: 'user_id', type: 'string', isIndexed: true },
 
@@ -65,9 +62,8 @@ const CONVERSATION_MEMBER_TABLE_SCHEMA: TableSchema = tableSchema({
 })
 
 const MESSAGE_TABLE_SCHEMA: TableSchema = tableSchema({
-    name: '',
+    name: 'messages',
     columns:[
-        { name: 'uid', type: 'string', isIndexed: true },
         { name: 'conversation_id', type: 'string', isIndexed: true },
         { name: 'sender_id', type: 'string', isIndexed: true },
 
@@ -88,9 +84,8 @@ const MESSAGE_TABLE_SCHEMA: TableSchema = tableSchema({
 })
 
 const MESSAGE_REACTION_TABLE_SCHEMA: TableSchema = tableSchema({
-    name: '',
+    name: 'message_reactions',
     columns:[
-        { name: 'uid', type: 'string', isIndexed: true },
         { name: 'message_id', type: 'string', isIndexed: true },
         { name: 'user_id', type: 'string', isIndexed: true },
         { name: 'reaction', type: 'string' },
@@ -101,9 +96,8 @@ const MESSAGE_REACTION_TABLE_SCHEMA: TableSchema = tableSchema({
 })
 
 const MESSAGE_EDIT_TABLE_SCHEMA: TableSchema = tableSchema({
-    name: '',
+    name: 'message_edits',
     columns: [
-        { name: 'uid', type: 'string', isIndexed: true },
         { name: 'message_id', type: 'string', isIndexed: true },
         { name: 'editor_id', type: 'string' },
         { name: 'previous_content', type: 'string' }, // JSON String
@@ -116,8 +110,6 @@ const MESSAGE_EDIT_TABLE_SCHEMA: TableSchema = tableSchema({
 const MEDIA_TABLE_SCHEMA: TableSchema = tableSchema({
     name: 'media',
     columns: [
-        { name: 'uid', type: 'string', isIndexed: true },
-
         //-- Parent Reference
         { name: 'parent_type', type: 'string' }, // 'message', 'user', 'conversation'
         { name: 'parent_id', type: 'string' },

@@ -58,7 +58,7 @@ export interface ProfileSettings {
 }
 
 export interface Profile {
-    uid: string;
+    id: string;
 
     //-- Public Identifiers
     username: string;

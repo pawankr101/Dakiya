@@ -20,7 +20,7 @@ export interface MessageContent {
 }
 
 export interface Message {
-    uid: string;
+    id: string;
     conversationId: string;
     senderId: string;
     type: MessageType;
@@ -39,7 +39,7 @@ export interface Message {
 }
 
 export interface MessageReaction {
-    uid: string;
+    id: string;
     messageId: string;
     userId: string;
     reaction: string; // Emoji string
@@ -49,7 +49,7 @@ export interface MessageReaction {
 }
 
 export interface MessageEdit {
-    uid: string;
+    id: string;
     messageId: string;
     editorId: string;
     previousType: MessageType;

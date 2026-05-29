@@ -1,5 +1,5 @@
 import { Model } from "@nozbe/watermelondb";
-import { text, field, json, date, relation, immutableRelation } from "@nozbe/watermelondb/decorators";
+import { date, field, immutableRelation, json, relation, text } from "@nozbe/watermelondb/decorators";
 import { identity } from "@nozbe/watermelondb/utils/fp";
 
 export interface ConversationSettings {
