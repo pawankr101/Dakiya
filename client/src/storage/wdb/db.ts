@@ -9,7 +9,7 @@ setGenerator(uuid);
 
 export class LocalDB {
     readonly #adapter: DatabaseAdapter = new LokiAdapter({
-        dbName: 'dakiya-ldb',
+        dbName: 'dakiya-db',
         schema: DAKIYA_LOCALDB_SCHEMA
     });
     readonly #db: Database = new Database({
