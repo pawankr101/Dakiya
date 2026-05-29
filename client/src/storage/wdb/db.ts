@@ -5,7 +5,7 @@ import { v7 as uuid } from 'uuid';
 import { Conversation, ConversationMember, Media, Message, MessageEdit, MessageReaction, User } from './models';
 import { DAKIYA_LOCALDB_SCHEMA } from './schema';
 
-setGenerator(uuid)
+setGenerator(uuid);
 
 export class LocalDB {
     readonly #adapter: DatabaseAdapter = new LokiAdapter({
