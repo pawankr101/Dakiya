@@ -9,7 +9,7 @@ Database Design Document
 --------------------------------
 1. USER AND DEVICE MANAGEMENT
     * Users:
-        => uid: "'Primary key', 'immutable', 'for intenal use'"
+        => id: "'Primary key', 'immutable', 'for intenal use'"
 
         //-- Public Identifiers
         => username: "'Username', Unique"
@@ -34,7 +34,7 @@ Database Design Document
         => updated_at: "'Last Account Update Timestamp'"
 
     * UserSettings:
-        => uid: "'SettingsId', Unique"
+        => id: "'SettingsId', Unique"
         => user_id: "'Foreign Key to UserId'"
         => language: "'Preferred Language', Enum"
         => timezone: "'User Timezone', Enum"
@@ -79,7 +79,7 @@ Database Design Document
         => updated_at: "'Last Settings Update Timestamp'"
 
     * Device:
-        => uid: "'DeviceId', Unique"
+        => id: "'DeviceId', Unique"
         => user_id: "'Foreign Key to UserId'"
 
         //-- Device Identifiers
@@ -101,7 +101,7 @@ Database Design Document
 
 2. CONVERSATION MANAGEMENT
     * Conversation:
-        => uid: "'ConversationId', Unique"
+        => id: "'ConversationId', Unique"
         => is_group: "Boolean, true if group conversation"
 
         //-- Group Conversation Details
@@ -121,7 +121,7 @@ Database Design Document
         => updated_at: "'Last Conversation Update Timestamp'"
 
     * ConversationMembers:
-        => uid: "'ParticipantId', Unique"
+        => id: "'ParticipantId', Unique"
         => conversation_id: "'Foreign Key to ConversationId'"
         => user_id: "'Foreign Key to UserId'"
 
@@ -143,7 +143,7 @@ Database Design Document
 
 3. MESSAGE MANAGEMENT
     * Message:
-        => uid: "'MessageId', Unique"
+        => id: "'MessageId', Unique"
         => conversation_id: "'Foreign Key to ConversationId'"
         => sender_id: "'Foreign Key to UserId of the sender'"
 
@@ -195,7 +195,7 @@ Database Design Document
         => updated_at: "'Last Message Update Timestamp'"
 
     * MessageReactions:
-        => uid: "'ReactionId', Unique"
+        => id: "'ReactionId', Unique"
         => message_id: "'Foreign Key to MessageId'"
         => user_id: "'Foreign Key to UserId of the reactor'"
         => reaction: "'String, e.g., emoji or reaction type'"
@@ -204,7 +204,7 @@ Database Design Document
         => updated_at: "'Last Reaction Record Update Timestamp'"
 
     * MessageEdits:
-        => uid: "'EditId', Unique"
+        => id: "'EditId', Unique"
         => message_id: "'Foreign Key to MessageId'"
         => editor_id: "'Foreign Key to UserId who edited the message'"
         => previous_type: "'Enum, 'text', 'media', 'location', 'poll', 'event'"
@@ -216,7 +216,7 @@ Database Design Document
 
 4. MEDIA STORAGE MANAGEMENT
     * Media:
-        => uid: "'MediaId', Unique"
+        => id: "'MediaId', Unique"
 
         //-- Parent Entity Reference
         => parent_type: "'Enum, 'message', 'user', 'conversation'"
@@ -239,7 +239,7 @@ Database Design Document
 
 5. DELIVERY MANAGEMENT
     * DeliveryQueue:
-        => uid: "'QueueId', Unique"
+        => id: "'QueueId', Unique"
         => recipient_device_id: "'Foreign Key to DeviceId of the recipient device'"
         => delivery_item_type: "Enum, 'message', 'reaction', 'edit', 'read_receipt'"
         => delivery_item_id: "'Foreign Key to the respective item being delivered (MessageId, ReactionId, EditId)'"
@@ -249,7 +249,7 @@ Database Design Document
 --------------------------------------------
 1. PROFILE AND USER DATA
     * Profile: // this will be save as JSON in WatermelonDB localstorage
-        => uid: "'Primary key', 'immutable', 'for internal use'"
+        => id: "'Primary key', 'immutable', 'for internal use'"
 
         //-- Public Identifiers
         => username: "'Username', Unique"
@@ -323,7 +323,7 @@ Database Design Document
         => created_at: "'Account Creation Timestamp'"
         => updated_at: "'Last Account Update Timestamp'"
     * Users:
-        => uid: "'Primary key', 'immutable', 'for internal use'"
+        => id: "'Primary key', 'immutable', 'for internal use'"
 
         //-- Public Identifiers
         => username: "'Username', Unique"
@@ -348,7 +348,7 @@ Database Design Document
 
 2. CONVERSATION & MESSAGE DATA
     * Conversation:
-        => uid: "'ConversationId', Unique"
+        => id: "'ConversationId', Unique"
         => is_group: "Boolean, true if group conversation"
 
         //-- Group Conversation Details
@@ -368,7 +368,7 @@ Database Design Document
         => is_archived: "Boolean, if conversation is archived by the user"
         => is_deleted: "Boolean, if the user has deleted the conversation"
     * ConservationMembers:
-        => uid: "'ParticipantId', Unique"
+        => id: "'ParticipantId', Unique"
         => conversation_id: "'Foreign Key to ConversationId'"
         => user_id: "'Foreign Key to UserId'"
 
@@ -382,7 +382,7 @@ Database Design Document
 
 3. MESSAGE DATA
     * Message:
-        => uid: "'MessageId', Unique"
+        => id: "'MessageId', Unique"
         => conversation_id: "'Foreign Key to ConversationId'"
         => sender_id: "'Foreign Key to UserId of the sender'"
         => type: "'Enum, 'text', 'media', 'location', 'poll', 'event'"
@@ -420,7 +420,7 @@ Database Design Document
         => reply_to_message_id: "'Foreign Key to MessageId being replied to', nullable"
         => is_forwarded: "Boolean, if the message was forwarded from another conversation"
     * MessageReactions:
-        => uid: "'ReactionId', Unique"
+        => id: "'ReactionId', Unique"
         => message_id: "'Foreign Key to MessageId'"
         => user_id: "'Foreign Key to UserId of the reactor'"
         => reaction: "'String, e.g., emoji or reaction type'"
@@ -428,7 +428,7 @@ Database Design Document
         => created_at: "'Reaction Record Creation Timestamp'"
         => updated_at: "'Last Reaction Record Update Timestamp'"
     * MessageEdits:
-        => uid: "'EditId', Unique"
+        => id: "'EditId', Unique"
         => message_id: "'Foreign Key to MessageId'"
         => editor_id: "'Foreign Key to UserId who edited the message'"
         => previous_type: "'Enum, 'text', 'media', 'location', 'poll', 'event'"
@@ -441,7 +441,7 @@ Database Design Document
 
 4. MEDIA MANAGEMENT
     * Media:
-        => uid: "'MediaId', Unique"
+        => id: "'MediaId', Unique"
 
         //-- Parent Entity Reference
         => parent_type: "'Enum, 'message', 'user', 'conversation'"
