@@ -4,6 +4,7 @@ import { type HttpSecurity, HttpServer, type HttpVersion, type RequestListener, 
 import { Cache, PG } from '../storage/index.js';
 import { AppRoutes } from './app.route.js';
 import { APIException } from './exception.js';
+import { DakiyaSwagger } from './plugins/swagger.js';
 
 type ApplicationOptions<hv extends HttpVersion = 'http1', hs extends HttpSecurity = 'http'> = {
     httpVersion: hv;
@@ -35,13 +36,6 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
         }) as unknown as FastifyInstance;
     }
 
-    async #setupDatabases() {
-        // Initialize Cache connection
-        await Cache.init();
-        // Initialize Postgres connection
-        await PG.init();
-    }
-
     #setupAppLevelErrorHandling() {
         // Handle client errors globally for the server
         this.#httpServer.addClientErrorHandler((err, socket) => {
@@ -57,9 +51,21 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
         });
     }
 
+    async #registerPlugins() {
+        this.#fastifyApp.register(DakiyaSwagger);
+    }
+
+    async #setupDatabases() {
+        // Initialize Cache connection
+        await Cache.init();
+        // Initialize Postgres connection
+        await PG.init();
+    }
+
     async #setupApplication() {
         try {
             this.#setupAppLevelErrorHandling();
+            await this.#registerPlugins();
             await this.#setupDatabases();
             await this.#fastifyApp.register(AppRoutes);
         } catch (error) {
@@ -106,7 +112,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
             });
         } catch (error) {
             console.log(`\u001b[31m  [S] Api Server Could not get started.`);
-            console.log(`\u001b[31m      ERROR: ${(error as Exception).message}`);
+            console.log(`\u001b[31m      ERROR: ${(error as Exception).stack}`);
             process.exit(1);
         }
     }

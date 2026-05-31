@@ -95,13 +95,13 @@ const createUserTable = async (connection: Sql) => {
                 name TEXT,
                 dp TEXT,
                 bio TEXT,
-                dob TIMESTAMP,
+                dob DATE,
                 gender gender_enum,
                 country CHAR(2), -- ISO Country Code
                 is_verified BOOLEAN DEFAULT FALSE,
-                last_active_at TIMESTAMP WITH TIME ZONE,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                last_active_at TIMESTAMPTZ,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
         `;
     } catch (error) {
@@ -152,8 +152,8 @@ const createUserSettingsTable = async (connection: Sql) => {
                     "two_factor_auth": false,
                     "account_status": "active"
                 }',
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
         `;
     } catch (error) {
@@ -173,9 +173,9 @@ const createDevicesTable = async (connection: Sql) => {
                 app_version TEXT,
                 user_agent TEXT,
                 fcm_token TEXT,
-                last_active_at TIMESTAMP WITH TIME ZONE,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                last_active_at TIMESTAMPTZ,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
         `;
     } catch (error) {
@@ -197,9 +197,9 @@ const createConversationsTable = async (connection: Sql) => {
                     "admin_only_messages": false,
                     "admin_only_edit_info": false
                 }',
-                last_message_at TIMESTAMP WITH TIME ZONE,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                last_message_at TIMESTAMPTZ,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
         `;
     } catch (error) {
@@ -213,17 +213,17 @@ const createConversationMembersTable = async (connection: Sql) => {
                 id UUID PRIMARY KEY DEFAULT uuidv7(),
                 conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
                 user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                mute_until TIMESTAMP WITH TIME ZONE DEFAULT TO_TIMESTAMP(0),
+                mute_until TIMESTAMPTZ DEFAULT TO_TIMESTAMP(0),
                 is_archived BOOLEAN DEFAULT FALSE,
                 is_pinned BOOLEAN DEFAULT FALSE,
-                last_read_at TIMESTAMP WITH TIME ZONE,
+                last_read_at TIMESTAMPTZ,
                 is_deleted BOOLEAN DEFAULT FALSE,
-                joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                joined_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
                 added_by UUID REFERENCES users(id),
                 is_admin BOOLEAN DEFAULT FALSE,
                 has_left BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(conversation_id, user_id)
             );
         `;
@@ -241,16 +241,16 @@ const createMessagesTable = async (connection: Sql) => {
                 type message_type_enum NOT NULL,
                 content JSONB NOT NULL, -- Flexible structure for text, poll, location, etc.
                 status message_status_enum DEFAULT 'sent',
-                sent_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                delivered_at TIMESTAMP WITH TIME ZONE,
-                read_at TIMESTAMP WITH TIME ZONE,
+                sent_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                delivered_at TIMESTAMPTZ,
+                read_at TIMESTAMPTZ,
                 reply_to_message_id UUID REFERENCES messages(id),
                 is_forwarded BOOLEAN DEFAULT FALSE,
                 is_encrypted BOOLEAN DEFAULT FALSE,
                 encryption_algorithm TEXT,
                 is_edited BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
         `;
     } catch (error) {
@@ -266,8 +266,8 @@ const createMessageReactionsTable = async (connection: Sql) => {
                 user_id UUID NOT NULL REFERENCES users(id),
                 reaction TEXT NOT NULL, -- Emoji string
                 is_removed BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
         `;
     } catch (error) {
@@ -285,8 +285,8 @@ const createMessageEditsTable = async (connection: Sql) => {
                 previous_content JSONB,
                 new_type message_type_enum,
                 new_content JSONB,
-                edited_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                edited_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
         `;
     } catch (error) {
@@ -308,8 +308,8 @@ const createMediaTable = async (connection: Sql) => {
                 width INTEGER,
                 height INTEGER,
                 duration INTEGER,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
         `;
     } catch (error) {
@@ -324,7 +324,7 @@ const createDeliveryQueueTable = async (connection: Sql) => {
                 recipient_device_id UUID NOT NULL REFERENCES devices(id) ON DELETE CASCADE,
                 delivery_item_type delivery_item_enum NOT NULL,
                 delivery_item_id UUID NOT NULL,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
         `;
     } catch (error) {
