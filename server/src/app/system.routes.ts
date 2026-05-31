@@ -9,6 +9,7 @@ const ServiceStatusSchema = Type.Object({
         Type.Literal('disconnected')
     ])
 });
+
 const HealthSchma: FastifySchema = {
     tags: ['System'],
     summary: 'Liveness and Readiness Probe',
