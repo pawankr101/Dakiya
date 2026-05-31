@@ -52,7 +52,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
     }
 
     async #registerPlugins() {
-        this.#fastifyApp.register(DakiyaSwagger);
+        await this.#fastifyApp.register(DakiyaSwagger);
     }
 
     async #setupDatabases() {

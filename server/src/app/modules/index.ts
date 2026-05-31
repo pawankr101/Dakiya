@@ -1,10 +1,9 @@
-import type { FastifyPluginCallback } from "fastify";
+import type { FastifyInstance, FastifyPluginAsync } from "fastify";
 import { AuthRoutes } from "./auth/index.js";
+import { SyncRoutes } from "./sync/index.js";
 
-export const ModuleRoutes: FastifyPluginCallback =(fastify, _options, done) => {
+export const ModuleRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
-    // Auth Module Routes
-    fastify.register(AuthRoutes, { prefix: '/auth' })
-
-    done();
+    await fastify.register(AuthRoutes, { prefix: '/auth' })
+    await fastify.register(SyncRoutes, { prefix: '/sync' });
 }

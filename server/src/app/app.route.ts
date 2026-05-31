@@ -1,11 +1,11 @@
-import type { FastifyInstance, FastifyPluginCallback, FastifyReply, FastifyRequest } from "fastify";
+import type { FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import { ModuleRoutes } from "./modules/index.js";
 
-export const AppRoutes: FastifyPluginCallback = (fastify: FastifyInstance, _options, done) => {
+export const AppRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     // Define application-specific routes here
 
     // Moudle Routes
-    fastify.register(ModuleRoutes);
+    await fastify.register(ModuleRoutes);
 
     // Health Check Route
     fastify.get('/health', (_request: FastifyRequest, response: FastifyReply) => {
@@ -16,6 +16,4 @@ export const AppRoutes: FastifyPluginCallback = (fastify: FastifyInstance, _opti
     fastify.setNotFoundHandler((_request: FastifyRequest, response: FastifyReply) => {
         response.status(404).send({ error: 'Not Found', code: 404 });
     });
-
-    done();
 }

@@ -1,10 +1,11 @@
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
-import type { FastifyInstance, FastifyPluginCallback } from "fastify";
+import type { FastifyInstance, FastifyPluginAsync } from "fastify";
+import {fastifyPlugin} from "fastify-plugin";
 
-export const DakiyaSwagger: FastifyPluginCallback = (fastify: FastifyInstance, _options, done) => {
+export const DakiyaSwagger: FastifyPluginAsync = fastifyPlugin(async (fastify: FastifyInstance) => {
 
-    fastify.register(fastifySwagger, {
+    await fastify.register(fastifySwagger, {
         openapi: {
             openapi: "3.0.0",
             info: {
@@ -15,13 +16,11 @@ export const DakiyaSwagger: FastifyPluginCallback = (fastify: FastifyInstance, _
         }
     });
 
-    fastify.register(fastifySwaggerUi, {
+    await fastify.register(fastifySwaggerUi, {
         routePrefix: "/docs",
         uiConfig: {
             docExpansion: "full",
             deepLinking: false,
         }
     });
-
-    done();
-}
+});

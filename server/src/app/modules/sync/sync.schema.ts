@@ -1,3 +1,4 @@
+import type { FastifySchema } from 'fastify';
 import { type TSchema, Type } from 'typebox';
 import {
     ConversationMemberSchema,
@@ -10,7 +11,9 @@ import {
     MessageSchema,
     UserSchema,
     UserSettingsSchema
-} from '../schemas.js';
+} from '../../../entities/schemas.js';
+
+const TAGS = ['Sync'] as const;
 
 function makeTableChangeSetSchema<T extends TSchema>(itemSchema: T) {
 	return Type.Object({
@@ -34,14 +37,36 @@ export const DatabaseChangesSchema = Type.Object({
 });
 
 // 3. Pull API Query Schema
-export const PullQuerySchema = Type.Object({
+const PullQuerySchema = Type.Object({
     last_pulled_at: Type.Optional(Type.Union([Type.Number(), Type.Null()])),
     schema_version: Type.Number(),
     migration: Type.Optional(Type.Union([Type.String(), Type.Null()]))
 });
 
 // 4. Push API Body Schema
-export const PushBodySchema = Type.Object({
+const PushBodySchema = Type.Object({
     changes: DatabaseChangesSchema,
     last_pulled_at: Type.Number()
 });
+
+export const PullChangesSchema: FastifySchema = {
+    tags: TAGS,
+    querystring: PullQuerySchema,
+    response: {
+        200: Type.Object({
+            message: Type.String(),
+            changes: DatabaseChangesSchema
+        })
+    }
+};
+
+export const PushChangesSchema: FastifySchema = {
+    tags: TAGS,
+    body: PushBodySchema,
+    response: {
+        200: Type.Object({
+            message: Type.String(),
+            changes: DatabaseChangesSchema
+        })
+    }
+};
