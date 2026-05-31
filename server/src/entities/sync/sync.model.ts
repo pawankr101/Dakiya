@@ -1,4 +1,4 @@
 import type { Static } from "typebox";
-import type { DeliveryQueueItemSchema } from "./sync.schema";
+import type { DatabaseChangesSchema } from "./sync.schema";
 
-export interface DeliveryQueueItem extends Static<typeof DeliveryQueueItemSchema> { }
+export interface DatabaseChanges extends Static<typeof DatabaseChangesSchema> { }
