@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest, FastifySchema } from "fastify";
 import { Cache, PG } from "storage";
-import Type from "typebox";
+import { Type } from "typebox";
 
 
 const ServiceStatusSchema = Type.Object({
