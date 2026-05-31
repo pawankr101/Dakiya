@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import { ModuleRoutes } from "./modules/index.js";
+import { SystemRoutes } from "./system.routes.js";
 
 export const AppRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     // Define application-specific routes here
@@ -7,10 +8,8 @@ export const AppRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =>
     // Moudle Routes
     await fastify.register(ModuleRoutes);
 
-    // Health Check Route
-    fastify.get('/health', (_request: FastifyRequest, response: FastifyReply) => {
-        response.send({ healthy: true })
-    });
+    // System Routes
+    await fastify.register(SystemRoutes);
 
     // Not Found Handler
     fastify.setNotFoundHandler((_request: FastifyRequest, response: FastifyReply) => {

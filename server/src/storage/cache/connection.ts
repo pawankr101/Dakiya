@@ -10,6 +10,12 @@ export interface Cache {
     init(): Promise<void>;
 
     /**
+    * Pings the cache server to check if the connection is alive.
+    * @returns A promise resolving to true if the connection is alive, or false otherwise.
+    */
+    ping(): Promise<boolean>;
+
+    /**
     * Retrieves a value from the cache.
     * @param key The key to retrieve.
     * @returns A promise resolving to the value if found, or null if not found.
@@ -80,7 +86,7 @@ export const Cache: Cache = (() => {
     let connection: NatsConnection | undefined;
     let kvStore: KV | undefined;
 
-    const CacheObj: Cache = Object.create(null);
+    const Cache: Cache = Object.create(null);
 
     const createConnection = async () => {
         let tempConnection: NatsConnection | undefined;
@@ -108,7 +114,7 @@ export const Cache: Cache = (() => {
         }
     };
 
-    CacheObj.init = (() => {
+    Cache.init = (() => {
         let initPromise: Promise<void> | undefined;
         return () => {
             if(!initPromise) {
@@ -122,7 +128,20 @@ export const Cache: Cache = (() => {
         };
     })();
 
-    CacheObj.get = async (key: string) => {
+    Cache.ping = async () => {
+        const conn = connection;
+        if (conn && !conn.isClosed()) {
+            try {
+                await conn.flush();
+                return true;
+            } catch {
+                return false;
+            }
+        }
+        return false;
+    };
+
+    Cache.get = async (key: string) => {
         const conn = connection, store = kvStore;
         if(conn && store && !conn.isClosed()) {
             try {
@@ -147,7 +166,7 @@ export const Cache: Cache = (() => {
         throw new Exception('NATS connection is not established', { code: 'DAKIYA_NATS_ERROR' });
     }
 
-    CacheObj.set = async (key: string, value: string, maxAge: number = 0) => {
+    Cache.set = async (key: string, value: string, maxAge: number = 0) => {
         const conn = connection, store = kvStore;
         if(conn && store && !conn.isClosed()) {
             if (Guards.isString(key) && Guards.isString(value)) {
@@ -165,12 +184,12 @@ export const Cache: Cache = (() => {
         throw new Exception('NATS connection is not established', { code: 'DAKIYA_NATS_ERROR' });
     }
 
-    CacheObj.exists = async (key: string) => {
-        const val = await CacheObj.get(key);
+    Cache.exists = async (key: string) => {
+        const val = await Cache.get(key);
         return val !== null;
     }
 
-    CacheObj.del = async (key: string) => {
+    Cache.del = async (key: string) => {
         const conn = connection, store = kvStore;
         if (conn && store && !conn.isClosed()) {
             try {
@@ -184,7 +203,7 @@ export const Cache: Cache = (() => {
         throw new Exception('NATS connection is not established', { code: 'DAKIYA_NATS_ERROR' });
     }
 
-    CacheObj.reset = async () => {
+    Cache.reset = async () => {
         const conn = connection, store = kvStore;
         if (conn && store && !conn.isClosed()) {
             try {
@@ -200,12 +219,12 @@ export const Cache: Cache = (() => {
         throw new Exception('NATS connection is not established', { code: 'DAKIYA_NATS_ERROR' });
     }
 
-    CacheObj.close = async () => {
+    Cache.close = async () => {
         const conn = connection;
         if (conn && !conn.isClosed()) {
             return conn.close();
         }
     };
 
-    return CacheObj;
+    return Cache;
 })();

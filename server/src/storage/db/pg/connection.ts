@@ -15,6 +15,12 @@ export interface PG {
     init(): Promise<void>;
 
     /**
+     * Checks the health of the PostgreSQL connection by executing a simple query.
+     * @returns A promise that resolves to true if the connection is healthy, or false if there is an issue with the connection.
+     */
+    ping(): Promise<boolean>;
+
+    /**
      * Closes the PostgreSQL connection.
      * This method should be called when the connection is no longer needed to release resources.
      */
@@ -348,6 +354,13 @@ export const PG = (() => {
     let connection = null as unknown as Sql, isConnected = false;
     const PG: PG = Object.create(null);
 
+    Object.defineProperty<PG>(PG, 'sql', {
+        get() {
+            if (!isConnected) throw new Exception('PostgreSQL connection is not initialized. Call PG.init() before accessing the sql property.', { code: 'DAKIYA_PG_ERROR' });
+            return connection;
+        }
+    });
+
     PG.init = async () => {
         try {
             if (isConnected) return;
@@ -365,12 +378,15 @@ export const PG = (() => {
         }
     };
 
-    Object.defineProperty<PG>(PG, 'sql', {
-        get() {
-            if (!isConnected) throw new Exception('PostgreSQL connection is not initialized. Call PG.init() before accessing the sql property.', { code: 'DAKIYA_PG_ERROR' });
-            return connection;
+    PG.ping = async () => {
+        if (!isConnected) return false;
+        try {
+            await connection`SELECT 1`;
+            return true;
+        } catch {
+            return false;
         }
-    });
+    };
 
     PG.close = async () => {
         if (isConnected || connection) {
