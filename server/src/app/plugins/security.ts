@@ -13,8 +13,8 @@ export const GlobalSecurityPlugin: FastifyPluginAsync = fastifyPlugin(async (fas
                 styleSrc: ["'self'", "'unsafe-inline'"],
                 imgSrc: ["'self'", "data:", "validator.swagger.io"],
                 scriptSrc: ["'self'", "'unsafe-inline'"],
-            },
-        },
+            }
+        }
     });
 
     // 2. Registering CORS (Access Headers)
@@ -25,6 +25,6 @@ export const GlobalSecurityPlugin: FastifyPluginAsync = fastifyPlugin(async (fas
             "Content-Type",
             "Authorization"
         ],
-        credentials: true,
+        credentials: true
     });
 });
