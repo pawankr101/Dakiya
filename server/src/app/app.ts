@@ -5,6 +5,7 @@ import { Cache, PG } from '../storage/index.js';
 import { AppRoutes } from './app.route.js';
 import { APIException } from './exception.js';
 import { DakiyaSwagger } from './plugins/swagger.js';
+import { GlobalSecurityPlugin } from './plugins/security.js';
 
 type ApplicationOptions<hv extends HttpVersion = 'http1', hs extends HttpSecurity = 'http'> = {
     httpVersion: hv;
@@ -36,7 +37,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
         }) as unknown as FastifyInstance;
     }
 
-    #setupAppLevelErrorHandling() {
+    #setupAppLevelHandlers() {
         // Handle client errors globally for the server
         this.#httpServer.addClientErrorHandler((err, socket) => {
             if(err.code !== 'ECONNRESET' && socket.writable) {
@@ -49,9 +50,14 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
             const err = error instanceof APIException ? error : new APIException(error, { code: 'DAKIYA_APP_ERROR', httpCode: 500 });
             response.status(err.httpCode).type('application/json').send({ error: err.message, code: err.code });
         });
+        // Handle 404 Not Found for unmatched routes
+        this.#fastifyApp.setNotFoundHandler((_request: FastifyRequest, response: FastifyReply) => {
+            response.status(404).send({ error: 'Not Found', code: 404 });
+        });
     }
 
     async #registerPlugins() {
+        await this.#fastifyApp.register(GlobalSecurityPlugin);
         await this.#fastifyApp.register(DakiyaSwagger);
     }
 
@@ -64,7 +70,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
 
     async #setupApplication() {
         try {
-            this.#setupAppLevelErrorHandling();
+            this.#setupAppLevelHandlers();
             await this.#registerPlugins();
             await this.#setupDatabases();
             await this.#fastifyApp.register(AppRoutes);

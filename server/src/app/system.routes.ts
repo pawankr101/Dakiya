@@ -15,7 +15,6 @@ const HealthSchma: FastifySchema = {
     summary: 'Liveness and Readiness Probe',
     description: 'Verifies HTTP server liveness and active connections to Database and Cache.',
     response: {
-        // 200 OK: Everything is perfect
         200: Type.Object({
             healthy: Type.Literal(true),
             timestamp: Type.String({ format: 'date-time' }),

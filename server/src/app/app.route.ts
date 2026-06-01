@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
+import type { FastifyInstance, FastifyPluginAsync } from "fastify";
 import { ModuleRoutes } from "./modules/index.js";
 import { SystemRoutes } from "./system.routes.js";
 
@@ -10,9 +10,4 @@ export const AppRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =>
 
     // System Routes
     await fastify.register(SystemRoutes);
-
-    // Not Found Handler
-    fastify.setNotFoundHandler((_request: FastifyRequest, response: FastifyReply) => {
-        response.status(404).send({ error: 'Not Found', code: 404 });
-    });
-}
+};

@@ -9,9 +9,9 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 export const pullChanges = async (_request: FastifyRequest, response: FastifyReply) => {
     try {
         // Implement logic to pull changes from the server
-        response.send({ message: 'Pull successful', changes: [] });
+        return response.send({ message: 'Pull successful', changes: [] });
     } catch (error) {
-        sendErrorResponse(response, error);
+        return sendErrorResponse(response, error);
     }
 }
 
@@ -22,8 +22,8 @@ export const pullChanges = async (_request: FastifyRequest, response: FastifyRep
 export const pushChanges = async (_request: FastifyRequest, response: FastifyReply) => {
     try {
         // Implement logic to push changes to the server
-        response.send({ message: 'Push successful', changes: [] });
+        return response.send({ message: 'Push successful', changes: [] });
     } catch (error) {
-        sendErrorResponse(response, error);
+        return sendErrorResponse(response, error);
     }
 }

@@ -4,9 +4,9 @@ import type { FastifyReply } from "fastify";
 
 export const sendErrorResponse = (response: FastifyReply, error: unknown) => {
     if (error instanceof APIException) {
-        response.status(error.httpCode).send({ error: error.message, code: error.code });
+        return response.status(error.httpCode).send({ error: error.message, code: error.code });
     } else {
         const exception = Exception.from(error as Error, { code: 'DAKIYA_APP_ERROR' });
-        response.status(500).send({ error: exception.message, code: exception.code });
+        return response.status(500).send({ error: exception.message, code: exception.code });
     }
 }
