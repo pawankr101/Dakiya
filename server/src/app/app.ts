@@ -3,7 +3,7 @@ import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest, 
 import { type HttpSecurity, HttpServer, type HttpVersion, type RequestListener, type Server, type ServerOptions } from '../servers/index.js';
 import { Cache, PG } from '../storage/index.js';
 import { AppRoutes } from './app.route.js';
-import { APIException } from './exception.js';
+import { ApiException } from './exception.js';
 import { DakiyaSwagger } from './plugins/swagger.js';
 import { GlobalSecurityPlugin } from './plugins/security.js';
 
@@ -47,7 +47,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
         });
         // Handle global Application errors
         this.#fastifyApp.setErrorHandler((error: Error, _request: FastifyRequest, response: FastifyReply) => {
-            const err = error instanceof APIException ? error : new APIException(error, { code: 'DAKIYA_APP_ERROR', httpCode: 500 });
+            const err = error instanceof ApiException ? error : new ApiException(error, { code: 'DAKIYA_APP_ERROR', httpCode: 500 });
             response.status(err.httpCode).type('application/json').send({ error: err.message, code: err.code });
         });
         // Handle 404 Not Found for unmatched routes

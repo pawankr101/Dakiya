@@ -15,7 +15,7 @@ import {
 
 const TAGS = ['Sync'] as const;
 
-function makeTableChangeSetSchema<T extends TSchema>(itemSchema: T) {
+const makeTableChangeSetSchema = <T extends TSchema>(itemSchema: T) => {
 	return Type.Object({
 		created: Type.Array(itemSchema),
 		updated: Type.Array(itemSchema),
@@ -36,14 +36,10 @@ export const DatabaseChangesSchema = Type.Object({
 	delivery_queue: makeTableChangeSetSchema(DeliveryQueueItemSchema)
 });
 
-// 3. Pull API Query Schema
 const PullQuerySchema = Type.Object({
-    last_pulled_at: Type.Optional(Type.Union([Type.Number(), Type.Null()])),
-    schema_version: Type.Number(),
-    migration: Type.Optional(Type.Union([Type.String(), Type.Null()]))
+    last_pulled_at: Type.Optional(Type.String({ format: 'date-time' }))
 });
 
-// 4. Push API Body Schema
 const PushBodySchema = Type.Object({
     changes: DatabaseChangesSchema,
     last_pulled_at: Type.Number()
