@@ -26,6 +26,13 @@ export const ENV = {
     WS_NO_UTF_8_VALIDATE: true
 }
 
+export const API_DOCS = {
+    routePrefix: '/docs',
+    title: 'Dakiya API Documentation',
+    description: 'API documentation for Dakiya',
+    version: '1.0.0'
+}
+
 export const THREADING = {
     workersIndexFile: resolve(ROOT_DIR, 'workers', 'index.js'),
     maxThreadsAllowed: 4, // setting 0 will set the number of threads to the number of CPU cores available

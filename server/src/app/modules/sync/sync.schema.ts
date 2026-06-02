@@ -1,3 +1,4 @@
+import { buildApiErrorSchema, buildApiResponseSchema } from 'app/schema.js';
 import type { FastifySchema } from 'fastify';
 import { type TSchema, Type } from 'typebox';
 import {
@@ -16,11 +17,11 @@ import {
 const TAGS = ['Sync'] as const;
 
 const makeTableChangeSetSchema = <T extends TSchema>(itemSchema: T) => {
-	return Type.Object({
+	return Type.Optional(Type.Object({
 		created: Type.Array(itemSchema),
 		updated: Type.Array(itemSchema),
 		deleted: Type.Array(Type.String({ format: 'uuid' }))
-	});
+	}));
 }
 
 export const DatabaseChangesSchema = Type.Object({
@@ -49,10 +50,17 @@ export const PullChangesSchema: FastifySchema = {
     tags: TAGS,
     querystring: PullQuerySchema,
     response: {
-        200: Type.Object({
+        200: buildApiResponseSchema(Type.Object({
             message: Type.String(),
             changes: DatabaseChangesSchema
-        })
+        })),
+        400: buildApiErrorSchema(Type.Array(Type.Object({
+            field: Type.String(),
+            message: Type.String()
+        }))),
+        401: buildApiErrorSchema(),
+        404: buildApiErrorSchema(),
+        500: buildApiErrorSchema()
     }
 };
 
@@ -60,9 +68,16 @@ export const PushChangesSchema: FastifySchema = {
     tags: TAGS,
     body: PushBodySchema,
     response: {
-        200: Type.Object({
+        200: buildApiResponseSchema(Type.Object({
             message: Type.String(),
             changes: DatabaseChangesSchema
-        })
+        })),
+        400: buildApiErrorSchema(Type.Array(Type.Object({
+            field: Type.String(),
+            message: Type.String()
+        }))),
+        401: buildApiErrorSchema(),
+        404: buildApiErrorSchema(),
+        500: buildApiErrorSchema()
     }
 };

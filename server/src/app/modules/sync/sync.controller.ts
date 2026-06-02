@@ -8,7 +8,7 @@ import type { FastifyRequest } from "fastify";
  */
 export const pullChanges: EndPointHandler = async (_request: FastifyRequest) => {
     // Implement logic to pull changes from the server
-    return new ApiResponse(200, { message: 'Pull successful', changes: [] });
+    return new ApiResponse(200, { message: 'Pull successful', changes: {} });
 }
 
 /**
@@ -17,5 +17,5 @@ export const pullChanges: EndPointHandler = async (_request: FastifyRequest) => 
  */
 export const pushChanges: EndPointHandler = async (_request: FastifyRequest) => {
     // Implement logic to push changes to the server
-    return new ApiResponse(200, { message: 'Push successful', changes: [] });
+    return new ApiResponse(200, { message: 'Push successful', changes: {} });
 }

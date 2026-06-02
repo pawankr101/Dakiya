@@ -6,7 +6,7 @@ import { ApiResponse } from "../response";
 
 export const ApiResponder: FastifyPluginAsync = fastifyPlugin(async (fastify) => {
 
-    fastify.addHook('preSerialization', (_request: FastifyRequest, response: FastifyReply, payload: unknown) => {
+    fastify.addHook('preSerialization', async (_request: FastifyRequest, response: FastifyReply, payload: unknown) => {
         if (payload instanceof ApiResponse) {
             response.code(payload.status);
             return {
@@ -17,7 +17,7 @@ export const ApiResponder: FastifyPluginAsync = fastifyPlugin(async (fastify) =>
         return payload;
     });
 
-    fastify.setNotFoundHandler((request: FastifyRequest, response: FastifyReply) => {
+    fastify.setNotFoundHandler(async (request: FastifyRequest, response: FastifyReply) => {
         response.code(404);
         return {
             requestId: request.id,
@@ -26,7 +26,7 @@ export const ApiResponder: FastifyPluginAsync = fastifyPlugin(async (fastify) =>
         };
     });
 
-    fastify.setErrorHandler((error: FastifyError, request: FastifyRequest, response: FastifyReply) => {
+    fastify.setErrorHandler(async (error: FastifyError, request: FastifyRequest, response: FastifyReply) => {
         const requestId = request.id;
 
         // Scenario A: Fastify Validation
@@ -53,7 +53,6 @@ export const ApiResponder: FastifyPluginAsync = fastifyPlugin(async (fastify) =>
                 ...(error.issues && {issues: error.issues})
             }
         }
-
         // Scenario C: Unhandled System Exception
         response.code(500);
         return {
