@@ -6,7 +6,7 @@ import { ApiResponse } from "../response";
 
 export const ApiResponder: FastifyPluginAsync = fastifyPlugin(async (fastify) => {
 
-    fastify.addHook('preSerialization', async (_request: FastifyRequest, response: FastifyReply, payload: unknown) => {
+    fastify.addHook('preSerialization', (_request: FastifyRequest, response: FastifyReply, payload: unknown) => {
         if (payload instanceof ApiResponse) {
             response.code(payload.status);
             return {
@@ -15,6 +15,15 @@ export const ApiResponder: FastifyPluginAsync = fastifyPlugin(async (fastify) =>
             }
         }
         return payload;
+    });
+
+    fastify.setNotFoundHandler((request: FastifyRequest, response: FastifyReply) => {
+        response.code(404);
+        return {
+            requestId: request.id,
+            code: 'ROUTE_NOT_FOUND',
+            message: `The requested route '${request.method} ${request.url}' was not found on the server.`
+        };
     });
 
     fastify.setErrorHandler((error: FastifyError, request: FastifyRequest, response: FastifyReply) => {

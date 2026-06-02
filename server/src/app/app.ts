@@ -1,11 +1,9 @@
 import { Exception, Guards, getUuid } from '@dakiya/shared';
-import Fastify, { type FastifyInstance, type FastifyReply, type FastifyRequest, type FastifyServerFactory } from 'fastify';
+import Fastify, { type FastifyInstance, type FastifyServerFactory } from 'fastify';
 import { type HttpSecurity, HttpServer, type HttpVersion, type RequestListener, type Server, type ServerOptions } from '../servers/index.js';
 import { Cache, PG } from '../storage/index.js';
 import { AppRoutes } from './app.route.js';
-import { ApiException } from './exception.js';
-import { DakiyaSwagger } from './plugins/swagger.js';
-import { GlobalSecurityPlugin } from './plugins/security.js';
+import { AppPlugin } from './plugins/index.js';
 
 type ApplicationOptions<hv extends HttpVersion = 'http1', hs extends HttpSecurity = 'http'> = {
     httpVersion: hv;
@@ -37,7 +35,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
         }) as unknown as FastifyInstance;
     }
 
-    #setupAppLevelHandlers() {
+    #setupServerLevelHandlers() {
         // Handle client errors globally for the server
         this.#httpServer.addClientErrorHandler((err, socket) => {
             if(err.code !== 'ECONNRESET' && socket.writable) {
@@ -45,20 +43,6 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
                 socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
             }
         });
-        // Handle global Application errors
-        this.#fastifyApp.setErrorHandler((error: Error, _request: FastifyRequest, response: FastifyReply) => {
-            const err = error instanceof ApiException ? error : new ApiException(error, { code: 'DAKIYA_APP_ERROR', httpCode: 500 });
-            response.status(err.httpCode).type('application/json').send({ error: err.message, code: err.code });
-        });
-        // Handle 404 Not Found for unmatched routes
-        this.#fastifyApp.setNotFoundHandler((_request: FastifyRequest, response: FastifyReply) => {
-            response.status(404).send({ error: 'Not Found', code: 404 });
-        });
-    }
-
-    async #registerPlugins() {
-        await this.#fastifyApp.register(GlobalSecurityPlugin);
-        await this.#fastifyApp.register(DakiyaSwagger);
     }
 
     async #setupDatabases() {
@@ -70,9 +54,9 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
 
     async #setupApplication() {
         try {
-            this.#setupAppLevelHandlers();
-            await this.#registerPlugins();
+            this.#setupServerLevelHandlers();
             await this.#setupDatabases();
+            await this.#fastifyApp.register(AppPlugin);
             await this.#fastifyApp.register(AppRoutes);
         } catch (error) {
             throw Exception.from(error as Exception, { code: 'APPLICATION_SETUP_ERROR' });
