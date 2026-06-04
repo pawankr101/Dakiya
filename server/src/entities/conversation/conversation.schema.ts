@@ -15,7 +15,7 @@ export const ConversationSchema = Type.Object({
     lastMessageAt: Type.Optional(Type.String({ format: 'date-time' })),
     createdAt: Type.String({ format: 'date-time' }),
     updatedAt: Type.String({ format: 'date-time' })
-});
+}, { $id: 'ConversationSchema' });
 
 export const ConversationMemberSchema = Type.Object({
     id: Type.String({ format: 'uuid' }),
@@ -30,4 +30,4 @@ export const ConversationMemberSchema = Type.Object({
     addedBy: Type.Optional(Type.String({ format: 'uuid' })),
     isAdmin: Type.Boolean(),
     hasLeft: Type.Boolean()
-});
+}, { $id: 'ConversationMemberSchema' });

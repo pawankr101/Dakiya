@@ -22,7 +22,7 @@ export const UserSchema = Type.Object({
     lastActiveAt: Type.Optional(Type.String({ format: 'date-time' })),
     createdAt: Type.String({ format: 'date-time' }),
     updatedAt: Type.String({ format: 'date-time' })
-});
+}, { $id: 'UserSchema' });
 
 const ThemeSchema = Type.Union([
     Type.Literal('light'),
@@ -95,7 +95,7 @@ export const UserSettingsSchema = Type.Object({
         twoFactorAuth:	Type.Boolean(),
         accountStatus:	AccountStatusSchema,
     })
-});
+}, { $id: 'UserSettingsSchema' });
 
 const PlatformSchema = Type.Union([
     Type.Literal('iOS'),
@@ -117,4 +117,4 @@ export const DeviceSchema = Type.Object({
     lastActiveAt: Type.Optional(Type.String({ format: 'date-time' })),
     createdAt: Type.String({ format: 'date-time' }),
     updatedAt: Type.String({ format: 'date-time' })
-});
+}, { $id: 'DeviceSchema' });

@@ -69,7 +69,7 @@ export const MessageSchema = Type.Object({
     isEdited: Type.Boolean(),
     createdAt: Type.String({ format: 'date-time' }),
     updatedAt: Type.String({ format: 'date-time' })
-});
+}, { $id: 'MessageSchema' });
 
 export const MessageReactionSchema = Type.Object({
     id: Type.String({ format: 'uuid' }),
@@ -79,7 +79,7 @@ export const MessageReactionSchema = Type.Object({
     isRemoved: Type.Boolean(),
     createdAt: Type.String({ format: 'date-time' }),
     updatedAt: Type.String({ format: 'date-time' })
-});
+}, { $id: 'MessageReactionSchema' });
 
 export const MessageEditSchema = Type.Object({
     id: Type.String({ format: 'uuid' }),
@@ -91,7 +91,7 @@ export const MessageEditSchema = Type.Object({
     newContent: MessageContentSchema,    // JSONB
     editedAt: Type.String({ format: 'date-time' }),
     createdAt: Type.String({ format: 'date-time' })
-});
+}, { $id: 'MessageEditSchema' });
 
 export const MediaSchema = Type.Object({
     uid: Type.String({ format: 'uuid' }),
@@ -107,4 +107,4 @@ export const MediaSchema = Type.Object({
     duration: Type.Optional(Type.Number()),
     createdAt: Type.String({ format: 'date-time' }),
     updatedAt: Type.String({ format: 'date-time' })
-});
+}, { $id: 'MediaSchema' });

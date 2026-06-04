@@ -13,4 +13,4 @@ export const DeliveryQueueItemSchema = Type.Object({
 	deliveryItemType: DeliveryItemTypeSchema,
 	deliveryItemId: Type.String({ format: 'uuid' }),
 	createdAt: Type.String({ format: 'date-time' })
-});
+}, { $id: 'DeliveryQueueItemSchema' });

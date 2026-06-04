@@ -1,20 +1,8 @@
-import { buildApiErrorSchema, buildApiResponseSchema } from 'app/schema.js';
 import type { FastifySchema } from 'fastify';
 import { type TSchema, Type } from 'typebox';
-import {
-    ConversationMemberSchema,
-    ConversationSchema,
-    DeliveryQueueItemSchema,
-    DeviceSchema,
-    MediaSchema,
-    MessageEditSchema,
-    MessageReactionSchema,
-    MessageSchema,
-    UserSchema,
-    UserSettingsSchema
-} from '../../../entities/schemas.js';
+import { buildApiErrorSchema, buildApiResponseSchema } from '../../schema.js';
 
-const TAGS = ['Sync'] as const;
+const TAGS = ['Synchronization'] as const;
 
 const makeTableChangeSetSchema = <T extends TSchema>(itemSchema: T) => {
 	return Type.Optional(Type.Object({
@@ -25,16 +13,16 @@ const makeTableChangeSetSchema = <T extends TSchema>(itemSchema: T) => {
 }
 
 export const DatabaseChangesSchema = Type.Object({
-    users: makeTableChangeSetSchema(UserSchema),
-    use_settings: makeTableChangeSetSchema(UserSettingsSchema),
-	devices: makeTableChangeSetSchema(DeviceSchema),
-	conversations: makeTableChangeSetSchema(ConversationSchema),
-	conversation_members: makeTableChangeSetSchema(ConversationMemberSchema),
-    messages: makeTableChangeSetSchema(MessageSchema),
-    message_reactions: makeTableChangeSetSchema(MessageReactionSchema),
-    message_edits: makeTableChangeSetSchema(MessageEditSchema),
-    media: makeTableChangeSetSchema(MediaSchema),
-	delivery_queue: makeTableChangeSetSchema(DeliveryQueueItemSchema)
+    users: makeTableChangeSetSchema(Type.Ref('UserSchema')),
+    use_settings: makeTableChangeSetSchema(Type.Ref('UserSettingsSchema')),
+	devices: makeTableChangeSetSchema(Type.Ref('DeviceSchema')),
+	conversations: makeTableChangeSetSchema(Type.Ref('ConversationSchema')),
+	conversation_members: makeTableChangeSetSchema(Type.Ref('ConversationMemberSchema')),
+    messages: makeTableChangeSetSchema(Type.Ref('MessageSchema')),
+    message_reactions: makeTableChangeSetSchema(Type.Ref('MessageReactionSchema')),
+    message_edits: makeTableChangeSetSchema(Type.Ref('MessageEditSchema')),
+    media: makeTableChangeSetSchema(Type.Ref('MediaSchema')),
+	delivery_queue: makeTableChangeSetSchema(Type.Ref('DeliveryQueueItemSchema'))
 });
 
 const PullQuerySchema = Type.Object({
@@ -47,6 +35,8 @@ const PushBodySchema = Type.Object({
 });
 
 export const PullChangesSchema: FastifySchema = {
+    summary: 'Pull changes',
+    description: 'Pull changes from the server since the last pull time.',
     tags: TAGS,
     querystring: PullQuerySchema,
     response: {
@@ -65,6 +55,8 @@ export const PullChangesSchema: FastifySchema = {
 };
 
 export const PushChangesSchema: FastifySchema = {
+    summary: 'Push changes',
+    description: 'Push local changes to the server and receive any new changes since the last pull time.',
     tags: TAGS,
     body: PushBodySchema,
     response: {

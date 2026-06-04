@@ -19,7 +19,9 @@ export const DakiyaSwagger: FastifyPluginAsync = fastifyPlugin(async (fastify: F
     await fastify.register(fastifySwaggerUi, {
         routePrefix,
         uiConfig: {
-            docExpansion: "full",
+            docExpansion: "list",
+            showExtensions: true,
+            showCommonExtensions: true
         }
     });
 });
