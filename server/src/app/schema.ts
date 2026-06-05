@@ -4,7 +4,7 @@ export const buildApiResponseSchema = <T extends TSchema, M extends TSchema>(dat
     return Type.Object({
         data: dataSchema,
         ...(metaSchema && { meta: Type.Optional(metaSchema) })
-    })
+    }, { description: 'Success Response'})
 };
 
 
@@ -14,5 +14,5 @@ export const buildApiErrorSchema = <I extends TArray<TObject<{ message: TString 
         code: Type.String(),
         message: Type.String(),
         ...(issuesSchema && { issues: Type.Optional(issuesSchema) })
-    });
+    }, { description: 'Error Response'});
 }

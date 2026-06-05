@@ -11,7 +11,7 @@ export const UserSchema = Type.Object({
     username: Type.String(),
     email: Type.String(),
     mobile: Type.String(),
-    passwordHash: Type.String(),
+    password: Type.String(),
     name: Type.Optional(Type.String()),
     dp: Type.Optional(Type.String()),
     bio: Type.Optional(Type.String()),
