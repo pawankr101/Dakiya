@@ -1,1 +1,1 @@
-export * from './identity.repository.js';
+export * from './user.repository.js';
