@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyPluginAsync } from "fastify";
-import { ModuleRoutes } from "./modules/index.js";
-import { SystemRoutes } from "./system.routes.js";
+import { ModuleRoutes } from "./modules";
+import { SystemRoutes } from "./system.routes";
 
 export const AppRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     // Define application-specific routes here

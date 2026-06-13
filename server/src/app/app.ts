@@ -1,9 +1,9 @@
 import { Exception, Guards, getUuid } from '@dakiya/shared';
 import Fastify, { type FastifyInstance, type FastifyServerFactory } from 'fastify';
-import { type HttpSecurity, HttpServer, type HttpVersion, type RequestListener, type Server, type ServerOptions } from '../servers/index.js';
-import { AppRoutes } from './app.route.js';
-import { AppPlugin } from './plugins/index.js';
-import { HTTP_SERVER } from 'config.js';
+import { HTTP_SERVER } from '../config';
+import { type HttpSecurity, HttpServer, type HttpVersion, type RequestListener, type Server, type ServerOptions } from '../servers';
+import { AppRoutes } from './app.route';
+import { AppPlugin } from './plugins';
 
 type ApplicationOptions<hv extends HttpVersion = 'http1', hs extends HttpSecurity = 'http'> = {
     httpVersion: hv;
