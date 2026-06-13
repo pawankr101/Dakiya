@@ -3,6 +3,7 @@ import Fastify, { type FastifyInstance, type FastifyServerFactory } from 'fastif
 import { type HttpSecurity, HttpServer, type HttpVersion, type RequestListener, type Server, type ServerOptions } from '../servers/index.js';
 import { AppRoutes } from './app.route.js';
 import { AppPlugin } from './plugins/index.js';
+import { HTTP_SERVER } from 'config.js';
 
 type ApplicationOptions<hv extends HttpVersion = 'http1', hs extends HttpSecurity = 'http'> = {
     httpVersion: hv;
@@ -48,7 +49,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
         try {
             this.#setupServerLevelHandlers();
             await this.#fastifyApp.register(AppPlugin);
-            await this.#fastifyApp.register(AppRoutes);
+            await this.#fastifyApp.register(AppRoutes, { prefix: HTTP_SERVER.rootRoutePrefix });
         } catch (error) {
             throw Exception.from(error as Exception, { code: 'APPLICATION_SETUP_ERROR' });
         }

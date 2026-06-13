@@ -18,14 +18,19 @@ export const API_DOCS = {
     routePrefix: '/docs',
     title: 'Dakiya API Documentation',
     description: 'API documentation for Dakiya',
-    version: '1.0.0'
+    version: '1.0.0',
+    externalDocs: {
+        url: 'https://github.com/pawankr101/Dakiya/blob/master/README.md',
+        description: 'Dakiya readme Docs'
+    }
 }
 
-export const HTTP_SERVER: { httpVersion: HttpVersion, httpSecurity: HttpSecurity, host: string, port: number } = {
+export const HTTP_SERVER: { httpVersion: HttpVersion, httpSecurity: HttpSecurity, host: string, port: number, rootRoutePrefix: string } = {
     httpVersion: 'http1',
     httpSecurity: 'http',
     host: process.env.DAKIYA_SERVER_HOST,
-    port: Number.parseInt(process.env.DAKIYA_SERVER_PORT, 10)
+    port: Number.parseInt(process.env.DAKIYA_SERVER_PORT, 10),
+    rootRoutePrefix: '/api/v1'
 }
 
 export const THREADING = {
