@@ -1,7 +1,6 @@
 import { Exception, Guards, getUuid } from '@dakiya/shared';
 import Fastify, { type FastifyInstance, type FastifyServerFactory } from 'fastify';
 import { type HttpSecurity, HttpServer, type HttpVersion, type RequestListener, type Server, type ServerOptions } from '../servers/index.js';
-import { Cache, PG } from '../storage/index.js';
 import { AppRoutes } from './app.route.js';
 import { AppPlugin } from './plugins/index.js';
 
@@ -45,17 +44,9 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
         });
     }
 
-    async #setupDatabases() {
-        // Initialize Cache connection
-        await Cache.init();
-        // Initialize Postgres connection
-        await PG.init();
-    }
-
     async #setupApplication() {
         try {
             this.#setupServerLevelHandlers();
-            await this.#setupDatabases();
             await this.#fastifyApp.register(AppPlugin);
             await this.#fastifyApp.register(AppRoutes);
         } catch (error) {

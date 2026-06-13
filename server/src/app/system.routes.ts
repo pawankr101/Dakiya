@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest, FastifySchema } from "fastify";
-import { Cache, PG } from "storage";
 import { Type } from "typebox";
+import { Nats } from "../services";
+import { PG } from "../storage";
 
 
 const ServiceStatusSchema = Type.Object({
@@ -20,7 +21,7 @@ const HealthSchma: FastifySchema = {
             timestamp: Type.String({ format: 'date-time' }),
             services: Type.Object({
                 postgres: ServiceStatusSchema,
-                cache: ServiceStatusSchema
+                nats: ServiceStatusSchema
             })
         }),
         503: Type.Object({
@@ -35,14 +36,14 @@ const healthHandler = async (_request: FastifyRequest, response: FastifyReply) =
     try {
         await Promise.all([
             PG.ping(),
-            Cache.ping()
+            Nats.ping()
         ]);
         response.send({
             healthy: true,
             timestamp: new Date().toISOString(),
             services: {
                 postgres: { status: 'connected' },
-                cache: { status: 'connected' }
+                nats: { status: 'connected' }
             }
         });
     } catch (error) {

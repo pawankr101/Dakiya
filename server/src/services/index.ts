@@ -1,2 +1,3 @@
 
-export * from './jwt.js';
+export * from './jwt';
+export * from './nats';

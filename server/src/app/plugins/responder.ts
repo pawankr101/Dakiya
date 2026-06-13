@@ -1,10 +1,10 @@
 import { mapLoop } from "@dakiya/shared";
-import type { FastifyError, FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
+import type { FastifyError, FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
 import { fastifyPlugin } from "fastify-plugin";
 import { ApiException } from "../exception";
 import { ApiResponse } from "../response";
 
-export const ApiResponder: FastifyPluginAsync = fastifyPlugin(async (fastify) => {
+export const ApiResponder: FastifyPluginAsync = fastifyPlugin(async (fastify: FastifyInstance) => {
 
     fastify.addHook('preSerialization', async (_request: FastifyRequest, response: FastifyReply, payload: unknown) => {
         if (payload instanceof ApiResponse) {

@@ -1,5 +1,4 @@
 import { Exception } from '@dakiya/shared';
-import { type JetStreamClient, jetstream } from '@nats-io/jetstream';
 import { connect, type NatsConnection } from '@nats-io/transport-node';
 import { CACHE } from "../config.js";
 
@@ -15,13 +14,6 @@ export interface Nats {
      * @returns A promise resolving to true if the connection is alive, or false otherwise.
      */
     ping(): Promise<boolean>;
-
-    /**
-     * Gets the JetStream client instance. Throws an error if the connection is not established.
-     * @returns The JetStream client instance.
-     * @throws {Exception} If the NATS connection is not established.
-     */
-    get jsc(): JetStreamClient;
 
     /**
      * Gets the NATS connection instance. Throws an error if the connection is not established.
@@ -58,31 +50,22 @@ const createNatsConnection = (): Promise<NatsConnection> => {
     });
 };
 
-const createJetStreamClient = (connection: NatsConnection): JetStreamClient => {
-    return jetstream(connection, {
-        timeout: 5000,
-        apiPrefix: 'dakiya-js',
-    });
-};
-
 const pingNats = async (connection: NatsConnection): Promise<boolean> => {
-    if (connection && !connection.isClosed()) {
-        let timer: NodeJS.Timeout | undefined;
-        try {
-            await Promise.race([
-                connection.flush(),
-                new Promise((_, reject) =>
-                    timer = setTimeout(() => reject(new Error('NATS ping timeout')), 2000)
-                )
-            ]);
-            return true;
-        } catch {
-            return false;
-        } finally {
-            clearTimeout(timer);
-        }
+    if(connection.isClosed()) return false;
+    let timer: NodeJS.Timeout | undefined;
+    try {
+        await Promise.race([
+            connection.flush(),
+            new Promise((_, reject) =>
+                timer = setTimeout(() => reject(new Error('NATS ping timeout')), 2000)
+            )
+        ]);
+        return true;
+    } catch {
+        return false;
+    } finally {
+        clearTimeout(timer);
     }
-    return false;
 };
 
 const closeConnection = async (connection: NatsConnection): Promise<void> => {
@@ -94,21 +77,19 @@ const closeConnection = async (connection: NatsConnection): Promise<void> => {
 export const Nats = (() => {
     const Nats: Nats = Object.create(null);
     let nc: NatsConnection | undefined;
-    let jsc: JetStreamClient | undefined;
 
     const buildConnection = async () => {
         let tempConnection: NatsConnection | undefined;
         try {
             tempConnection = await createNatsConnection();
-            const jsClient = createJetStreamClient(tempConnection);
             await tempConnection.flush();
-            nc = tempConnection; jsc = jsClient;
+            nc = tempConnection;
             nc.closed().then((error) => {
                 if (error) console.error('[NATS] closed with error', error);
                 else console.info('[NATS] connection closed');
             }).finally(() => {
                 if (nc === tempConnection) {
-                    nc = undefined; jsc = undefined;
+                    nc = undefined;
                 }
             });
         } catch (error) {
@@ -116,7 +97,7 @@ export const Nats = (() => {
                 try {
                     await tempConnection.close();
                 } catch (err) {
-                    throw Exception.from(err as Error, { cause: error as Error, code: 'DAKIYA_NATS_ERROR' });
+                    throw Exception.from(new AggregateError([error, err], 'NATS connection failed and cleanup also failed'), { code: 'DAKIYA_NATS_ERROR' });
                 }
             }
             throw Exception.from(error as Error, { code: 'DAKIYA_NATS_ERROR' });
@@ -141,13 +122,6 @@ export const Nats = (() => {
         if (nc) return pingNats(nc);
         return Promise.resolve(false);
     };
-
-    Object.defineProperty(Nats, 'jsc', {
-        get() {
-            if (jsc) return jsc;
-            throw new Exception('NATS JetStream client not initialized', { code: 'DAKIYA_NATS_ERROR' });
-        }
-    });
 
     Object.defineProperty(Nats, 'nc', {
         get() {

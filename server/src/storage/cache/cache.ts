@@ -1,8 +1,9 @@
 import { Exception, Guards } from "@dakiya/shared";
-import { type JetStreamClient, StorageType } from "@nats-io/jetstream";
+import { jetstream, StorageType } from "@nats-io/jetstream";
 import { type KV, Kvm } from "@nats-io/kv";
 import type { Nats } from "services/nats.js";
 import { CACHE } from "../../config.js";
+import type { NatsConnection } from "@nats-io/transport-node";
 
 export interface Cache {
 
@@ -50,8 +51,8 @@ export interface Cache {
     reset(): Promise<boolean>;
 }
 
-const createStore = (jsc: JetStreamClient) => {
-    const kvm = new Kvm(jsc);
+const createStore = (nc: NatsConnection) => {
+    const kvm = new Kvm(jetstream(nc));
     return kvm.create(CACHE.database, {
         history: 1, // Only keep the latest value for a key
         storage: StorageType.File,
@@ -110,7 +111,7 @@ export const Cache: Cache = (() => {
     const buildStore = async (n: Nats) => {
         if(!n.isConnected()) throw new Exception('NATS client is not connected. Please establish a connection before initializing cache.', { code: 'DAKIYA_CACHE_ERROR' });
         try {
-            const kv = await createStore(n.jsc);
+            const kv = await createStore(n.nc);
             kvStore = kv; nats = n;
         } catch (error) {
             throw new Exception('Failed to create KV store for cache.', { cause: error as Error, code: 'DAKIYA_CACHE_ERROR' });
@@ -157,7 +158,7 @@ export const Cache: Cache = (() => {
             try {
                 await kvStore.destroy();
                 kvStore = undefined;
-                kvStore = await createStore(nats.jsc);
+                kvStore = await createStore(nats.nc);
                 return true;
             } catch (error) {
                 console.error(Exception.from(error as Error, { code: 'DAKIYA_CACHE_ERROR' }));
