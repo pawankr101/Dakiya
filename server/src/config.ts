@@ -4,26 +4,14 @@ import type { HttpSecurity, HttpVersion } from "./servers/index.js";
 
 const ROOT_DIR = fileURLToPath(new URL('.', import.meta.url));
 
-export const APP_CONFIG = {
-    name: 'Dakiya',
-    description: 'This is a chat app which provide end to end communication solution.',
-    documentation: {
-        title: 'ContextCP Hedge Funds',
-        description: 'Api description for ContextCP Fund manager App',
-        version: '0.0.1'
-    }
-}
-
-export const HTTP_SERVER: { httpVersion: HttpVersion, httpSecurity: HttpSecurity, host: string, port: number } = {
-    httpVersion: 'http1',
-    httpSecurity: 'http',
-    host: process.env.DAKIYA_SERVER_HOST,
-    port: Number.parseInt(process.env.DAKIYA_SERVER_PORT, 10)
-}
-
 export const ENV = {
     WS_NO_BUFFER_UTIL: true,
     WS_NO_UTF_8_VALIDATE: true
+}
+
+export const APP_CONFIG = {
+    name: 'Dakiya',
+    description: 'This is a chat app which provide end to end communication solution.'
 }
 
 export const API_DOCS = {
@@ -31,6 +19,13 @@ export const API_DOCS = {
     title: 'Dakiya API Documentation',
     description: 'API documentation for Dakiya',
     version: '1.0.0'
+}
+
+export const HTTP_SERVER: { httpVersion: HttpVersion, httpSecurity: HttpSecurity, host: string, port: number } = {
+    httpVersion: 'http1',
+    httpSecurity: 'http',
+    host: process.env.DAKIYA_SERVER_HOST,
+    port: Number.parseInt(process.env.DAKIYA_SERVER_PORT, 10)
 }
 
 export const THREADING = {
