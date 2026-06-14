@@ -71,6 +71,9 @@
         "tailwindcss": "^4.3.1",
         "typescript": "^6.0.3"
     },
+    "allowScripts": {
+        "esbuild": true
+    },
     "keywords": [
         "chat",
         "call"
@@ -93,8 +96,5 @@
             "email": "pawan.akshaykr@gmail.com"
         }
     ],
-    "license": "ISC",
-    "allowScripts": {
-        "esbuild": true
-    }
+    "license": "ISC"
 }
