@@ -1,9 +1,9 @@
 import { Exception, Guards } from "@dakiya/shared";
 import { jetstream, StorageType } from "@nats-io/jetstream";
 import { type KV, Kvm } from "@nats-io/kv";
+import type { NatsConnection } from "@nats-io/transport-node";
 import type { Nats } from "services/nats.js";
 import { CACHE } from "../../config.js";
-import type { NatsConnection } from "@nats-io/transport-node";
 
 export interface Cache {
 

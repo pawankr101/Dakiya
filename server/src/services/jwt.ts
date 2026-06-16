@@ -30,7 +30,8 @@ const signAsync = (option: SignOptions) => {
 const verifyAsync = (signature: string, algorithm: Algorithm, secretOrKey: string | Buffer) => {
     return new Promise<boolean>((resolve, reject) => {
         try {
-            resolve(verify(signature, algorithm, secretOrKey));
+            const isValid = verify(signature, algorithm, secretOrKey);
+            resolve(isValid);
         } catch (error) {
             reject(Exception.from(error as Error, { code: "DAKIYA_JWT_ERROR"}));
         }

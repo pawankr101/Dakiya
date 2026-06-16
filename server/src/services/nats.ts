@@ -1,6 +1,6 @@
 import { Exception } from '@dakiya/shared';
 import { connect, type NatsConnection } from '@nats-io/transport-node';
-import { CACHE } from "../config.js";
+import { NATS } from "../config.js";
 
 export interface Nats {
     /**
@@ -38,9 +38,9 @@ export interface Nats {
 const createNatsConnection = (): Promise<NatsConnection> => {
     return connect({
         name: 'dakiya-nats',
-        servers: `nats://${CACHE.host}:${CACHE.port}`,
-        user: CACHE.user,
-        pass: CACHE.password,
+        servers: `nats://${NATS.host}:${NATS.port}`,
+        user: NATS.user,
+        pass: NATS.password,
         reconnect: true,
         maxReconnectAttempts: -1,
         reconnectTimeWait: 2000,

@@ -16,7 +16,6 @@ interface WorkerResult {
     error?: string;
 }
 
-export type ThreadStatus = typeof ThreadStatus[keyof typeof ThreadStatus];
 export const ThreadStatus = (() => {
     const ts: { starting: symbol, idle: symbol, busy: symbol, terminating: symbol, dead: symbol, error: symbol } = Object.create(null);
     ts.starting = Symbol('___STARTING');
@@ -27,6 +26,7 @@ export const ThreadStatus = (() => {
     ts.error = Symbol('___ERROR');
     return ts;
 })();
+export type ThreadStatus = typeof ThreadStatus[keyof typeof ThreadStatus];
 
 const [ WORKER_FILE, MAX_THREADS, MAX_IDLE_TIME, MAX_TRY_ATTEMPT ] = [
     THREADING.workersIndexFile,
@@ -82,7 +82,11 @@ export class Thread {
     /************************** Instance Methods: Start ******************************/
     // Instance methods related to task management, worker communication, and thread lifecycle.
 
-    /** Private constructor to prevent direct instantiation */
+    /**
+     * Private constructor for creating a Thread instance.
+     * @param workerFilePath - The path to the worker file.
+     * @param privateHash - A private hash used to validate the constructor call.
+     */
     private constructor(workerFilePath: string, privateHash:string) {
         if(privateHash!==Thread.#staticHash) throw new Exception(`'Thread' class constructor can not be called from outside.`, { code : 'DAKIYA_WORKER_ERROR' });
         if(!workerFilePath) throw new Exception(`'workerFilePath' is required to create Thread Object.`, { code : 'DAKIYA_WORKER_ERROR' });
@@ -294,6 +298,12 @@ export class Thread {
         }
     }
 
+    /**
+     * Executes a method on a worker thread, returning a promise that resolves with the result.
+     * @param methodName - The name of the method to execute.
+     * @param args - The arguments to pass to the method.
+     * @returns A promise that resolves with the result of the method execution.
+     */
     static execute<T=unknown>(methodName: string, ...args: unknown[]): Promise<T> {
         return new Promise((resolve: (result: T) => void, reject: (reason: Exception) => void) => {
             const task: Task = {

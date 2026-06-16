@@ -3,8 +3,8 @@ import { fastifyPlugin } from "fastify-plugin";
 import { ApiResponder } from "./responder";
 import { GlobalSchemas } from "./schema";
 import { GlobalSecurityPlugin } from "./security";
-import { DakiyaSwagger } from "./swagger";
 import { Startup } from "./startup";
+import { DakiyaSwagger } from "./swagger";
 
 export const AppPlugin: FastifyPluginAsync = fastifyPlugin(async (fastify: FastifyInstance) => {
 

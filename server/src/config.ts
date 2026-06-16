@@ -22,6 +22,10 @@ export const API_DOCS = {
     externalDocs: {
         url: 'https://github.com/pawankr101/Dakiya/blob/master/README.md',
         description: 'Dakiya readme Docs'
+    },
+    license: {
+        name: 'MIT License',
+        url: 'https://github.com/pawankr101/Dakiya/blob/master/LICENSE.md'
     }
 }
 
@@ -55,11 +59,14 @@ export const DB = {
     connectionTimeoutMillis: 2000
 }
 
+export const NATS = {
+    host: process.env.DAKIYA_NATS_HOST,
+    port: Number.parseInt(process.env.DAKIYA_NATS_PORT, 10),
+    user: process.env.DAKIYA_NATS_USER,
+    password: process.env.DAKIYA_NATS_PASSWORD
+}
+
 export const CACHE = {
-    host: process.env.DAKIYA_CACHE_HOST,
-    port: Number.parseInt(process.env.DAKIYA_CACHE_PORT, 10),
     database: process.env.DAKIYA_CACHE_DATABASE,
-    user: process.env.DAKIYA_CACHE_USER,
-    password: process.env.DAKIYA_CACHE_PASSWORD,
     maxTTL: 24 * 60 * 60 // 24 hours in seconds
 }

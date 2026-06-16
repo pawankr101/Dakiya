@@ -13,12 +13,14 @@ export interface Env {
     DAKIYA_DB_USER: string;
     DAKIYA_DB_PASSWORD: string;
 
+    // Nats configuration
+    DAKIYA_NATS_HOST: string;
+    DAKIYA_NATS_PORT: string;
+    DAKIYA_NATS_USER: string;
+    DAKIYA_NATS_PASSWORD: string;
+
     // Cache configuration
-    DAKIYA_CACHE_HOST: string;
-    DAKIYA_CACHE_PORT: string;
     DAKIYA_CACHE_DATABASE: string;
-    DAKIYA_CACHE_USER: string;
-    DAKIYA_CACHE_PASSWORD: string;
 }
 
 declare global {
