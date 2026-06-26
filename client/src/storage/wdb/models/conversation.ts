@@ -39,6 +39,7 @@ export class ConversationMember extends Model {
     @field('is_admin') is_admin: boolean;
     @field('joined_at') joined_at: number;
     @field('has_left') has_left: boolean;
+    @field('has_historical_access') has_historical_access: boolean;
 
     @date('created_at') created_at: Date;
     @date('updated_at') updated_at: Date;

@@ -1,6 +1,6 @@
 import { Exception } from '@dakiya/shared';
-import { PG } from '../connection.js';
-import type { User } from '../models.js';
+import { PG } from '../connection';
+import type { User } from '../types';
 
 export const IdentityRepository = {
 

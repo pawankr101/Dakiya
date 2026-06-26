@@ -57,7 +57,8 @@ const CONVERSATION_MEMBER_TABLE_SCHEMA: TableSchema = tableSchema({
 
         { name: 'is_admin', type: 'boolean' },
         { name: 'joined_at', type: 'number' },
-        { name: 'has_left', type: 'boolean' }
+        { name: 'has_left', type: 'boolean' },
+        { name: 'has_historical_access', type: 'boolean' },
     ]
 })
 

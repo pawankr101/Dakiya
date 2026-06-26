@@ -1,6 +1,6 @@
 import { Exception } from '@dakiya/shared';
 import postgres, { type Sql } from 'postgres';
-import { DB } from '../../../config.js';
+import { DB } from '../../../config';
 
 export interface PG {
     /**
@@ -225,6 +225,7 @@ const createConversationMembersTable = async (connection: Sql) => {
                 last_read_at TIMESTAMPTZ,
                 is_deleted BOOLEAN DEFAULT FALSE,
                 joined_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                has_historical_access BOOLEAN DEFAULT FALSE,
                 added_by UUID REFERENCES users(id),
                 is_admin BOOLEAN DEFAULT FALSE,
                 has_left BOOLEAN DEFAULT FALSE,
@@ -368,6 +369,7 @@ export const PG = (() => {
             const { host, port, database, user, password, maxPoolSize: max, idleTimeoutMillis: idle_timeout, connectionTimeoutMillis: connect_timeout } = DB;
             connection = postgres({
                 host, port, database, user, password, max, idle_timeout, connect_timeout,
+                transform: postgres.camel,
                 onnotice: () => {}, // Disable notice messages from PostgreSQL
             });
             isConnected = true;

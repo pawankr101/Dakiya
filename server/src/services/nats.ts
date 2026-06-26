@@ -1,5 +1,5 @@
 import { Exception } from '@dakiya/shared';
-import { connect, type NatsConnection } from '@nats-io/transport-node';
+import { connect, type NatsConnection, wsconnect } from '@nats-io/transport-node';
 import { NATS } from "../config.js";
 
 export interface Nats {
@@ -37,7 +37,7 @@ export interface Nats {
 
 const createNatsConnection = (): Promise<NatsConnection> => {
     return connect({
-        name: 'dakiya-nats',
+        name: NATS.connectionName,
         servers: `nats://${NATS.host}:${NATS.port}`,
         user: NATS.user,
         pass: NATS.password,

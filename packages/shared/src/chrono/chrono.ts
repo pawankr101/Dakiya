@@ -8,6 +8,7 @@ const SHORT_MONTHS: string[] = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul',
 const FULL_MONTHS: string[] = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 const SHORT_WEEK_DAYS: string[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const FULL_WEEK_DAYS: string[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const TIMEZONE = Temporal.Now.timeZoneId()
 
 export interface Chrono {
     /**
@@ -54,6 +55,19 @@ export interface Chrono {
      * @returns True if the date is today, false otherwise.
      */
     isToday(date: DateOrTimestamp): boolean;
+
+    /**
+     * Converts the given timestamp in milliseconds to an ISO string.
+     * @param timestamp The timestamp in milliseconds to convert.
+     * @returns The converted ISO string.
+     */
+    timestampToIso(timestamp: number): string;
+    /**
+     * Converts the given ISO string to a timestamp in milliseconds.
+     * @param iso The ISO string to convert.
+     * @returns The converted timestamp in milliseconds.
+     */
+    isoToTimestamp(iso: string): number;
 }
 
 const getLastNYears = (n: number): List<number> => {
@@ -103,8 +117,17 @@ const isToday = (date: DateOrTimestamp): boolean => {
     return isSameDate(date, new Date());
 }
 
+const timestampToIso = (timestamp: number): string => {
+    return Temporal.Instant.fromEpochMilliseconds(timestamp).toZonedDateTimeISO(TIMEZONE).toString();
+}
+
+const isoToTimestamp = (iso: string): number => {
+    return Temporal.Instant.from(iso).epochMilliseconds;
+}
+
 export const Chrono = (() => {
     const Chrono: Chrono = Object.create(null);
+
     Chrono.getLastNYears = getLastNYears;
     Chrono.getMonthList = getMonthList;
     Chrono.getWeekDayList = getWeekDayList;
@@ -112,5 +135,8 @@ export const Chrono = (() => {
     Chrono.convertToTimeStamp = convertToTimeStamp;
     Chrono.isSameDate = isSameDate;
     Chrono.isToday = isToday;
+    Chrono.timestampToIso = timestampToIso;
+    Chrono.isoToTimestamp = isoToTimestamp;
+
     return Chrono;
 })();

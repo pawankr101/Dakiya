@@ -1,6 +1,5 @@
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { HttpSecurity, HttpVersion } from "./servers/index.js";
 
 const ROOT_DIR = fileURLToPath(new URL('.', import.meta.url));
 
@@ -29,9 +28,9 @@ export const API_DOCS = {
     }
 }
 
-export const HTTP_SERVER: { httpVersion: HttpVersion, httpSecurity: HttpSecurity, host: string, port: number, rootRoutePrefix: string } = {
-    httpVersion: 'http1',
-    httpSecurity: 'http',
+export const HTTP_SERVER = {
+    httpVersion: 'http1' as 'http1',
+    httpSecurity: 'http' as 'http',
     host: process.env.DAKIYA_SERVER_HOST,
     port: Number.parseInt(process.env.DAKIYA_SERVER_PORT, 10),
     rootRoutePrefix: '/api/v1'
@@ -56,10 +55,12 @@ export const DB = {
     password: process.env.DAKIYA_DB_PASSWORD,
     maxPoolSize: 20,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000
+    connectionTimeoutMillis: 2000,
+    syncBoundryInDays: 30
 }
 
 export const NATS = {
+    connectionName:'dakiya-nats',
     host: process.env.DAKIYA_NATS_HOST,
     port: Number.parseInt(process.env.DAKIYA_NATS_PORT, 10),
     user: process.env.DAKIYA_NATS_USER,

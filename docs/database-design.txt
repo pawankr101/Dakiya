@@ -134,6 +134,7 @@ Database Design Document
 
         //-- Group Conversation Specific Fields
         => joined_at: "'Timestamp when user joined the group conversation'"
+        => has_historical_access: "Boolean, 'if the user has historical access to the group conversation'"
         => added_by: "'Foreign Key to UserId who added this participant'"
         => is_admin: "Boolean, 'if the user is an admin in the group conversation'"
         => has_left: "Boolean, 'if the user has left the group conversation'"
@@ -376,6 +377,7 @@ Database Design Document
         => is_admin: "Boolean, 'if the user is an admin in the group conversation'"
         => joined_at: "'Timestamp when user joined the group conversation'"
         => has_left: "Boolean, 'if the user has left the group conversation'"
+        => has_historical_access: "Boolean, 'if the user has historical access to the group conversation'"
 
         => created_at: "'Participant Record Creation Timestamp'"
         => updated_at: "'Last Participant Record Update Timestamp'"

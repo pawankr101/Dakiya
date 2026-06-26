@@ -2,10 +2,10 @@
     "$schema": "https://json.schemastore.org/tsconfig",
     "compilerOptions": {
         /* 1. Base Environment */
-        "target": "es2024",
+        "target": "esnext",
         "module": "esnext",
         "moduleResolution": "bundler",
-        "lib": [ "ES2024", "DOM", "DOM.Iterable", "WebWorker" ],
+        "lib": [ "ESNext", "DOM", "DOM.Iterable", "WebWorker" ],
         "jsx": "react-jsx",
 
         /* 2. Path Resolution */

@@ -21,29 +21,30 @@ export const DatabaseChangesSchema = Type.Object({
     messages: makeTableChangeSetSchema(Type.Ref('MessageSchema')),
     message_reactions: makeTableChangeSetSchema(Type.Ref('MessageReactionSchema')),
     message_edits: makeTableChangeSetSchema(Type.Ref('MessageEditSchema')),
-    media: makeTableChangeSetSchema(Type.Ref('MediaSchema')),
-	delivery_queue: makeTableChangeSetSchema(Type.Ref('DeliveryQueueItemSchema'))
+    media: makeTableChangeSetSchema(Type.Ref('MediaSchema'))
 });
 
-const PullQuerySchema = Type.Object({
-    last_pulled_at: Type.Optional(Type.String({ format: 'date-time' }))
+export const PullChangesQuerySchema = Type.Object({
+    last_pulled_at: Type.Optional(Type.Number({ format: 'timestamp' }))
+});
+
+export const PullChangesSuccessSchema = Type.Object({
+    lastPulledAt: Type.Number({ format: 'timestamp' }),
+    changes: DatabaseChangesSchema
 });
 
 const PushBodySchema = Type.Object({
     changes: DatabaseChangesSchema,
-    last_pulled_at: Type.Number()
+    last_pulled_at: Type.Number({ format: 'timestamp' })
 });
 
 export const PullChangesSchema: FastifySchema = {
     summary: 'Pull changes',
     description: 'Pull changes from the server since the last pull time.',
     tags: TAGS,
-    querystring: PullQuerySchema,
+    querystring: PullChangesQuerySchema,
     response: {
-        200: buildApiResponseSchema(Type.Object({
-            message: Type.String(),
-            changes: DatabaseChangesSchema
-        })),
+        200: buildApiResponseSchema(PullChangesSuccessSchema),
         400: buildApiErrorSchema(Type.Array(Type.Object({
             field: Type.String(),
             message: Type.String()
