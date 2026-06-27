@@ -25,17 +25,17 @@ export const DatabaseChangesSchema = Type.Object({
 });
 
 export const PullChangesQuerySchema = Type.Object({
-    last_pulled_at: Type.Optional(Type.Number({ format: 'timestamp' }))
+    last_pulled_at: Type.Optional(Type.Number())
 });
 
 export const PullChangesSuccessSchema = Type.Object({
-    lastPulledAt: Type.Number({ format: 'timestamp' }),
+    lastPulledAt: Type.Number(),
     changes: DatabaseChangesSchema
 });
 
 const PushBodySchema = Type.Object({
     changes: DatabaseChangesSchema,
-    last_pulled_at: Type.Number({ format: 'timestamp' })
+    last_pulled_at: Type.Number()
 });
 
 export const PullChangesSchema: FastifySchema = {

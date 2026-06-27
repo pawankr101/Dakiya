@@ -1,6 +1,6 @@
 import { Chrono, loop } from "@dakiya/shared";
 import { type PulledSyncData, pullSyncData } from "../../../storage/db/pg/repositories/sync.repository";
-import type { DatabaseChanges, PullChangesSuccess } from "./sync.type";
+import type { DatabaseChanges, PulledChanges } from "./sync.type";
 
 const categorizeChanges = (() => {
 
@@ -29,7 +29,7 @@ const categorizeChanges = (() => {
     }
 })();
 
-export const pullChangesService = async (userId: string, lastPulledAt?: number): Promise<PullChangesSuccess> => {
+export const pullChangesService = async (userId: string, lastPulledAt?: number): Promise<PulledChanges> => {
     const lastPulledAtIso = lastPulledAt ? Chrono.timestampToIso(lastPulledAt) : undefined;
     const data: PulledSyncData = await pullSyncData(userId, lastPulledAtIso);
     return {
