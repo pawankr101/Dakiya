@@ -10,8 +10,8 @@ import type { PullChangesQuery, PullChangesSuccess } from "./sync.type";
  */
 export const pullChanges: EndPointHandler<{Querystring: PullChangesQuery}, PullChangesSuccess> = async (request) => {
     const { last_pulled_at } = request.query ?? {};
-    const res = await pullChangesService('userId', last_pulled_at);
-    return new ApiResponse(200, res);
+    const changes = await pullChangesService('userId', last_pulled_at);
+    return new ApiResponse(200, changes);
 }
 
 /**

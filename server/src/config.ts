@@ -29,7 +29,7 @@ export const API_DOCS = {
 }
 
 export const HTTP_SERVER = {
-    httpVersion: 'http2' as const,
+    httpVersion: 'http1' as const,
     httpSecurity: 'http' as const,
     host: process.env.DAKIYA_SERVER_HOST,
     port: Number.parseInt(process.env.DAKIYA_SERVER_PORT, 10),
