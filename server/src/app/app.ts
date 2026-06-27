@@ -1,24 +1,25 @@
 import { Exception, Guards, getUuid } from '@dakiya/shared';
-import Fastify, { type FastifyInstance, type FastifyServerFactory } from 'fastify';
+import Fastify, { type FastifyServerFactory } from 'fastify';
 import { HTTP_SERVER } from '../config';
 import { type HttpSecurity, HttpServer, type HttpVersion, type RequestListener, type Server, type ServerOptions } from '../servers';
 import { AppRoutes } from './app.route';
-import { AppPlugin } from './plugins';
+import { AppPlugins } from './plugins';
+import type { AppFastify, AppHttpSecurity, AppHttpVersion } from './types';
 
-type ApplicationOptions<hv extends HttpVersion = 'http1', hs extends HttpSecurity = 'http'> = {
+type ApplicationOptions<hv extends HttpVersion = AppHttpVersion, hs extends HttpSecurity = AppHttpSecurity> = {
     httpVersion: hv;
     httpSecurity: hs;
     host: string;
     port: number;
 };
 
-export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecurity = 'http'> {
+export class Application<hv extends HttpVersion = AppHttpVersion, hs extends HttpSecurity = AppHttpSecurity> {
     /** Random Hash for Private Constructor */
     static readonly #staticHash: string = getUuid();
 
     readonly #httpVersion: hv; readonly #httpSecurity: hs;
     readonly #httpServer: HttpServer<hv, hs>;
-    readonly #fastifyApp: FastifyInstance;
+    readonly #fastifyApp: AppFastify;
 
     private constructor(hv: hv, hs: hs, privateHash: string) {
         if (privateHash !== Application.#staticHash) throw new Exception(`'Application' class constructor can not be called from outside.`, { code: 'DAKIYA_APP_ERROR' });
@@ -32,8 +33,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
         this.#httpServer = HttpServer.build(hv, hs, serverOptions);
         this.#fastifyApp = Fastify({
             serverFactory: ((requestHandler: RequestListener): Server => (this.#httpServer as HttpServer).addRequestListener(requestHandler)) as unknown as FastifyServerFactory<Server>
-        }) as unknown as FastifyInstance;
-    }
+        }) as unknown as AppFastify;    }
 
     #setupServerLevelHandlers() {
         // Handle client errors globally for the server
@@ -48,7 +48,7 @@ export class Application<hv extends HttpVersion = 'http1', hs extends HttpSecuri
     async #setupApplication() {
         try {
             this.#setupServerLevelHandlers();
-            await this.#fastifyApp.register(AppPlugin);
+            await this.#fastifyApp.register(AppPlugins);
             await this.#fastifyApp.register(AppRoutes, { prefix: HTTP_SERVER.rootRoutePrefix });
         } catch (error) {
             throw Exception.from(error as Exception, { code: 'APPLICATION_SETUP_ERROR' });

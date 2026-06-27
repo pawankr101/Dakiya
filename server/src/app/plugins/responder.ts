@@ -1,12 +1,13 @@
 import { mapLoop } from "@dakiya/shared";
-import type { FastifyError, FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
+import type { FastifyError } from "fastify";
 import { fastifyPlugin } from "fastify-plugin";
 import { ApiException } from "../exception";
 import { ApiResponse } from "../response";
+import type { AppFastify, AppPlugin } from "../types";
 
-export const ApiResponder: FastifyPluginAsync = fastifyPlugin(async (fastify: FastifyInstance) => {
+export const ApiResponder: AppPlugin = fastifyPlugin(async (fastify: AppFastify) => {
 
-    fastify.addHook('preSerialization', async (_request: FastifyRequest, response: FastifyReply, payload: unknown) => {
+    fastify.addHook('preSerialization', async (_request, response, payload) => {
         if (payload instanceof ApiResponse) {
             response.code(payload.status);
             return {
@@ -17,7 +18,7 @@ export const ApiResponder: FastifyPluginAsync = fastifyPlugin(async (fastify: Fa
         return payload;
     });
 
-    fastify.setNotFoundHandler(async (request: FastifyRequest, response: FastifyReply) => {
+    fastify.setNotFoundHandler(async (request, response) => {
         response.code(404);
         return {
             requestId: request.id,
@@ -26,7 +27,7 @@ export const ApiResponder: FastifyPluginAsync = fastifyPlugin(async (fastify: Fa
         };
     });
 
-    fastify.setErrorHandler(async (error: FastifyError, request: FastifyRequest, response: FastifyReply) => {
+    fastify.setErrorHandler(async (error: FastifyError, request, response) => {
         const requestId = request.id;
 
         // Scenario A: Fastify Validation

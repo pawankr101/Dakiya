@@ -1,12 +1,12 @@
-import type { FastifyInstance, FastifyPluginAsync } from "fastify";
 import { fastifyPlugin } from "fastify-plugin";
+import type { AppFastify, AppPlugin } from "../types";
 import { ApiResponder } from "./responder";
 import { GlobalSchemas } from "./schema";
 import { GlobalSecurityPlugin } from "./security";
 import { Startup } from "./startup";
 import { DakiyaSwagger } from "./swagger";
 
-export const AppPlugin: FastifyPluginAsync = fastifyPlugin(async (fastify: FastifyInstance) => {
+export const AppPlugins: AppPlugin = fastifyPlugin(async (fastify: AppFastify) => {
 
 	// Global Security Plugin (Helmet + CORS)
     await fastify.register(GlobalSecurityPlugin);

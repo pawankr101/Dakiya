@@ -1,9 +1,9 @@
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
-import type { FastifyInstance, FastifyPluginAsync } from "fastify";
 import { fastifyPlugin } from "fastify-plugin";
+import type { AppFastify, AppPlugin } from "../types";
 
-export const GlobalSecurityPlugin: FastifyPluginAsync = fastifyPlugin(async (fastify: FastifyInstance) => {
+export const GlobalSecurityPlugin: AppPlugin = fastifyPlugin(async (fastify: AppFastify) => {
     // 1. Registering Helmet (Security Headers)
     await fastify.register(helmet, {
         global: true,

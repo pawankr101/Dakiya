@@ -1,9 +1,9 @@
-import type { FastifyInstance, FastifyPluginAsync } from "fastify";
 import { fastifyPlugin } from "fastify-plugin";
 import { Nats } from "../../services/nats";
 import { Cache, PG } from "../../storage";
+import type { AppFastify, AppPlugin } from "../types";
 
-export const Startup: FastifyPluginAsync = fastifyPlugin(async (fastify: FastifyInstance) => {
+export const Startup: AppPlugin = fastifyPlugin(async (fastify: AppFastify) => {
 
     // Initialize NATS connection
     await Nats.init();

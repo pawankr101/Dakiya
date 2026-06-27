@@ -29,7 +29,7 @@ export const API_DOCS = {
 }
 
 export const HTTP_SERVER = {
-    httpVersion: 'http1' as const,
+    httpVersion: 'http2' as const,
     httpSecurity: 'http' as const,
     host: process.env.DAKIYA_SERVER_HOST,
     port: Number.parseInt(process.env.DAKIYA_SERVER_PORT, 10),
@@ -44,7 +44,7 @@ export const THREADING = {
 }
 
 export const AUTH = {
-    jwtSecret: process.env.DAKIYA_JWT_SECRET,
+    jwtSecret: process.env.DAKIYA_JWT_SECRET
 }
 
 export const DB = {

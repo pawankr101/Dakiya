@@ -1,12 +1,12 @@
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
-import type { FastifyInstance, FastifyPluginAsync } from "fastify";
 import { fastifyPlugin } from "fastify-plugin";
 import { API_DOCS, HTTP_SERVER } from "../../config";
+import type { AppFastify, AppPlugin } from "../types";
 
 const { routePrefix, title, description, version, externalDocs, license } = API_DOCS;
 
-export const DakiyaSwagger: FastifyPluginAsync = fastifyPlugin(async (fastify: FastifyInstance) => {
+export const DakiyaSwagger: AppPlugin = fastifyPlugin(async (fastify: AppFastify) => {
     // Registering Swagger (OpenAPI Specification)
     await fastify.register(fastifySwagger, {
         stripBasePath: true,

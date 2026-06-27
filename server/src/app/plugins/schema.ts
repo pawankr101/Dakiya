@@ -1,4 +1,3 @@
-import type { FastifyInstance, FastifyPluginAsync } from "fastify";
 import { fastifyPlugin } from "fastify-plugin";
 import {
     ConversationMemberSchema,
@@ -12,8 +11,9 @@ import {
     UserSchema,
     UserSettingsSchema
 } from "../../entities/schemas.js";
+import type { AppFastify, AppPlugin } from "../types";
 
-export const GlobalSchemas: FastifyPluginAsync = fastifyPlugin(async (fastify: FastifyInstance) => {
+export const GlobalSchemas: AppPlugin = fastifyPlugin(async (fastify: AppFastify) => {
     // Registering all Global Schemas.
     fastify.addSchema(UserSchema);
     fastify.addSchema(UserSettingsSchema);
