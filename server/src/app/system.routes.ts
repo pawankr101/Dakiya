@@ -1,8 +1,9 @@
-import type { FastifyInstance, FastifyPluginAsync, FastifyReply, FastifyRequest, FastifySchema } from "fastify";
+import { Chrono } from "@dakiya/shared";
+import type { FastifyReply, FastifyRequest, FastifySchema } from "fastify";
 import { Type } from "typebox";
 import { Nats } from "../services";
 import { PG } from "../storage";
-
+import type { AppFastify, AppPlugin } from "./types";
 
 const ServiceStatusSchema = Type.Object({
     status: Type.Union([
@@ -40,7 +41,7 @@ const healthHandler = async (_request: FastifyRequest, response: FastifyReply) =
         ]);
         response.send({
             healthy: true,
-            timestamp: new Date().toISOString(),
+            timestamp: Chrono.now('iso'),
             services: {
                 postgres: { status: 'connected' },
                 nats: { status: 'connected' }
@@ -49,13 +50,13 @@ const healthHandler = async (_request: FastifyRequest, response: FastifyReply) =
     } catch (error) {
         response.status(503).send({
             healthy: false,
-            timestamp: new Date().toISOString(),
+            timestamp: Chrono.now('iso'),
             error: (error as Error).message || 'Service Unavailable'
         });
     }
 
 };
 
-export const SystemRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
+export const SystemRoutes: AppPlugin = async (fastify: AppFastify) => {
     fastify.get('/health', { schema: HealthSchma }, healthHandler);
 };

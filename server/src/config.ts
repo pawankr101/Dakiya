@@ -10,7 +10,8 @@ export const ENV = {
 
 export const APP_CONFIG = {
     name: 'Dakiya',
-    description: 'This is a chat app which provide end to end communication solution.'
+    description: 'This is a chat app which provide end to end communication solution.',
+    timezone: 'UTC'
 }
 
 export const API_DOCS = {

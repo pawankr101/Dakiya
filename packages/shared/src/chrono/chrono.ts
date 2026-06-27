@@ -1,5 +1,5 @@
-import { Guards } from '../guards/index.js';
 import { ArrayList, type List } from '../ds/index.js';
+import { Guards } from '../guards/index.js';
 import { loop } from '../iter/index.js';
 
 type DateOrTimestamp = string | number | Date;
@@ -8,7 +8,6 @@ const SHORT_MONTHS: string[] = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul',
 const FULL_MONTHS: string[] = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 const SHORT_WEEK_DAYS: string[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const FULL_WEEK_DAYS: string[] = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-const TIMEZONE = Temporal.Now.timeZoneId()
 
 export interface Chrono {
     /**
@@ -68,6 +67,13 @@ export interface Chrono {
      * @returns The converted timestamp in milliseconds.
      */
     isoToTimestamp(iso: string): number;
+
+    /**
+     * Returns the current date or timestamp in the specified format.
+     * @param format The format to return the date or timestamp in.
+     * @returns The current date or timestamp in the specified format.
+     */
+    now<F extends "iso" | "timestamp", R extends F extends "iso" ? string : F extends "timestamp" ? number : never>(format: F): R;
 }
 
 const getLastNYears = (n: number): List<number> => {
@@ -118,11 +124,17 @@ const isToday = (date: DateOrTimestamp): boolean => {
 }
 
 const timestampToIso = (timestamp: number): string => {
-    return Temporal.Instant.fromEpochMilliseconds(timestamp).toZonedDateTimeISO(TIMEZONE).toString();
+    return Temporal.Instant.fromEpochMilliseconds(timestamp).toString();
 }
 
 const isoToTimestamp = (iso: string): number => {
     return Temporal.Instant.from(iso).epochMilliseconds;
+}
+
+const now = <F extends 'iso' | 'timestamp', R extends F extends 'iso' ? string : F extends 'timestamp' ? number : never>(format: F): R => {
+    const instant = Temporal.Now.instant();
+    if(format === 'iso') return instant.toString() as R;
+    return instant.epochMilliseconds as R;
 }
 
 export const Chrono = (() => {
@@ -137,6 +149,7 @@ export const Chrono = (() => {
     Chrono.isToday = isToday;
     Chrono.timestampToIso = timestampToIso;
     Chrono.isoToTimestamp = isoToTimestamp;
+    Chrono.now = now;
 
     return Chrono;
 })();

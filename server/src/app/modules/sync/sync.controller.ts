@@ -1,5 +1,6 @@
-import { ApiResponse } from "app/response";
-import type { EndPointHandler } from "app/types";
+import { getUuid } from "@dakiya/shared";
+import { ApiResponse } from "../../response";
+import type { EndPointHandler } from "../../types";
 import { pullChangesService } from "./sync.service";
 import type { PullChangesQuery, PulledChanges } from "./sync.type";
 
@@ -10,7 +11,7 @@ import type { PullChangesQuery, PulledChanges } from "./sync.type";
  */
 export const pullChanges: EndPointHandler<{Querystring: PullChangesQuery}, PulledChanges> = async (request) => {
     const { last_pulled_at } = request.query ?? {};
-    const changes = await pullChangesService('userId', last_pulled_at);
+    const changes = await pullChangesService(getUuid(true), last_pulled_at);
     return new ApiResponse(200, changes);
 }
 

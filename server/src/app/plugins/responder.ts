@@ -54,6 +54,8 @@ export const ApiResponder: AppPlugin = fastifyPlugin(async (fastify: AppFastify)
                 ...(error.issues && {issues: error.issues})
             }
         }
+
+        console.error(error);
         // Scenario C: Unhandled System Exception
         response.code(500);
         return {
