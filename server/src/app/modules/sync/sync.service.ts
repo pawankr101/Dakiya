@@ -1,9 +1,9 @@
 import { Chrono, loop } from "@dakiya/shared";
+import { ApiException } from "app/exception";
 import { type PulledSyncData, pullSyncData } from "../../../storage/db/pg/repositories/sync.repository";
-import type { DatabaseChanges, PulledChanges } from "./sync.type";
+import type { PulledChanges } from "./sync.type";
 
 const categorizeChanges = (() => {
-
     const buildChangeSet = <T extends { createdAt: string }>(records: T[], lastPulledAt?: number) => {
         if (!lastPulledAt) return { created: records, updated: [], deleted: [] };
         const created: T[] = [], updated: T[] = [], deleted: string[] = [];
@@ -16,24 +16,29 @@ const categorizeChanges = (() => {
         });
         return { created, updated, deleted };
     }
-    return (rawSyncData: PulledSyncData['rawSyncData'], lastPulledAt?: number): DatabaseChanges => {
+    return (rawSyncData: PulledSyncData['rawSyncData'], lastPulledAt?: number) => {
+        const { users, conversations, conversationMembers, messages, messageReactions, messageEdits, media } = rawSyncData;
         return {
-            users: buildChangeSet(rawSyncData.users, lastPulledAt),
-            conversations: buildChangeSet(rawSyncData.conversations, lastPulledAt),
-            conversation_members: buildChangeSet(rawSyncData.conversationMembers, lastPulledAt),
-            messages: buildChangeSet(rawSyncData.messages, lastPulledAt),
-            message_reactions: buildChangeSet(rawSyncData.messageReactions, lastPulledAt),
-            message_edits: buildChangeSet(rawSyncData.messageEdits, lastPulledAt),
-            media: buildChangeSet(rawSyncData.media, lastPulledAt),
+            users: buildChangeSet(users, lastPulledAt),
+            conversations: buildChangeSet(conversations, lastPulledAt),
+            conversation_members: buildChangeSet(conversationMembers, lastPulledAt),
+            messages: buildChangeSet(messages, lastPulledAt),
+            message_reactions: buildChangeSet(messageReactions, lastPulledAt),
+            message_edits: buildChangeSet(messageEdits, lastPulledAt),
+            media: buildChangeSet(media, lastPulledAt)
         };
     }
 })();
 
 export const pullChangesService = async (userId: string, lastPulledAt?: number): Promise<PulledChanges> => {
-    const lastPulledAtIso = lastPulledAt ? Chrono.timestampToIso(lastPulledAt) : undefined;
-    const data: PulledSyncData = await pullSyncData(userId, lastPulledAtIso);
-    return {
-        lastPulledAt: data.timestamp,
-        changes: categorizeChanges(data.rawSyncData),
+    try {
+        const lastPulledAtIso = lastPulledAt ? Chrono.timestampToIso(lastPulledAt) : undefined;
+        const data: PulledSyncData = await pullSyncData(userId, lastPulledAtIso);
+        return {
+            lastPulledAt: data.timestamp,
+            changes: categorizeChanges(data.rawSyncData)
+        }
+    } catch (error) {
+        throw new ApiException(error as Error, { code: 'SYNC_PULL_ERROR', httpCode: 500 });
     }
 };

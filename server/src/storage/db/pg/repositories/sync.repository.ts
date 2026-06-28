@@ -78,7 +78,7 @@ export const pullSyncData = async (userId: string, lastPulledAtIso?: string): Pr
                         AND m.updated_at >= ${boundaryIso}
                         AND (
                             cm.has_historical_access = true
-                            OR m.created_at >= cm.joined_at
+                            OR m.created_at >= COALESCE(cm.joined_at, cm.created_at)
                         )
                 `;
 
@@ -171,29 +171,18 @@ export const pullSyncData = async (userId: string, lastPulledAtIso?: string): Pr
         rawSyncData.messages = await tx<Message[]>`
             SELECT m.* FROM messages m
             WHERE m.conversation_id IN ${tx(usersConversationsIds)}
-            AND (
-                m.updated_at >= ${lastPulledAtIso}
-                ${newlyActiveConvIds.length > 0 ? tx`
-                OR (
-                    m.conversation_id IN ${tx(newlyActiveConvIds)}
-                    AND EXISTS (
-                        SELECT 1 FROM conversation_members cm
-                        WHERE cm.conversation_id = m.conversation_id
-                            AND cm.user_id = ${userId}
-                            AND (
-                                (
-                                    cm.has_historical_access = true
-                                    AND m.updated_at >= ${boundaryIso}
-                                )
-                                OR
-                                (
-                                    cm.has_historical_access = false
-                                    AND m.created_at >= cm.joined_at
-                                )
-                            )
-                    )
-                )
-                ` : tx``}
+                AND m.updated_at >= ${lastPulledAtIso}
+            UNION
+            SELECT m.* FROM messages m
+            INNER JOIN (
+                SELECT cm.conversation_id, cm.has_historical_access, cm.joined_at
+                FROM conversation_members cm
+                WHERE cm.user_id = ${userId}
+                    AND cm.conversation_id IN ${tx(newlyActiveConvIds)}
+            ) ua ON m.conversation_id = ua.conversation_id
+            WHERE (
+                (ua.has_historical_access = true AND m.updated_at >= ${boundaryIso})
+                OR (ua.has_historical_access = false AND m.created_at >= COALESCE(ua.joined_at, ua.created_at))
             )
         `;
 
@@ -260,52 +249,42 @@ export const pullSyncData = async (userId: string, lastPulledAtIso?: string): Pr
 
         const updatedUserIds = mapLoop(rawSyncData.users, (u) => u.id);
         rawSyncData.media = await tx<Media[]>`
-            SELECT med.* FROM media med LEFT JOIN messages m
-                ON med.parent_id = m.id
-                AND med.parent_type = 'message'
-                WHERE (
-                    (
-                        med.parent_type = 'message'
+            SELECT med.* FROM media med
+            WHERE med.parent_type = 'message'
+                AND EXISTS (
+                    SELECT 1 FROM messages m
+                    WHERE m.id = med.parent_id
                         AND m.conversation_id IN ${tx(usersConversationsIds)}
-                        AND (
-                            med.updated_at >= ${lastPulledAtIso}
-                            ${newlyActiveConvIds.length > 0 ? tx`
-                                OR (
-                                    m.conversation_id IN ${tx(newlyActiveConvIds)}
-                                    AND EXISTS (
-                                        SELECT 1 FROM conversation_members cm
-                                        WHERE cm.conversation_id = m.conversation_id
-                                            AND cm.user_id = ${userId}
-                                            AND (
-                                                (
-                                                    cm.has_historical_access = true
-                                                    AND med.updated_at >= ${boundaryIso}
-                                                )
-                                                OR
-                                                (
-                                                    cm.has_historical_access = false
-                                                    AND m.created_at >= COALESCE(cm.joined_at, cm.created_at)
-                                                )
-                                            )
-                                    )
-                                )
-                            ` : tx``}
-                        )
-                    )
-                    OR
-                    (
-                        med.parent_type = 'conversation'
-                        AND med.parent_id IN ${tx(usersConversationsIds)}
-                        AND med.updated_at >= ${lastPulledAtIso}
-                    )
-                    ${updatedUserIds.length > 0 ? tx`
-                        OR (
-                            med.parent_type = 'user'
-                            AND med.parent_id IN ${tx(updatedUserIds)}
-                            AND med.updated_at >= ${lastPulledAtIso}
-                        )
-                    ` : tx`OR false`}
+                        AND m.updated_at >= ${lastPulledAtIso}
                 )
+            UNION
+            -- Media for newly accessible messages
+            SELECT med.* FROM media med
+            WHERE med.parent_type = 'message'
+                AND EXISTS (
+                    SELECT 1 FROM messages m
+                    INNER JOIN (
+                        SELECT cm.conversation_id
+                        FROM conversation_members cm
+                        WHERE cm.user_id = ${userId}
+                            AND cm.conversation_id IN ${tx(newlyActiveConvIds)}
+                    ) ua ON m.conversation_id = ua.conversation_id
+                    WHERE m.id = med.parent_id
+                        AND m.conversation_id IN ${tx(usersConversationsIds)}
+                        AND m.updated_at >= ${lastPulledAtIso}
+                )
+            UNION
+            -- Media for conversations
+            SELECT med.* FROM media med
+            WHERE med.parent_type = 'conversation'
+                AND med.parent_id IN ${tx(usersConversationsIds)}
+                AND med.updated_at >= ${lastPulledAtIso}
+            UNION
+            -- Media for users (if any user updated)
+            SELECT med.* FROM media med
+            WHERE med.parent_type = 'user'
+                AND med.parent_id IN ${tx(updatedUserIds)}
+                AND med.updated_at >= ${lastPulledAtIso}
         `;
 
         return { timestamp: Number(serverTimeMs), rawSyncData };

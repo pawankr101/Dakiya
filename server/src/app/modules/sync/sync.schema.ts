@@ -1,6 +1,6 @@
 import type { FastifySchema } from 'fastify';
 import { type TSchema, Type } from 'typebox';
-import { buildApiErrorSchema, buildApiResponseSchema } from '../../schema.js';
+import { buildApiErrorSchema, buildApiResponseSchema } from '../../schema';
 
 const TAGS = ['Synchronization'] as const;
 

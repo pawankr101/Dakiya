@@ -94,7 +94,7 @@ export const MessageEditSchema = Type.Object({
 }, { $id: 'MessageEditSchema' });
 
 export const MediaSchema = Type.Object({
-    uid: Type.String({ format: 'uuid' }),
+    id: Type.String({ format: 'uuid' }),
     parentType: MediaParentTypeSchema,
     parentId: Type.String({ format: 'uuid' }), // Foreign key to Message, User, or Conv
     type: MediaTypeSchema,

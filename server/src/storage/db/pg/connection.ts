@@ -341,10 +341,43 @@ const createDeliveryQueueTable = async (connection: Sql) => {
 const createIndexes = async (connection: Sql) => {
     try {
         await Promise.all([
-            await connection`CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);`,
-            await connection`CREATE INDEX IF NOT EXISTS idx_conv_members_user ON conversation_members(user_id);`,
-            await connection`CREATE INDEX IF NOT EXISTS idx_delivery_device ON delivery_queue(recipient_device_id);`,
-            await connection`CREATE INDEX IF NOT EXISTS idx_media_lookup ON media(parent_id, parent_type);`
+            connection`CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id);`,
+            connection`CREATE INDEX IF NOT EXISTS idx_conv_members_user ON conversation_members(user_id);`,
+            connection`CREATE INDEX IF NOT EXISTS idx_delivery_device ON delivery_queue(recipient_device_id);`,
+            connection`CREATE INDEX IF NOT EXISTS idx_media_lookup ON media(parent_id, parent_type);`,
+
+            // Conversation members queries (filtering by user, status, timestamps)
+            connection`CREATE INDEX IF NOT EXISTS idx_conv_members_user_active
+                ON conversation_members(user_id, has_left, is_deleted)
+                WHERE has_left = false;`,
+
+            // Messages filtering (by conversation + timestamp)
+            connection`CREATE INDEX IF NOT EXISTS idx_messages_conv_updated
+                ON messages(conversation_id, updated_at);`,
+
+            // Message reactions filtering
+            connection`CREATE INDEX IF NOT EXISTS idx_message_reactions_msg_updated
+                ON message_reactions(message_id, updated_at);`,
+
+            // Message edits filtering
+            connection`CREATE INDEX IF NOT EXISTS idx_message_edits_msg_created
+                ON message_edits(message_id, created_at);`,
+
+            // Media filtering by parent
+            connection`CREATE INDEX IF NOT EXISTS idx_media_by_type_parent
+                ON media(parent_type, parent_id, updated_at);`,
+
+            // Conversation members by conversation
+            connection`CREATE INDEX IF NOT EXISTS idx_conv_members_conv_id
+                ON conversation_members(conversation_id, user_id, updated_at);`,
+
+            // User queries (for delta sync)
+            connection`CREATE INDEX IF NOT EXISTS idx_users_updated_at
+                ON users(updated_at);`,
+
+            // Devices for push notifications
+            connection`CREATE INDEX IF NOT EXISTS idx_devices_user
+                ON devices(user_id);`
         ]);
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
