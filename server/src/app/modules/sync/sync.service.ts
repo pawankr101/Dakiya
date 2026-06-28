@@ -33,10 +33,10 @@ const categorizeChanges = (() => {
 export const pullChangesService = async (userId: string, lastPulledAt?: number): Promise<PulledChanges> => {
     try {
         const lastPulledAtIso = lastPulledAt ? Chrono.timestampToIso(lastPulledAt) : undefined;
-        const data: PulledSyncData = await pullSyncData(userId, lastPulledAtIso);
+        const data = await pullSyncData(userId, lastPulledAtIso);
         return {
             lastPulledAt: data.timestamp,
-            changes: categorizeChanges(data.rawSyncData)
+            changes: categorizeChanges(data.rawSyncData, lastPulledAt)
         }
     } catch (error) {
         throw new ApiException(error as Error, { code: 'SYNC_PULL_ERROR', httpCode: 500 });
