@@ -50,3 +50,6 @@ Thumbs.db
 
 # Temporory experiments folder
 /experiments
+
+# AI Agent, local LLM
+.agent/

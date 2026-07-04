@@ -14,8 +14,6 @@ const makeTableChangeSetSchema = <T extends TSchema>(itemSchema: T) => {
 
 export const DatabaseChangesSchema = Type.Object({
     users: makeTableChangeSetSchema(Type.Ref('UserSchema')),
-    use_settings: makeTableChangeSetSchema(Type.Ref('UserSettingsSchema')),
-	devices: makeTableChangeSetSchema(Type.Ref('DeviceSchema')),
 	conversations: makeTableChangeSetSchema(Type.Ref('ConversationSchema')),
 	conversation_members: makeTableChangeSetSchema(Type.Ref('ConversationMemberSchema')),
     messages: makeTableChangeSetSchema(Type.Ref('MessageSchema')),

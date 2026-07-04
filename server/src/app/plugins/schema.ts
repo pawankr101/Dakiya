@@ -10,7 +10,7 @@ import {
     MessageSchema,
     UserSchema,
     UserSettingsSchema
-} from "../../entities/schemas.js";
+} from "../../entities/schema.js";
 import type { AppFastify, AppPlugin } from "../types";
 
 export const GlobalSchemas: AppPlugin = fastifyPlugin(async (fastify: AppFastify) => {

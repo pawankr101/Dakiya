@@ -1,4 +1,5 @@
 import { Type } from 'typebox';
+import { EpochTimestampSchema } from '../../schema';
 
 export const ConversationSchema = Type.Object({
     id: Type.String({ format: 'uuid' }),
@@ -12,9 +13,9 @@ export const ConversationSchema = Type.Object({
         adminOnlyMessages: Type.Boolean(),
         adminOnlyEditInfo: Type.Boolean()
     }),
-    lastMessageAt: Type.Optional(Type.String({ format: 'date-time' })),
-    createdAt: Type.String({ format: 'date-time' }),
-    updatedAt: Type.String({ format: 'date-time' })
+    lastMessageAt: Type.Optional(EpochTimestampSchema),
+    createdAt: EpochTimestampSchema,
+    updatedAt: EpochTimestampSchema
 }, { $id: 'ConversationSchema' });
 
 export const ConversationMemberSchema = Type.Object({
@@ -24,14 +25,14 @@ export const ConversationMemberSchema = Type.Object({
     muteUntil: Type.Number(), // 0 for not muted
     isArchived: Type.Boolean(),
     isPinned: Type.Boolean(),
-    lastReadAt: Type.Optional(Type.String({ format: 'date-time' })),
+    lastReadAt: Type.Optional(EpochTimestampSchema),
     isDeleted: Type.Boolean(),
-    joinedAt: Type.String({ format: 'date-time' }),
+    joinedAt: EpochTimestampSchema,
     hasHistoricalAccess: Type.Boolean(),
     addedBy: Type.Optional(Type.String({ format: 'uuid' })),
     isAdmin: Type.Boolean(),
     hasLeft: Type.Boolean(),
 
-    createdAt: Type.String({ format: 'date-time' }),
-    updatedAt: Type.String({ format: 'date-time' })
+    createdAt: EpochTimestampSchema,
+    updatedAt: EpochTimestampSchema
 }, { $id: 'ConversationMemberSchema' });

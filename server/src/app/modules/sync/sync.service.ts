@@ -4,11 +4,11 @@ import { type PulledSyncData, pullSyncData } from "../../../storage/db/pg/reposi
 import type { PulledChanges } from "./sync.type";
 
 const categorizeChanges = (() => {
-    const buildChangeSet = <T extends { createdAt: string }>(records: T[], lastPulledAt?: number) => {
+    const buildChangeSet = <T extends { createdAt: number }>(records: T[], lastPulledAt?: number) => {
         if (!lastPulledAt) return { created: records, updated: [], deleted: [] };
         const created: T[] = [], updated: T[] = [], deleted: string[] = [];
         loop(records, (record) => {
-            if (Chrono.isoToTimestamp(record.createdAt) > lastPulledAt) {
+            if (record.createdAt > lastPulledAt) {
                 created.push(record);
             } else {
                 updated.push(record);

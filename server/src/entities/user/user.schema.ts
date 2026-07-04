@@ -1,3 +1,4 @@
+import { EpochTimestampSchema } from '../../schema';
 import { Type } from 'typebox';
 
 const UserGenderSchema = Type.Union([
@@ -19,9 +20,9 @@ export const UserSchema = Type.Object({
     gender: Type.Optional(UserGenderSchema),
     country: Type.Optional(Type.String()),
     isVerified: Type.Boolean(),
-    lastActiveAt: Type.Optional(Type.String({ format: 'date-time' })),
-    createdAt: Type.String({ format: 'date-time' }),
-    updatedAt: Type.String({ format: 'date-time' })
+    lastActiveAt: Type.Optional(EpochTimestampSchema),
+    createdAt: EpochTimestampSchema,
+    updatedAt: EpochTimestampSchema
 }, { $id: 'UserSchema' });
 
 const ThemeSchema = Type.Union([
@@ -114,7 +115,7 @@ export const DeviceSchema = Type.Object({
     appVersion: Type.Optional(Type.String()),
     userAgent: Type.Optional(Type.String()),
     fcmToken: Type.Optional(Type.String()),
-    lastActiveAt: Type.Optional(Type.String({ format: 'date-time' })),
-    createdAt: Type.String({ format: 'date-time' }),
-    updatedAt: Type.String({ format: 'date-time' })
+    lastActiveAt: Type.Optional(EpochTimestampSchema),
+    createdAt: EpochTimestampSchema,
+    updatedAt: EpochTimestampSchema
 }, { $id: 'DeviceSchema' });

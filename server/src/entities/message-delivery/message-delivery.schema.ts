@@ -1,4 +1,5 @@
 import { Type } from 'typebox';
+import { EpochTimestampSchema } from '../../schema';
 
 const DeliveryItemTypeSchema = Type.Union([
 	Type.Literal('message'),
@@ -12,5 +13,5 @@ export const DeliveryQueueItemSchema = Type.Object({
 	recipientDeviceId: Type.String({ format: 'uuid' }),
 	deliveryItemType: DeliveryItemTypeSchema,
 	deliveryItemId: Type.String({ format: 'uuid' }),
-	createdAt: Type.String({ format: 'date-time' })
+	createdAt: EpochTimestampSchema
 }, { $id: 'DeliveryQueueItemSchema' });

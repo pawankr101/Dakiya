@@ -1,4 +1,5 @@
 import { Type } from 'typebox';
+import { EpochTimestampSchema } from '../../schema';
 
 const MessageContentSchema = Type.Object({
     // for text messages
@@ -59,16 +60,16 @@ export const MessageSchema = Type.Object({
     type: MessageTypeSchema,
     content: MessageContentSchema,
     status: MessageStatusSchema,
-    sentAt: Type.String({ format: 'date-time' }),
-    deliveredAt: Type.Optional(Type.String({ format: 'date-time' })),
-    readAt: Type.Optional(Type.String({ format: 'date-time' })),
+    sentAt: EpochTimestampSchema,
+    deliveredAt: Type.Optional(EpochTimestampSchema),
+    readAt: Type.Optional(EpochTimestampSchema),
     replyToMessageId: Type.Optional(Type.String({ format: 'uuid' })),
     isForwarded: Type.Boolean(),
     isEncrypted: Type.Boolean(),
     encryptionAlgorithm: Type.Optional(Type.String()),
     isEdited: Type.Boolean(),
-    createdAt: Type.String({ format: 'date-time' }),
-    updatedAt: Type.String({ format: 'date-time' })
+    createdAt: EpochTimestampSchema,
+    updatedAt: EpochTimestampSchema
 }, { $id: 'MessageSchema' });
 
 export const MessageReactionSchema = Type.Object({
@@ -77,8 +78,8 @@ export const MessageReactionSchema = Type.Object({
     userId: Type.String({ format: 'uuid' }),
     reaction: Type.String(), // Emoji string
     isRemoved: Type.Boolean(),
-    createdAt: Type.String({ format: 'date-time' }),
-    updatedAt: Type.String({ format: 'date-time' })
+    createdAt: EpochTimestampSchema,
+    updatedAt: EpochTimestampSchema
 }, { $id: 'MessageReactionSchema' });
 
 export const MessageEditSchema = Type.Object({
@@ -89,8 +90,8 @@ export const MessageEditSchema = Type.Object({
     previousContent: MessageContentSchema, // JSONB
     newType: MessageTypeSchema,
     newContent: MessageContentSchema,    // JSONB
-    editedAt: Type.String({ format: 'date-time' }),
-    createdAt: Type.String({ format: 'date-time' })
+    editedAt: EpochTimestampSchema,
+    createdAt: EpochTimestampSchema
 }, { $id: 'MessageEditSchema' });
 
 export const MediaSchema = Type.Object({
@@ -105,6 +106,6 @@ export const MediaSchema = Type.Object({
     width: Type.Optional(Type.Number()),
     height: Type.Optional(Type.Number()),
     duration: Type.Optional(Type.Number()),
-    createdAt: Type.String({ format: 'date-time' }),
-    updatedAt: Type.String({ format: 'date-time' })
+    createdAt: EpochTimestampSchema,
+    updatedAt: EpochTimestampSchema
 }, { $id: 'MediaSchema' });
