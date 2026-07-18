@@ -410,23 +410,31 @@ Database Design Document
 --------------------------------------------
 1. PROFILE AND USER DATA
     * Profile: // this will be save as JSON in WatermelonDB localstorage
-        => id: "UUID, Primary Key, Immutable"
+        //-- User's profile information.
+        => info {
+            => id: "UUID, Primary Key, Immutable"
 
-        //-- Public Identifiers
-        => username: "String, Unique, Immutable"
-        => mobile: "String, Unique, NOT NULL"
-        => email: "String, Unique, nullable until verified"
+            //-- Public Identifiers
+            => username: "String, Unique, Immutable"
+            => mobile: "String, Unique, NOT NULL"
+            => email: "String, Unique, nullable until verified"
 
-        //-- Profile Information (KYC Fields)
-        => name: "String, nullable"
-        => dob: "Date, nullable"
-        => gender: "Enum ('male', 'female', 'other'), nullable"
-        => country: "String (ISO Country Code), nullable"
-        => is_verified: "Boolean, default = false, resets to false if KYC fields are altered"
+            //-- Profile Information (KYC Fields)
+            => name: "String, nullable"
+            => dob: "Date, nullable"
+            => gender: "Enum ('male', 'female', 'other'), nullable"
+            => country: "String (ISO Country Code), nullable"
+            => is_verified: "Boolean, default = false, resets to false if KYC fields are altered"
 
-        //-- Non-KYC Profile Information
-        => dp: "String (URL or Base64 String), nullable"
-        => bio: "String, nullable"
+            //-- Non-KYC Profile Information
+            => dp: "String (URL or Base64 String), nullable"
+            => bio: "String, nullable"
+
+            //-- Audit & Local-First Sync
+            => created_at: "Timestamp, Immutable"
+            => updated_at: "Timestamp (used for server-side audit logs only)"
+            => hlc: "String (Hybrid Logical Clock), used exclusively for calculating sync deltas"
+        }
 
         //-- Settings
         => Settings: {
@@ -493,20 +501,27 @@ Database Design Document
                 => recovery_codes_hash: "Array<String>, (Hash of valid 2FA recovery codes for emergency access)"
                 => last_password_change: "Timestamp, nullable (Used to force-expire sessions if the user changes their password)"
             }
-
-            //-- Devices
-            => devices: [{
-                => id: "UUID, Immutable"
-                => device_name: "String"
-                => platform: "Enum ('iOS', 'Android', 'Web', 'Desktop')"
-                => os_name: "String"
-                => app_version: "String"
-                => last_active_at: "'Last Active Timestamp'"
-            }]
         }
 
-        => created_at: "'Account Creation Timestamp'"
-        => updated_at: "'Last Account Update Timestamp'"
+        //-- Devices
+        => devices: [{
+            => id: "UUID, Immutable"
+            => device_name: "String"
+            => platform: "Enum ('iOS', 'Android', 'Web', 'Desktop')"
+            => os_name: "String"
+            => app_version: "String"
+            => last_active_at: "'Last Active Timestamp'"
+        }]
+
+        //-- Contacts & Relationships
+        => relationships: [{
+            => id: "UUID, Immutable"
+            => user_id: "UUID, Foreign Key to Users.id, Indexed, NOT NULL"
+            => is_contact: "Boolean, default = false"
+            => is_favorite: "Boolean, default = false"
+            => is_blocked: "Boolean, default = false"
+            => circle_ids: "Array of UUIDs, Indexed, NOT NULL, Default = [], Max allowed ids = 4"
+        }]
 
     * Users:
         => id: "UUID, Primary Key, Immutable"
