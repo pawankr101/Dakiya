@@ -12,14 +12,14 @@ const makeTableChangeSetSchema = <T extends TSchema>(itemSchema: T) => {
 	}));
 }
 
-export const DatabaseChangesSchema = Type.Object({
+const DatabaseChangesSchema = Type.Object({
     users: makeTableChangeSetSchema(Type.Ref('UserSchema')),
 	conversations: makeTableChangeSetSchema(Type.Ref('ConversationSchema')),
 	conversation_members: makeTableChangeSetSchema(Type.Ref('ConversationMemberSchema')),
-    messages: makeTableChangeSetSchema(Type.Ref('MessageSchema')),
-    message_reactions: makeTableChangeSetSchema(Type.Ref('MessageReactionSchema')),
-    message_edits: makeTableChangeSetSchema(Type.Ref('MessageEditSchema')),
-    media: makeTableChangeSetSchema(Type.Ref('MediaSchema'))
+	messages: makeTableChangeSetSchema(Type.Ref('MessageSchema')),
+	message_reactions: makeTableChangeSetSchema(Type.Ref('MessageReactionSchema')),
+	message_edits: makeTableChangeSetSchema(Type.Ref('MessageEditSchema')),
+	media: makeTableChangeSetSchema(Type.Ref('MediaSchema'))
 });
 
 export const PullChangesQuerySchema = Type.Object({
@@ -33,7 +33,7 @@ export const PullChangesSuccessSchema = Type.Object({
 
 const PushBodySchema = Type.Object({
     changes: DatabaseChangesSchema,
-    last_pulled_at: Type.Number()
+    lastPulledAt: Type.Number()
 });
 
 export const PullChangesSchema: FastifySchema = {

@@ -1,7 +1,9 @@
 import { mapLoop } from '@dakiya/shared';
+import type { TransactionSql } from 'postgres';
+import type { DatabaseChanges, TableChangeSet } from '../../../../app/modules/sync/sync.type';
 import { DB } from '../../../../config';
 import { PG } from '../connection';
-import type { Conversation, ConversationMember, Media, Message, MessageEdit, MessageReaction, User } from '../types';
+import type { Conversation, ConversationMember, Media, Message, MessageEdit, MessageReaction, User, SyncEntity } from '../types';
 
 interface RawSyncData {
     users: User[];
@@ -288,5 +290,11 @@ export const pullSyncData = async (userId: string, lastPulledAtIso?: string): Pr
         `;
 
         return { timestamp: Number(serverTimeMs), rawSyncData };
+    });
+};
+
+export const pushSyncData = async (userId: string, changes: DatabaseChanges): Promise<void> => {
+    await PG.sql.begin(async (tx) => {
+
     });
 };
