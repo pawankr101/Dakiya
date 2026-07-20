@@ -29,6 +29,7 @@ dist
 
 # IDE - VSCode
 .vscode/
+.zed
 
 # misc
 /.sass-cache

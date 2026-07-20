@@ -1,38 +1,41 @@
 {
-  "compilerOptions": {
-      /* 1. Base Environment */
-      "target": "es2024",
-      "module": "esnext",
-      "moduleResolution": "bundler",
-      "lib": [ "ES2024" ],
+	"$schema": "https://www.schemastore.org/tsconfig",
+	"_version": "26.0.0",
+	"compilerOptions": {
+		/* 1. Base Environment */
+		"target": "esnext",
+		"module": "nodenext",
+		"moduleResolution": "nodenext",
+		"lib": ["ESNext"],
 
-      /* 2. Path Resolution */
-      "rootDir": "./src",
-      "outDir": "./dist",
-      "paths": {
-          "*": [ "./src/*" ],
-          "@dakiya/shared": [ "../packages/shared/src/index.ts" ],
-          "@dakiya/shared/*": [ "../packages/shared/src/*" ]
-      },
+		/* 2. Path Resolution */
+		"rootDir": "./src",
+		"outDir": "./dist",
+		"paths": {
+			"*": ["./src/*"],
+			"@dakiya/shared": ["../packages/shared/src/index.ts"],
+			"@dakiya/shared/*": ["../packages/shared/src/*"]
+		},
 
-      /* 3. Connectivity & Compatibility */
-      "skipLibCheck": true,
-      "removeComments": true,
-      "noUnusedLocals": true,
-      "noUnusedParameters": true,
-      "esModuleInterop": true,
-      "allowSyntheticDefaultImports": true,
-      "forceConsistentCasingInFileNames": true,
-      "strictPropertyInitialization": false,
+		/* 3. Connectivity & Compatibility */
+		"skipLibCheck": true,
+		"removeComments": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"forceConsistentCasingInFileNames": true,
+		"strictPropertyInitialization": false,
 
-      /* 4. Build Artifacts */
-      "noEmit": true,
-      "incremental": true,
-      "inlineSources": true,
-      "inlineSourceMap": true,
-      "tsBuildInfoFile": "./dist/.tsbuildinfo",
+		/* 4. Build Artifacts */
+		"noEmit": true,
+		"incremental": true,
+		"inlineSources": true,
+		"inlineSourceMap": true,
+		"tsBuildInfoFile": "./dist/.tsbuildinfo",
 
-      "typeRoots": [ "../node_modules/@types" ]
-  },
-  "include": [ "./src/**/*" ]
+		"typeRoots": ["../node_modules/@types"],
+        "types": ["node"]
+	},
+	"include": ["./src/**/*"]
 }

@@ -1,5 +1,6 @@
 {
-	"$schema": "https://json.schemastore.org/tsconfig",
+    "$schema": "https://www.schemastore.org/tsconfig",
+    "_version": "26.0.0",
 	"compilerOptions": {
 		/* 1. Base Environment */
 		"target": "esnext",
@@ -36,7 +37,8 @@
 		"inlineSourceMap": true,
 		"tsBuildInfoFile": "./dist/.tsbuildinfo",
 
-		"typeRoots": ["../node_modules/@types"]
+		"typeRoots": ["../node_modules/@types"],
+        "types": ["node"]
 	},
 	"include": ["./src/**/*"]
 }

@@ -69,11 +69,11 @@ export interface Chrono {
     isoToTimestamp(iso: string): number;
 
     /**
-     * Returns the current date or timestamp in the specified format.
+     * Returns the current date iso or epoch timestamp in the specified format.
      * @param format The format to return the date or timestamp in.
-     * @returns The current date or timestamp in the specified format.
+     * @returns The current date iso or epoch timestamp in the specified format.
      */
-    now<F extends "iso" | "timestamp", R extends F extends "iso" ? string : F extends "timestamp" ? number : never>(format: F): R;
+    now<F extends "iso" | "epoch", R extends F extends "iso" ? string : F extends "epoch" ? number : never>(format: F): R;
 }
 
 const getLastNYears = (n: number): List<number> => {
@@ -131,7 +131,7 @@ const isoToTimestamp = (iso: string): number => {
     return Temporal.Instant.from(iso).epochMilliseconds;
 }
 
-const now = <F extends 'iso' | 'timestamp', R extends F extends 'iso' ? string : F extends 'timestamp' ? number : never>(format: F): R => {
+const now = <F extends 'iso' | 'epoch', R extends F extends 'iso' ? string : F extends 'epoch' ? number : never>(format: F): R => {
     const instant = Temporal.Now.instant();
     if(format === 'iso') return instant.toString() as R;
     return instant.epochMilliseconds as R;

@@ -57,6 +57,24 @@ const healthHandler = async (_request: FastifyRequest, response: FastifyReply) =
 
 };
 
+const TimeSchema: FastifySchema = {
+    tags: ['System'],
+    summary: 'Get Server Time',
+    description: 'Returns the current server time in Unix milliseconds time format.',
+    response: {
+        200: Type.Object({
+            timestamp: Type.Number()
+        })
+    }
+};
+
+const timeHandler = async (_request: FastifyRequest, response: FastifyReply) => {
+    response.send({
+        timestamp: Chrono.now('epoch')
+    });
+};
+
 export const SystemRoutes: AppPlugin = async (fastify: AppFastify) => {
     fastify.get('/health', { schema: HealthSchma }, healthHandler);
+    fastify.get('/time', { schema: TimeSchema }, timeHandler);
 };
