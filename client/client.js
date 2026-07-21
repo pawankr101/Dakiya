@@ -1,8 +1,8 @@
-import { resolve as resolvePath } from "node:path";
-import { createServer, Server } from "node:http";
 import { randomBytes } from "node:crypto";
-import { fileURLToPath } from "node:url";
 import { rm, watch } from "node:fs";
+import { createServer, Server } from "node:http";
+import { resolve as resolvePath } from "node:path";
+import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import MIME from "mime/lite";
 
@@ -17,14 +17,14 @@ const CONFIG = {
         { in: resolvePath(CWD, "src", "index.html"), out: "index" },
         { in: resolvePath(CWD, "src", "index.tsx"), out: "main" },
         { in: resolvePath(CWD, "src", "workers/index.ts"), out: "worker" },
-        { in: resolvePath(CWD, "src", "assets/dakiya.ico"), out: "favicon" },
+        { in: resolvePath(CWD, "src", "assets/dakiya.ico"), out: "favicon" }
     ],
     target: ["ES2022", "chrome120", "firefox121", "edge120", "safari17"],
     host: process.env.HOST || "127.0.0.1",
     port: Number.parseInt(process.env.PORT, 10) || 4000,
     watcherDelay: 2000,
     logBuildResult: false,
-    cachesIndexHtml: true,
+    cachesIndexHtml: true
 };
 /********************* CONFIGURATIONS: End *********************/
 
@@ -268,31 +268,40 @@ class ProjectBuilder {
     }
 }
 
+
 /**
  * Static file server
  */
-class StaticServer {
+const StaticServer = (() => {
+    /**
+     * @typedef {{
+     *     start(builderOptions: BuilderOptions, serverOptions: ServerOptions) => Promise<void>
+     * }} StaticServer
+     * @type {StaticServer}
+     */
+    const StaticServer = Object.create(null);
+
     /** @type {Server} */
-    static #server = null;
+    let server = null;
 
     /** @type {StaticFiles} */
-    static #fileSource = null;
+    let fileSource = null;
 
     /**
      * #### gets the requested file from the static file sources
      * @param {string} url
      * @return {{name: string, size: number, contents: Uint8Array}}
      */
-    static #getRequestedFile(url) {
-        if (!StaticServer.#fileSource) return null;
+    const getRequestedFile = (url) => {
+        if (!fileSource) return null;
         let path = url.split("?")[0];
         if (path.startsWith('/')) path = path.slice(1);
         if (!path) path = "index.html";
 
-        let file = StaticServer.#fileSource.getFile(path);
+        let file = fileSource.getFile(path);
         if (!file) {
             path = "index.html";
-            file = StaticServer.#fileSource.getFile(path);
+            file = fileSource.getFile(path);
         }
 
         return file ? { name: path, size: file.length, contents: file } : null;
@@ -304,8 +313,8 @@ class StaticServer {
      * @param {import("http").ServerResponse} response
      * @param {StaticFiles} source
      */
-    static #requestHandler = (request, response) => {
-        const file = this.#getRequestedFile(request.url);
+    const requestHandler = (request, response) => {
+        const file = getRequestedFile(request.url);
         if (file) {
             response.writeHead(200, "Success", {
                 "content-type": MIME.getType(file.name),
@@ -326,14 +335,14 @@ class StaticServer {
      * @param {number} port
      * @return {Promise<void>}
      */
-    static #startServer(host, port) {
+    const startServer = (host, port) => {
         return new Promise((success, failure) => {
             // create server
-            const server = createServer(StaticServer.#requestHandler);
-            server.on("error", failure);
+            const s = createServer(requestHandler);
+            s.on("error", failure);
 
-            if (StaticServer.#server) StaticServer.#server.close();
-            StaticServer.#server = server;
+            if (server) server.close();
+            server = s;
 
             server.listen(port, host, () => {
                 console.log(`\u001b[32m  [C] Client Application Started.`);
@@ -350,7 +359,7 @@ class StaticServer {
      * @param {ProjectBuilder} builder
      * @return {void}
      */
-    static #watchDirectory(watchDir, watcherDelay, builder) {
+    const watchDirectory = (watchDir, watcherDelay, builder) => {
         let timer = null;
         let isBuilding = false, needRebuild = false;
         const rebuild = () => {
@@ -381,19 +390,17 @@ class StaticServer {
     }
 
     /**
-     *
-     * @param {BuilderOptions} builderOptions
-     * @param {ServerOptions} serverOptions
+     * ### starts the static file server and builds the project
      */
-    static async start(builderOptions, serverOptions) {
+    StaticServer.start = async (builderOptions, serverOptions) => {
         try {
             const builder = ProjectBuilder.getBuilder(builderOptions);
             await builder.build();
-            StaticServer.#fileSource = builder.cache;
+            fileSource = builder.cache;
 
-            await StaticServer.#startServer(serverOptions.host, serverOptions.port);
+            await startServer(serverOptions.host, serverOptions.port);
             if (serverOptions.watchDir) {
-                StaticServer.#watchDirectory(
+                watchDirectory(
                     serverOptions.watchDir,
                     serverOptions.watcherDelay,
                     builder,
@@ -403,8 +410,10 @@ class StaticServer {
             console.error(error);
             throw error;
         }
-    }
-}
+    };
+
+    return StaticServer;
+})();
 
 (function start() {
     if (process.argv.includes("--build")) {

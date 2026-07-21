@@ -273,7 +273,7 @@ class AppRunner {
             this.#instance.on("error", (err) => console.error(`[S] Error:`, err));
         } else {
             // --- PROCESS MODE (SPAWN) ---
-            this.#instance = spawn(process.execPath, ["--inspect", "--env-file="+this.#envFile, "--enable-source-maps", this.#entryFile], {
+            this.#instance = spawn(process.execPath, ["--inspect", `--env-file=${this.#envFile}`, "--enable-source-maps", this.#entryFile], {
                 stdio: "inherit"
             });
         }
