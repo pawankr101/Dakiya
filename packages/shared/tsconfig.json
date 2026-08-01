@@ -6,7 +6,7 @@
         "target": "esnext",
         "module": "esnext",
         "moduleResolution": "bundler",
-        "lib": [ "ESNext" ],
+        "lib": [ "ESNext", "DOM" ],
 
         /* 2. Path Resolution */
         "rootDir": "./src",

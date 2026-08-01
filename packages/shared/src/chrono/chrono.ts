@@ -69,11 +69,16 @@ export interface Chrono {
     isoToTimestamp(iso: string): number;
 
     /**
-     * Returns the current date iso or epoch timestamp in the specified format.
-     * @param format The format to return the date or timestamp in.
-     * @returns The current date iso or epoch timestamp in the specified format.
+     * Returns the current epoch timestamp in milliseconds.
+     * @returns The current epoch timestamp in milliseconds.
      */
-    now<F extends "iso" | "epoch", R extends F extends "iso" ? string : F extends "epoch" ? number : never>(format: F): R;
+    now(): number;
+
+    /**
+     * Returns the current epoch timestamp in ISO string format.
+     * @returns The current epoch timestamp in ISO string format.
+     */
+    isoNow(): string;
 }
 
 const getLastNYears = (n: number): List<number> => {
@@ -131,10 +136,12 @@ const isoToTimestamp = (iso: string): number => {
     return Temporal.Instant.from(iso).epochMilliseconds;
 }
 
-const now = <F extends 'iso' | 'epoch', R extends F extends 'iso' ? string : F extends 'epoch' ? number : never>(format: F): R => {
-    const instant = Temporal.Now.instant();
-    if(format === 'iso') return instant.toString() as R;
-    return instant.epochMilliseconds as R;
+const now = (): number => {
+    return Temporal.Now.instant().epochMilliseconds;
+}
+
+const isoNow = (): string => {
+    return Temporal.Now.instant().toString();
 }
 
 export const Chrono = (() => {
@@ -150,6 +157,7 @@ export const Chrono = (() => {
     Chrono.timestampToIso = timestampToIso;
     Chrono.isoToTimestamp = isoToTimestamp;
     Chrono.now = now;
+    Chrono.isoNow = isoNow;
 
     return Chrono;
 })();

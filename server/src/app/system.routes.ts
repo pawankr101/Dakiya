@@ -41,7 +41,7 @@ const healthHandler = async (_request: FastifyRequest, response: FastifyReply) =
         ]);
         response.send({
             healthy: true,
-            timestamp: Chrono.now('iso'),
+            timestamp: Chrono.isoNow(),
             services: {
                 postgres: { status: 'connected' },
                 nats: { status: 'connected' }
@@ -50,7 +50,7 @@ const healthHandler = async (_request: FastifyRequest, response: FastifyReply) =
     } catch (error) {
         response.status(503).send({
             healthy: false,
-            timestamp: Chrono.now('iso'),
+            timestamp: Chrono.isoNow(),
             error: (error as Error).message || 'Service Unavailable'
         });
     }
@@ -70,7 +70,7 @@ const TimeSchema: FastifySchema = {
 
 const timeHandler = async (_request: FastifyRequest, response: FastifyReply) => {
     response.send({
-        timestamp: Chrono.now('epoch')
+        timestamp: Chrono.now()
     });
 };
 
