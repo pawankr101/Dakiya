@@ -749,3 +749,8 @@ Database Design Document
         => created_at: "Timestamp, Immutable"
         => updated_at: "Timestamp, — changes on reaction update or removal for the specific version of the message"
         => hlc: "String (Hybrid Logical Clock), used for sync tracking"
+
+
+total user base = 100,000
+avarage daily msg per user = 10 (100 chars per msg) (1kb per msg) (10kb per user)
+total msg size per day = 10 * 100,000 KB = ~1GB

@@ -1,5 +1,5 @@
 import { Exception } from '@dakiya/shared';
-import { connect, type NatsConnection, wsconnect } from '@nats-io/transport-node';
+import { connect, type NatsConnection } from '@nats-io/transport-node';
 import { NATS } from "../config.js";
 
 export interface Nats {

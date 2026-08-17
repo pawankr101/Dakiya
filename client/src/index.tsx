@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import { App } from './app';
 import { Guards } from '@dakiya/shared';
+import { App } from './app';
 
 function renderApp() {
     const RootElement = document.getElementById('root');
