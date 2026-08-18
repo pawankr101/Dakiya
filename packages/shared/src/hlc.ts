@@ -51,7 +51,7 @@ export class Hlc {
 
     private constructor(privateHash: string) {
         if (privateHash !== Hlc.#staticHash) {
-            throw new Error('Hlc constructor is private. Use Hlc.generate() to create an instance.');
+            throw new Exception('Hlc constructor is private. Use Hlc.generate() to create an instance.');
         }
     }
 
