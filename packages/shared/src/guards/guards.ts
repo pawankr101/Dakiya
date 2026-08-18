@@ -1,4 +1,4 @@
-import type { DynamicType, Func, HttpCode, PossibleTypes } from "../types.js";
+import type { DynamicType, Func, HttpCode, PossibleTypes } from "../types";
 
 export interface Guards {
     /**

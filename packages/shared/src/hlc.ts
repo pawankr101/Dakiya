@@ -1,5 +1,5 @@
-import { Exception } from "./errors";
 import { Chrono } from "./chrono";
+import { Exception } from "./errors";
 import { Guards } from "./guards";
 import { getShortId } from "./id";
 

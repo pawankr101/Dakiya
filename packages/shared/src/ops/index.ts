@@ -1,1 +1,1 @@
-export * from './ops.js';
+export * from './ops';

@@ -1,4 +1,4 @@
-import { LoopControl } from '../iter/index.js';
+import { LoopControl } from '../iter';
 
 type LoopCallback<T, U = void> = (item: T, index: number) => LoopControl | U;
 type MapLoopCallback<T, U, V = void> = (item: T, index: number) => LoopControl | U | V;

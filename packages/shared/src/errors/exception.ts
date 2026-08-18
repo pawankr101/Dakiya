@@ -1,4 +1,4 @@
-import { Guards } from "../guards/index.js";
+import { Guards } from "../guards";
 
 /****** Type Declarations: Start ******/
 export interface Message extends String {

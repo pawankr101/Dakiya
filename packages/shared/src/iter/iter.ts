@@ -1,5 +1,5 @@
-import { Guards } from "../guards/guards.js";
-import type { ObjectOf } from "../types.js";
+import { Guards } from "../guards";
+import type { ObjectOf } from "../types";
 
 export type LoopControl = typeof LoopControl[keyof typeof LoopControl];
 export const LoopControl = (() => {

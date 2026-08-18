@@ -1,4 +1,4 @@
-import { LinkedList, type List } from "./list.js";
+import { LinkedList, type List } from "./list";
 
 /**
 * A generic Queue class to manage a collection of data items in a FIFO (First In, First Out) manner.

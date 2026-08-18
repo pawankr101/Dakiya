@@ -1,5 +1,5 @@
-import { LoopControl } from '../iter/index.js';
-import type { ObjectOf } from '../types.js';
+import { LoopControl } from '../iter';
+import type { ObjectOf } from '../types';
 
 type LoopCallback<T, U = void> = (item: T, index: number) => LoopControl | U;
 

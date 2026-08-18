@@ -1,5 +1,5 @@
-import { Guards } from "../guards/index.js";
-import type { ObjectOf } from "../types.js";
+import { Guards } from "../guards";
+import type { ObjectOf } from "../types";
 
 type ValueErrorRangeType = { toValue?: number, error?: number, errorPercentage?: number, lowerRange?: number, upperRange?: number, distance?: number };
 type NumberComparatorType = number | { toValue: number, error: number } | { toValue: number, errorPercentage: number } | { lowerRange: number, upperRange: number } | { lowerRange: number, distance: number } | { upperRange: number, distance: number };

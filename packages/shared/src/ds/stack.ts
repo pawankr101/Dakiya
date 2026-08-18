@@ -1,4 +1,4 @@
-import { LinkedList, type List } from "./list.js";
+import { LinkedList, type List } from "./list";
 
 /**
 * A generic Stack class to manage a collection of data items in a LIFO (Last In, First Out) manner.
