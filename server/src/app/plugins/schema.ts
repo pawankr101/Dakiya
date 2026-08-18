@@ -2,15 +2,14 @@ import { fastifyPlugin } from "fastify-plugin";
 import {
     ConversationMemberSchema,
     ConversationSchema,
-    DeliveryQueueItemSchema,
     DeviceSchema,
-    MediaSchema,
-    MessageEditSchema,
+    MessageExclusionSchema,
     MessageReactionSchema,
     MessageSchema,
+    UserRelationshipSchema,
     UserSchema,
     UserSettingsSchema
-} from "../../entities/schema.js";
+} from "../../entities/schema";
 import type { AppFastify, AppPlugin } from "../types";
 
 export const GlobalSchemas: AppPlugin = fastifyPlugin(async (fastify: AppFastify) => {
@@ -18,11 +17,10 @@ export const GlobalSchemas: AppPlugin = fastifyPlugin(async (fastify: AppFastify
     fastify.addSchema(UserSchema);
     fastify.addSchema(UserSettingsSchema);
     fastify.addSchema(DeviceSchema);
+    fastify.addSchema(UserRelationshipSchema);
     fastify.addSchema(ConversationSchema);
     fastify.addSchema(ConversationMemberSchema);
     fastify.addSchema(MessageSchema);
+    fastify.addSchema(MessageExclusionSchema);
     fastify.addSchema(MessageReactionSchema);
-    fastify.addSchema(MessageEditSchema);
-    fastify.addSchema(MediaSchema);
-    fastify.addSchema(DeliveryQueueItemSchema);
 });
