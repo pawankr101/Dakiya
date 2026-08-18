@@ -31,8 +31,9 @@ export const getUuid = (() => {
         counter = counter < 1679615 ? counter + 1 : 0; // Reset counter after 'zzzz' in base-36
 
         // Ensure the UID is exactly 28 characters long.
-        uid = uid.length === 28 ? uid : (uid.length > 28 ? uid.substring(0, 28) : uid.padEnd(28, '0'));
-        return uid;
+        if(uid.length === 28) return uid;
+        else if(uid.length > 28) return uid.substring(0, 28);
+        return uid.padEnd(28, '0');
     }
 })();
 
@@ -75,6 +76,8 @@ export const getShortId = (() => {
         const uid = `${timestampBase36}${counterBase36}${randomBytes}`;
 
         // Ensure the UID is exactly 15 characters long.
-        return uid.length === 15 ? uid : (uid.length > 15 ? uid.substring(0, 15) : uid.padEnd(15, '0'));
+        if(uid.length === 15) return uid;
+        else if(uid.length > 15) return uid.substring(0, 15);
+        return uid.padEnd(15, '0');
     };
 })();
