@@ -1,111 +1,112 @@
 import { Type } from 'typebox';
-import { EpochTimestampSchema } from '../../schema';
+import { DBTableSchema, UUIDSchema } from '../../schema';
 
-const MessageContentSchema = Type.Object({
-    // for text messages
-    text: Type.Optional(Type.String()),
-
-    // for media messages
-    mediaCaption: Type.Optional(Type.String()),
-
-    // for location messages
-    latitude: Type.Optional(Type.Number()),
-    longitude: Type.Optional(Type.Number()),
-    locationName: Type.Optional(Type.String()),
-
-    // for poll messages
-    pollQuestion: Type.Optional(Type.String()),
-    pollOptions: Type.Optional(Type.Array(Type.String())),
-    pollMultipleAnswers: Type.Optional(Type.Boolean()),
-    pollExpiresAt: Type.Optional(Type.String({ format: 'date-time' })),
-
-    // for calendar event messages
-    eventTitle: Type.Optional(Type.String()),
-    eventDescription: Type.Optional(Type.String()),
-    eventStartTime: Type.Optional(Type.String({ format: 'date-time' })),
-    eventEndTime: Type.Optional(Type.String({ format: 'date-time' }))
+const TextContentSchema = Type.Object({
+    text: Type.String()
 });
-
-const MessageTypeSchema = Type.Union([
-    Type.Literal('text'),
-    Type.Literal('media'),
-    Type.Literal('location'),
-    Type.Literal('poll'),
-    Type.Literal('event')
-]);
-
-const MessageStatusSchema = Type.Union([
-    Type.Literal('sent'),
-    Type.Literal('delivered'),
-    Type.Literal('read')
-]);
-
-const MediaParentTypeSchema = Type.Union([
-    Type.Literal('message'),
-    Type.Literal('user'),
-    Type.Literal('conversation')
-]);
-
-const MediaTypeSchema = Type.Union([
-    Type.Literal('photo'),
-    Type.Literal('video'),
-    Type.Literal('audio'),
-    Type.Literal('document')
-]);
-
-export const MessageSchema = Type.Object({
-    id: Type.String({ format: 'uuid' }),
-    conversationId: Type.String({ format: 'uuid' }),
-    senderId: Type.String({ format: 'uuid' }),
-    type: MessageTypeSchema,
-    content: MessageContentSchema,
-    status: MessageStatusSchema,
-    sentAt: EpochTimestampSchema,
-    deliveredAt: Type.Optional(EpochTimestampSchema),
-    readAt: Type.Optional(EpochTimestampSchema),
-    replyToMessageId: Type.Optional(Type.String({ format: 'uuid' })),
-    isForwarded: Type.Boolean(),
-    isEncrypted: Type.Boolean(),
-    encryptionAlgorithm: Type.Optional(Type.String()),
-    isEdited: Type.Boolean(),
-    createdAt: EpochTimestampSchema,
-    updatedAt: EpochTimestampSchema
-}, { $id: 'MessageSchema' });
-
-export const MessageReactionSchema = Type.Object({
-    id: Type.String({ format: 'uuid' }),
-    messageId: Type.String({ format: 'uuid' }),
-    userId: Type.String({ format: 'uuid' }),
-    reaction: Type.String(), // Emoji string
-    isRemoved: Type.Boolean(),
-    createdAt: EpochTimestampSchema,
-    updatedAt: EpochTimestampSchema
-}, { $id: 'MessageReactionSchema' });
-
-export const MessageEditSchema = Type.Object({
-    id: Type.String({ format: 'uuid' }),
-    messageId: Type.String({ format: 'uuid' }),
-    editorId: Type.String({ format: 'uuid' }),
-    previousType: MessageTypeSchema,
-    previousContent: MessageContentSchema, // JSONB
-    newType: MessageTypeSchema,
-    newContent: MessageContentSchema,    // JSONB
-    editedAt: EpochTimestampSchema,
-    createdAt: EpochTimestampSchema
-}, { $id: 'MessageEditSchema' });
-
-export const MediaSchema = Type.Object({
-    id: Type.String({ format: 'uuid' }),
-    parentType: MediaParentTypeSchema,
-    parentId: Type.String({ format: 'uuid' }), // Foreign key to Message, User, or Conv
-    type: MediaTypeSchema,
-    fileName: Type.Optional(Type.String()),
-    remotePath: Type.String(),
+const ImageContentSchema = Type.Object({
+    filePath: Type.String(),
+    blurHash: Type.Optional(Type.String()),
+    size: Type.Number(),
+    width: Type.Number(),
+    height: Type.Number(),
+    caption: Type.Optional(Type.String())
+});
+const VideoContentSchema = Type.Object({
+    filePath: Type.String(),
+    thumbnailPath: Type.Optional(Type.String()),
+    blurHash: Type.Optional(Type.String()),
+    size: Type.Number(),
+    width: Type.Number(),
+    height: Type.Number(),
+    duration: Type.Number(),
+    caption: Type.Optional(Type.String())
+});
+const AudioContentSchema = Type.Object({
+    filePath: Type.String(),
+    size: Type.Number(),
+    duration: Type.Number(),
+    caption: Type.Optional(Type.String())
+});
+const DocumentContentSchema = Type.Object({
+    filePath: Type.String(),
     mimeType: Type.Optional(Type.String()),
     size: Type.Number(),
-    width: Type.Optional(Type.Number()),
-    height: Type.Optional(Type.Number()),
-    duration: Type.Optional(Type.Number()),
-    createdAt: EpochTimestampSchema,
-    updatedAt: EpochTimestampSchema
-}, { $id: 'MediaSchema' });
+    caption: Type.Optional(Type.String())
+});
+const ContactContentSchema = Type.Object({
+    name: Type.Optional(Type.String()),
+    phone: Type.Optional(Type.String()),
+    email: Type.Optional(Type.String()),
+    address: Type.Optional(Type.String()),
+    vcard: Type.Optional(Type.String())
+});
+const LocationContentSchema = Type.Object({
+    latitude: Type.Number(),
+    longitude: Type.Number(),
+    locationName: Type.Optional(Type.String())
+});
+const PollContentSchema = Type.Object({
+    pollQuestion: Type.String(),
+    pollOptions: Type.Array(Type.String()),
+    pollMultipleAnswers: Type.Boolean(),
+    pollExpiresAt: Type.Optional(Type.String({ format: 'date-time' }))
+});
+const EventContentSchema = Type.Object({
+    eventTitle: Type.String(),
+    eventDescription: Type.Optional(Type.String()),
+    eventLocation: Type.Optional(Type.String()),
+    eventStartTime: Type.String({ format: 'date-time' }),
+    eventEndTime: Type.Optional(Type.String({ format: 'date-time' }))
+});
+const SystemContentSchema = Type.Object({
+    eventKey: Type.String(),
+    actorId: Type.Optional(UUIDSchema),
+    targetId: Type.Optional(UUIDSchema),
+    value: Type.Optional(Type.String())
+});
+const DeleteContentSchema = Type.Object({
+    deletedBy: UUIDSchema,
+    reasonForDeletion: Type.Optional(Type.String())
+});
+
+
+export const MessageSchema = Type.Intersect([
+    DBTableSchema({
+        rootId: UUIDSchema,
+        version: Type.Number({ default: 0 }),
+        conversationId: UUIDSchema,
+        senderId: Type.Optional(UUIDSchema),
+        replyToMessageId: Type.Optional(UUIDSchema),
+        messageGroupId: Type.Optional(UUIDSchema),
+        messageGroupPosition: Type.Optional(Type.Number()),
+        isForwarded: Type.Boolean({ default: false })
+    }),
+    Type.Union([
+        Type.Object({ type: Type.Literal('text'), content: TextContentSchema }),
+        Type.Object({ type: Type.Literal('image'), content: ImageContentSchema }),
+        Type.Object({ type: Type.Literal('video'), content: VideoContentSchema }),
+        Type.Object({ type: Type.Literal('audio'), content: AudioContentSchema }),
+        Type.Object({ type: Type.Literal('document'), content: DocumentContentSchema }),
+        Type.Object({ type: Type.Literal('contact'), content: ContactContentSchema }),
+        Type.Object({ type: Type.Literal('location'), content: LocationContentSchema }),
+        Type.Object({ type: Type.Literal('poll'), content: PollContentSchema }),
+        Type.Object({ type: Type.Literal('event'), content: EventContentSchema }),
+        Type.Object({ type: Type.Literal('system'), content: SystemContentSchema }),
+        Type.Object({ type: Type.Literal('delete'), content: DeleteContentSchema }),
+    ])
+], { $id: 'MessageSchema' });
+
+export const MessageExclusionSchema = DBTableSchema({
+    messageRootId: UUIDSchema,
+    deletedFor: UUIDSchema,
+    deletedBy: UUIDSchema
+}, { $id: 'MessageExclusionSchema' });
+
+export const MessageReactionSchema = DBTableSchema({
+    messageRootId: UUIDSchema,
+    messageId: UUIDSchema,
+    userId: UUIDSchema,
+    reaction: Type.String(),
+    isRemoved: Type.Boolean({ default: false })
+}, { $id: 'MessageReactionSchema' });

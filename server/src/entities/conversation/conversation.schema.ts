@@ -1,38 +1,80 @@
 import { Type } from 'typebox';
-import { EpochTimestampSchema } from '../../schema';
+import { DBTableSchema, EpochTimestampSchema, UUIDSchema } from '../../schema';
 
-export const ConversationSchema = Type.Object({
-    id: Type.String({ format: 'uuid' }),
-    isGroup: Type.Boolean(),
-    groupName: Type.Optional(Type.String()),
-    groupDp: Type.Optional(Type.String()),
+const GroupMetadataSchema = Type.Object({
+    title: Type.String(),
     description: Type.Optional(Type.String()),
-    createdBy: Type.Optional(Type.String({ format: 'uuid' })),
-    settings: Type.Object({
-        allowInvites: Type.Boolean(),
-        adminOnlyMessages: Type.Boolean(),
-        adminOnlyEditInfo: Type.Boolean()
+    avatarUrl: Type.Optional(Type.String()),
+    createdById: UUIDSchema,
+    isAllowedInvites: Type.Boolean({ default: false }),
+    isAllowedEditInfo: Type.Boolean({ default: true })
+});
+
+const ChannelMetadataSchema = Type.Object({
+    title: Type.String(),
+    description: Type.Optional(Type.String()),
+    avatarUrl: Type.Optional(Type.String()),
+    createdById: UUIDSchema,
+    handle: Type.Optional(Type.String()),
+    isAllowedMessages: Type.Boolean({ default: true })
+});
+
+const SystemMetadataSchema = Type.Object({
+    title: Type.String(),
+    description: Type.Optional(Type.String()),
+    avatarUrl: Type.Optional(Type.String())
+});
+
+export const ConversationSchema = Type.Intersect([
+    DBTableSchema({
+        pinnedMessageRootId: Type.Optional(UUIDSchema),
+        isDeleted: Type.Boolean({ default: false }),
+        deletedAt: Type.Optional(EpochTimestampSchema)
     }),
-    lastMessageAt: Type.Optional(EpochTimestampSchema),
-    createdAt: EpochTimestampSchema,
-    updatedAt: EpochTimestampSchema
-}, { $id: 'ConversationSchema' });
+    Type.Union([
+        Type.Object({
+            type: Type.Union([
+                Type.Literal('direct'),
+                Type.Literal('self')
+            ])
+        }),
+        Type.Object({
+            type: Type.Literal('group'),
+            metadata: GroupMetadataSchema
+        }),
+        Type.Object({
+            type: Type.Literal('channel'),
+            metadata: ChannelMetadataSchema
+        }),
+        Type.Object({
+            type: Type.Literal('system'),
+            metadata: SystemMetadataSchema
+        })
+    ])
+], { $id: 'ConversationSchema' });
 
-export const ConversationMemberSchema = Type.Object({
-    id: Type.String({ format: 'uuid' }),
-    conversationId: Type.String({ format: 'uuid' }),
-    userId: Type.String({ format: 'uuid' }),
-    muteUntil: Type.Number(), // 0 for not muted
-    isArchived: Type.Boolean(),
-    isPinned: Type.Boolean(),
-    lastReadAt: Type.Optional(EpochTimestampSchema),
-    isDeleted: Type.Boolean(),
+const ConversationMemberRoleSchema = Type.Union([
+    Type.Literal('member'),
+    Type.Literal('admin'),
+    Type.Literal('owner')
+], { default: 'member' });
+
+export const ConversationMemberSchema = DBTableSchema({
+    conversationId: UUIDSchema,
+    userId: UUIDSchema,
+    role: ConversationMemberRoleSchema,
+
+    chatPrefs: Type.Object({
+        theme: Type.Optional(Type.String()),
+        notificationSound: Type.Optional(Type.String())
+    }),
+    muteUntil: Type.Optional(EpochTimestampSchema),
+    pinnedMessageRootId: Type.Optional(UUIDSchema),
+    labelIds: Type.Array(UUIDSchema, { maxItems: 4, default: [] }),
+    isActive: Type.Boolean({ default: true }),
     joinedAt: EpochTimestampSchema,
-    hasHistoricalAccess: Type.Boolean(),
-    addedBy: Type.Optional(Type.String({ format: 'uuid' })),
-    isAdmin: Type.Boolean(),
-    hasLeft: Type.Boolean(),
-
-    createdAt: EpochTimestampSchema,
-    updatedAt: EpochTimestampSchema
+    leftAt: Type.Optional(EpochTimestampSchema),
+    clearedAt: Type.Optional(EpochTimestampSchema),
+    lastReadMessageId: Type.Optional(UUIDSchema),
+    lastReadAt: Type.Optional(EpochTimestampSchema)
 }, { $id: 'ConversationMemberSchema' });

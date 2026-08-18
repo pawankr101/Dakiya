@@ -1,2 +1,2 @@
-export * from './message.model.js';
-export * from './message.schema.js';
+export * from './message.model';
+export * from './message.schema';

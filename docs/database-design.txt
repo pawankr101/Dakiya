@@ -12,12 +12,12 @@ Database Design Document
         => id: "UUID, Primary Key, Immutable"
 
         //-- Public Identifiers
-        => username: "String, Unique, Indexed, Immutable"
-        => mobile: "String, Unique, Indexed, NOT NULL"
+        => username: "String, Unique, Indexed, Immutable, NOT NULL"
+        => mobile: "String, Unique, Indexed, NOT NULL, verified"
         => email: "String, Unique, Indexed, nullable until verified"
 
         //-- Authentication
-        => password_hash: "String, internal use only (NEVER exposed to sync payloads)"
+        => password: "String, cryptographic hashes of password, internal use only (NEVER exposed to sync payloads)"
 
         //-- Profile Information (KYC Fields: Modifying these resets 'is_verified' to false)
         => name: "String, nullable"
@@ -58,11 +58,11 @@ Database Design Document
             => account_status: "Enum ('active', 'deactivated', 'deleted')"
             => two_factor_auth: "Boolean, default = false"
             => mfa: {
-                sms: "String, nullable until verified",
-                email: "String, nullable until verified",
-                totp: "String, nullable until verified",
+                sms: "String, nullable until verified, mobile number for SMS-based 2FA",
+                email: "String, nullable until verified, email address for email-based 2FA",
+                totp: "String, nullable until verified, secret key for TOTP-based 2FA",
             }
-            => recovery_codes_hash: "Array<String>, (Hash of valid 2FA recovery codes for emergency access)"
+            => recovery_codes_hash: "Array<String>, (single use cryptographic hashes of valid 2FA recovery codes for emergency access)"
             => last_password_change: "Timestamp, nullable (Used to force-expire sessions if the user changes their password)"
         }
 
@@ -118,20 +118,19 @@ Database Design Document
 
         //-- Device-Specific UI/UX Preferences
         => chat_prefs: {
-            => theme: 'light' | 'dark' | 'system';
-            => font_size: 'small' | 'medium' | 'large';
+            => theme: 'light' | 'dark' | 'system', default = 'system';
+            => font_size: 'small' | 'medium' | 'large', default = 'medium';
             => media_auto_download: {
-                => photos: "Boolean"
-                => videos: "Boolean"
-                => audio: "Boolean"
-                => documents: "Boolean"
+                => photos: "Boolean, default = true"
+                => videos: "Boolean, default = true"
+                => audio: "Boolean, default = true"
+                => documents: "Boolean, default = true"
         }
         => notification_prefs: {
-            => enabled: "Boolean"
-            => group_notifications: "Boolean"
-            => vibration: "Boolean"
-            => sound: "Boolean"
-            => popup_notifications: "Boolean"
+            => enabled: "Boolean, default = true"
+            => group_notifications: "Boolean, default = true"
+            => vibration: "Boolean, default = true"
+            => sound: "Boolean, default = true"
         }
 
         //-- Audit & Sync
