@@ -443,6 +443,7 @@ const createMessageReactionsTable = async (connection: Sql) => {
             CREATE TABLE IF NOT EXISTS message_reactions (
                 id UUID PRIMARY KEY DEFAULT uuidv7(),
 
+                message_root_id UUID NOT NULL REFERENCES messages(root_id),
                 message_id UUID NOT NULL REFERENCES messages(id),
                 user_id UUID NOT NULL REFERENCES users(id),
 
