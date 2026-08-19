@@ -373,6 +373,34 @@ Database Design Document
         => hlc: "String (Hybrid Logical Clock), used for sync tracking"
 
     * MessageExclusions:
+        // Message Exclusions Rules (Local "Delete for Me" & Moderation):
+        // The `message_exclusions` table handles localized message hiding without destroying the global message record. It utilizes `deleted_for` (the target user who will no longer see the message) and `deleted_by` (the actor performing the action).
+
+        // 1. Self-Deletion ("Delete for Me" Fast Path)
+        //    => A user can always hide any message from their own view (`deleted_for` == `deleted_by`).
+        //    => This action is automatically approved and bypasses all moderation, hierarchy, and sender protections.
+
+        // 2. Sender Protection
+        //    => A message can never be administratively hidden from its original sender.
+        //    => If a moderation action is attempted (`deleted_for` != `deleted_by`), the database will reject the transaction if `deleted_for` matches the `sender_id` of the message. (Admins must use a Global Delete tombstone instead).
+
+        // 3. Strict Role Hierarchy for Moderation
+        //    => When an actor administratively hides a message for someone else (`deleted_for` != `deleted_by`), the Actor (`deleted_by`) must strictly outrank the Target (`deleted_for`).
+        //    => Hierarchy Weights: Owner (3) > Admin (2) > Member (1).
+        //    => Allowed Actions:
+        //        -> Owners can hide messages for Admins and Members.
+        //        -> Admins can hide messages for Members.
+        //    => Blocked Actions:
+        //        -> Regular Members cannot hide messages for anyone else.
+        //        -> Admins cannot hide messages for other Admins.
+
+        // 4. Admin/Owner Protection
+        //    => As a byproduct of the strict hierarchy, messages can never be administratively hidden from users who hold `admin` or `owner` roles. They retain full visibility of the conversation history unless they choose to delete it for themselves.
+
+        // 5. Idempotency & Threading Constraints
+        //    => Exclusions are tied to the `message_root_id`, not the specific message version, ensuring that edited messages do not bypass the exclusion.
+        //    => A specific message thread can only be excluded once per target user, enforced via a `UNIQUE(message_root_id, deleted_for)` constraint.
+
         => id: "UUID, Primary Key, Immutable"
         => message_root_id: "UUID, Foreign Key to Messages.root_id, Indexed, NOT NULL"
         => deleted_for: "UUID, Foreign Key to Users.id, Indexed, NOT NULL"
@@ -715,6 +743,7 @@ Database Design Document
             => deleted_by: "UUID, NOT NULL, user who performed the deletion, can be message creator or admin or owner of the group/channel based on user roles and permissions table"
             => reason_for_deletion: "String, nullable (Reason for deletion, if applicable)"
         }
+            // maximum size of message content JSONB allowed = 128KB
 
         //-- The Grouping Engine
         => message_group_id: UUID, nullable  -- (All 4 messages in the batch share this exact same UUID)

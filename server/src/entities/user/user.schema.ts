@@ -60,6 +60,25 @@ export const UserSettingsSchema = DBTableSchema({
     pinnedConversationId: Type.Optional(UUIDSchema),
     labels: LebelsAndCirclesSchema,
     circles: LebelsAndCirclesSchema,
+    notifications: Type.Object({
+        email: Type.Boolean({ default: false }),
+    }),
+    privacy: Type.Object({
+        readReceipts: Type.Boolean({ default: true }),
+        lastSeen: PrivacyLevelSchema,
+        email: PrivacyLevelSchema,
+        dp: PrivacyLevelSchema,
+        dob: PrivacyLevelSchema,
+        bio: PrivacyLevelSchema
+    }),
+    backup: Type.Object({
+        enabled: Type.Boolean({ default: false }),
+        provider: Type.Optional(Type.String()),
+        backupLocation: Type.Optional(Type.String()),
+        backupFrequency: Type.Optional(BackupFrequencySchema),
+        overWifiOnly: Type.Boolean({ default: true }),
+        lastBackupAt: Type.Optional(EpochTimestampSchema)
+    }),
     account: Type.Object({
         accountStatus: AccountStatusSchema,
         twoFactorAuth: Type.Boolean({ default: false }),
@@ -70,25 +89,6 @@ export const UserSettingsSchema = DBTableSchema({
         }),
         recoveryCodesHash: Type.Optional(Type.Array(Type.String())),
         lastPasswordChange: Type.Optional(EpochTimestampSchema)
-    }),
-    notifications: Type.Object({
-        email: Type.Boolean({ default: false }),
-    }),
-    backup: Type.Object({
-        enabled: Type.Boolean({ default: false }),
-        provider: Type.Optional(Type.String()),
-        backupLocation: Type.Optional(Type.String()),
-        backupFrequency: Type.Optional(BackupFrequencySchema),
-        overWifiOnly: Type.Boolean({ default: true }),
-        lastBackupAt: Type.Optional(EpochTimestampSchema)
-    }),
-    privacy: Type.Object({
-        readReceipts: Type.Boolean({ default: true }),
-        lastSeen: PrivacyLevelSchema,
-        email: PrivacyLevelSchema,
-        dp: PrivacyLevelSchema,
-        dob: PrivacyLevelSchema,
-        bio: PrivacyLevelSchema
     }),
     lastActiveAt: Type.Optional(EpochTimestampSchema)
 }, { $id: 'UserSettingsSchema' });
