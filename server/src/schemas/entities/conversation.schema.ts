@@ -1,13 +1,13 @@
 import { Type } from 'typebox';
-import { DBTableSchema, EpochTimestampSchema, UUIDSchema } from '../../schema';
+import { DBTableSchema, EpochTimestampSchema, UUIDSchema } from '../schema';
 
 const GroupMetadataSchema = Type.Object({
     title: Type.String(),
     description: Type.Optional(Type.String()),
     avatarUrl: Type.Optional(Type.String()),
     createdById: UUIDSchema,
-    isAllowedInvites: Type.Boolean({ default: false }),
-    isAllowedEditInfo: Type.Boolean({ default: true })
+    isAllowedInvites: Type.Boolean(),
+    isAllowedEditInfo: Type.Boolean()
 });
 
 const ChannelMetadataSchema = Type.Object({
@@ -16,7 +16,7 @@ const ChannelMetadataSchema = Type.Object({
     avatarUrl: Type.Optional(Type.String()),
     createdById: UUIDSchema,
     handle: Type.Optional(Type.String()),
-    isAllowedMessages: Type.Boolean({ default: true })
+    isAllowedMessages: Type.Boolean()
 });
 
 const SystemMetadataSchema = Type.Object({

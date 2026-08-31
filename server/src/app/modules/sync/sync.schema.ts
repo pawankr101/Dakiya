@@ -14,12 +14,12 @@ const makeTableChangeSetSchema = <T extends TSchema>(itemSchema: T) => {
 
 const DatabaseChangesSchema = Type.Object({
     users: makeTableChangeSetSchema(Type.Ref('UserSchema')),
+    user_relationships: makeTableChangeSetSchema(Type.Ref('UserRelationshipSchema')),
 	conversations: makeTableChangeSetSchema(Type.Ref('ConversationSchema')),
 	conversation_members: makeTableChangeSetSchema(Type.Ref('ConversationMemberSchema')),
 	messages: makeTableChangeSetSchema(Type.Ref('MessageSchema')),
 	message_reactions: makeTableChangeSetSchema(Type.Ref('MessageReactionSchema')),
-	message_edits: makeTableChangeSetSchema(Type.Ref('MessageEditSchema')),
-	media: makeTableChangeSetSchema(Type.Ref('MediaSchema'))
+	message_exclusions: makeTableChangeSetSchema(Type.Ref('MessageExclusionSchema'))
 });
 
 export const PullChangesQuerySchema = Type.Object({

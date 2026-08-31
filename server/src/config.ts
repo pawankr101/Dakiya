@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 const ROOT_DIR = fileURLToPath(new URL('.', import.meta.url));
 
 export const ENV = {
+    DAKIYA_ENV: process.env.DAKIYA_ENV,
     WS_NO_BUFFER_UTIL: true,
     WS_NO_UTF_8_VALIDATE: true
 }
@@ -54,6 +55,7 @@ export const DB = {
     database: process.env.DAKIYA_DB_DATABASE,
     user: process.env.DAKIYA_DB_USER,
     password: process.env.DAKIYA_DB_PASSWORD,
+    deleteOldDatabase: process.env.DAKIYA_DB_DELETE_OLD_DATABASE === 'true',
     maxPoolSize: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,

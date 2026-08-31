@@ -1,5 +1,5 @@
 import { Type } from 'typebox';
-import { DBTableSchema, EpochTimestampSchema, UUIDSchema } from '../../schema';
+import { DBTableSchema, EpochTimestampSchema, UUIDSchema } from '../schema';
 
 const UserGenderSchema = Type.Union([
     Type.Literal('male'),

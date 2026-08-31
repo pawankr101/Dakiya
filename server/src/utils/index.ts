@@ -1,1 +1,2 @@
-export * from './threads.js';
+export * from './threads';
+export * from './cli';

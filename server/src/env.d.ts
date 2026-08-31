@@ -1,4 +1,6 @@
 export interface Env {
+    // ENV
+    DAKIYA_ENV: 'dev' | 'uat' | 'test' | 'prod';
     // Server configuration
     DAKIYA_SERVER_HOST: string;
     DAKIYA_SERVER_PORT: string;
@@ -12,6 +14,7 @@ export interface Env {
     DAKIYA_DB_DATABASE: string;
     DAKIYA_DB_USER: string;
     DAKIYA_DB_PASSWORD: string;
+    DAKIYA_DB_DELETE_OLD_DATABASE: string;
 
     // Nats configuration
     DAKIYA_NATS_HOST: string;

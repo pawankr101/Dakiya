@@ -264,16 +264,19 @@ class AppRunner {
                 eval: true,
                 type: "module",
                 execArgv: ["--enable-source-maps"],
+                argv: process.argv.slice(2),
+                stdin: true,
                 stdout: true,
                 stderr: true
             });
 
+            process.stdin.pipe(this.#instance.stdin);
             this.#instance.stdout.pipe(process.stdout);
             this.#instance.stderr.pipe(process.stderr);
             this.#instance.on("error", (err) => console.error(`[S] Error:`, err));
         } else {
             // --- PROCESS MODE (SPAWN) ---
-            this.#instance = spawn(process.execPath, ["--inspect", `--env-file=${this.#envFile}`, "--enable-source-maps", this.#entryFile], {
+            this.#instance = spawn(process.execPath, ["--inspect", `--env-file=${this.#envFile}`, "--enable-source-maps", this.#entryFile, ...process.argv.slice(2)], {
                 stdio: "inherit"
             });
         }

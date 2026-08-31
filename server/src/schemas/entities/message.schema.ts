@@ -1,5 +1,5 @@
 import { Type } from 'typebox';
-import { DBTableSchema, UUIDSchema } from '../../schema';
+import { DBTableSchema, UUIDSchema } from '../schema';
 
 const TextContentSchema = Type.Object({
     text: Type.String()

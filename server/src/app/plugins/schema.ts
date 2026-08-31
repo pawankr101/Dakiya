@@ -9,7 +9,7 @@ import {
     UserRelationshipSchema,
     UserSchema,
     UserSettingsSchema
-} from "../../entities/schema";
+} from "../../schemas";
 import type { AppFastify, AppPlugin } from "../types";
 
 export const GlobalSchemas: AppPlugin = fastifyPlugin(async (fastify: AppFastify) => {
@@ -18,8 +18,10 @@ export const GlobalSchemas: AppPlugin = fastifyPlugin(async (fastify: AppFastify
     fastify.addSchema(UserSettingsSchema);
     fastify.addSchema(DeviceSchema);
     fastify.addSchema(UserRelationshipSchema);
+
     fastify.addSchema(ConversationSchema);
     fastify.addSchema(ConversationMemberSchema);
+
     fastify.addSchema(MessageSchema);
     fastify.addSchema(MessageExclusionSchema);
     fastify.addSchema(MessageReactionSchema);

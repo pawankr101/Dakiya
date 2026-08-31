@@ -1,6 +1,7 @@
 import { Chrono, loop } from "@dakiya/shared";
-import { ApiException } from "app/exception";
-import { type PulledSyncData, pullSyncData } from "../../../storage/db/pg/repositories/sync.repository";
+import { pullSyncData } from "../../../storage/db/repositories";
+import type { DatabaseTables } from "../../../types";
+import { ApiException } from "../../exception";
 import type { PulledChanges } from "./sync.type";
 
 const categorizeChanges = (() => {
@@ -16,16 +17,16 @@ const categorizeChanges = (() => {
         });
         return { created, updated, deleted };
     }
-    return (rawSyncData: PulledSyncData['rawSyncData'], lastPulledAt?: number) => {
-        const { users, conversations, conversationMembers, messages, messageReactions, messageEdits, media } = rawSyncData;
+    return (rawData: Partial<DatabaseTables>, lastPulledAt?: number) => {
+        const { users = [], user_relationships = [], conversations = [], conversation_members = [], messages = [], message_reactions = [], message_exclusions = [] } = rawData;
         return {
             users: buildChangeSet(users, lastPulledAt),
+            user_relationships: buildChangeSet(user_relationships, lastPulledAt),
             conversations: buildChangeSet(conversations, lastPulledAt),
-            conversation_members: buildChangeSet(conversationMembers, lastPulledAt),
+            conversation_members: buildChangeSet(conversation_members, lastPulledAt),
             messages: buildChangeSet(messages, lastPulledAt),
-            message_reactions: buildChangeSet(messageReactions, lastPulledAt),
-            message_edits: buildChangeSet(messageEdits, lastPulledAt),
-            media: buildChangeSet(media, lastPulledAt)
+            message_reactions: buildChangeSet(message_reactions, lastPulledAt),
+            message_exclusions: buildChangeSet(message_exclusions, lastPulledAt)
         };
     }
 })();
@@ -36,7 +37,7 @@ export const pullChangesService = async (userId: string, lastPulledAt?: number):
         const data = await pullSyncData(userId, lastPulledAtIso);
         return {
             lastPulledAt: data.timestamp,
-            changes: categorizeChanges(data.rawSyncData, lastPulledAt)
+            changes: categorizeChanges(data.rawData, lastPulledAt)
         }
     } catch (error) {
         throw new ApiException(error as Error, { code: 'SYNC_PULL_ERROR', httpCode: 500 });
