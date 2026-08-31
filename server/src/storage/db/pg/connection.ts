@@ -61,7 +61,7 @@ export const PG = (() => {
             });
             isConnected = true;
             await initTables(connection);
-            console.log('PostgreSQL connection established and tables initialized successfully.');
+            console.log(`\u001b[34m  [S] PostgreSQL connection established and tables initialized successfully.`);
         } catch (error) {
             throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
         }

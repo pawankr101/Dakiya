@@ -13,7 +13,7 @@ export const createDbIfNotExists = async () => {
             console.log(`Database "${database}" created successfully.`);
         } else if (deleteOldDatabase) {
             const confirmation = await askForConfirmation({
-                question: `\n⚠️ Are you sure you want to delete and recreate the database "${database}"?\nThis action is irreversible. (yes/no): `,
+                question: `\n\u001b[31m  [S] ⚠️ Are you sure you want to delete and recreate the database "${database}"?\n\u001b[31m  [S] This action is irreversible. (yes/no): `,
                 expectedAnswer: ['yes', 'y'],
                 caseSensitive: false
             });
@@ -21,9 +21,9 @@ export const createDbIfNotExists = async () => {
             if(confirmation) {
                 await tempConnection`DROP DATABASE ${tempConnection(database)}`;
                 await tempConnection`CREATE DATABASE ${tempConnection(database)}`;
-                console.log(`Database "${database}" deleted and recreated successfully.`);
+                console.log(`\u001b[34m  [S] Database "${database}" deleted and recreated successfully.`);
             } else {
-                console.log(`\n🛑 Database reset aborted. Keeping existing "${database}".`);
+                console.log(`\n\u001b[31m  [S] 🛑 Database reset aborted. Keeping existing "${database}".`);
             }
         }
     } catch (error) {
