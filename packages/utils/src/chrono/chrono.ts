@@ -1,6 +1,6 @@
-import { ArrayList, type List } from '../ds/index.js';
-import { Guards } from '../guards/index.js';
-import { loop } from '../iter/index.js';
+import { ArrayList, type List } from '../ds';
+import { Guards } from '../guards';
+import { loop } from '../tools';
 
 type DateOrTimestamp = string | number | Date;
 

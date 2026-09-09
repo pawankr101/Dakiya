@@ -141,13 +141,13 @@ Database Design Document
     * UserRelationships:
         // require users device permission to access users contacts.
         // scenario 1: if user does not allows access to their contacts.
-        //      -> check if is there any contacts has been crean though their other devices.
+        //      -> check if is there any contacts has been created though their other devices.
         //          -> if Yes
         //              -> contacts tab will shows the list of contacts created through other devices.
         //              -> privacy settings will provide contacts as options along with nobody and everyone.
-        //              ->  Contact privacy filter will work with contacts created through other devices, not the actual contacts in current device(which are not synced).
+        //              -> Contact privacy filter will work with contacts created through other devices, not the actual contacts in current device(which are not synced).
         //          -> if no
-        //              -> the relationship is not created and the user cannot access the contacts.
+        //              -> the relationship is not created and  the user cannot access the contacts.
         //              -> privacy settings where contacts options are there will be disabled. only nobody/everyone privacy options will be there.
         // scenario 2: if user allows access to their contacts.
         //      -> client application will create user relationship entries for those contacts from the phonebook which are a registered user on dakiya platform.

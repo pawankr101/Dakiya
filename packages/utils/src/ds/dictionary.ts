@@ -1,4 +1,4 @@
-import { LoopControl } from '../iter';
+import { LoopControl } from '../tools';
 import type { ObjectOf } from '../types';
 
 type LoopCallback<T, U = void> = (item: T, index: number) => LoopControl | U;
