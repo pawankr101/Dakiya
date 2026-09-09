@@ -1,5 +1,5 @@
-import type { AppFastify, AppPlugin } from "../../types.js";
-import { login, logout, register } from "./auth.controller.js";
+import type { AppFastify, AppPlugin } from "../../types";
+import { login, logout, register } from "./auth.controller";
 
 
 export const AuthRoutes: AppPlugin = async (fastify: AppFastify) => {

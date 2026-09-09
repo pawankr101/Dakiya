@@ -1,6 +1,6 @@
 
-import { Application } from './app/index.js';
-import { ENV, HTTP_SERVER } from './config.js';
+import { Application } from './app';
+import { ENV, HTTP_SERVER } from './config';
 
 /**
  * Sets up the necessary environment variables for the application.

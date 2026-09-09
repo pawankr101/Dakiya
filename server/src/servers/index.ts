@@ -1,2 +1,2 @@
-export * from './http-server.js';
-export * from './websocket.js';
+export * from './http-server';
+export * from './websocket';

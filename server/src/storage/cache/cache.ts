@@ -1,4 +1,4 @@
-import { Exception, Guards } from "@dakiya/shared";
+import { Exception, Guards } from "@dakiya/utils";
 import { jetstream, StorageType } from "@nats-io/jetstream";
 import { type KV, Kvm } from "@nats-io/kv";
 import type { NatsConnection } from "@nats-io/transport-node";

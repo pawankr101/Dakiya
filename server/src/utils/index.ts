@@ -1,2 +1,2 @@
-export * from './threads';
 export * from './cli';
+export * from './threads';

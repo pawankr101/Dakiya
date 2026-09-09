@@ -1,6 +1,6 @@
-import { Exception } from '@dakiya/shared';
+import { Exception } from '@dakiya/utils';
 import { connect, type NatsConnection } from '@nats-io/transport-node';
-import { NATS } from "../config.js";
+import { NATS } from "../config";
 
 export interface Nats {
     /**

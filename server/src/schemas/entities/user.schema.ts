@@ -1,5 +1,5 @@
 import { Type } from 'typebox';
-import { DBTableSchema, EpochTimestampSchema, UUIDSchema } from '../schema';
+import { DBTableSchema, EpochTimestampSchema, JsonBSchema, UUIDSchema } from '../schema';
 
 const UserGenderSchema = Type.Union([
     Type.Literal('male'),
@@ -27,7 +27,7 @@ export const UserSchema = DBTableSchema({
     deletedAt: Type.Optional(EpochTimestampSchema)
 }, { $id: 'UserSchema' });
 
-const LebelsAndCirclesSchema = Type.Array(Type.Object({
+const LabelsAndCirclesSchema = Type.Array(Type.Object({
     id: UUIDSchema,
     name: Type.Optional(Type.String()),
     position: Type.Number()
@@ -58,28 +58,28 @@ export const UserSettingsSchema = DBTableSchema({
     timezone: Type.String({ default: 'UTC' }),
 
     pinnedConversationId: Type.Optional(UUIDSchema),
-    labels: LebelsAndCirclesSchema,
-    circles: LebelsAndCirclesSchema,
-    notifications: Type.Object({
+    labels: JsonBSchema(LabelsAndCirclesSchema, '[]'),
+    circles: JsonBSchema(LabelsAndCirclesSchema, '[]'),
+    notifications: JsonBSchema(Type.Object({
         email: Type.Boolean({ default: false }),
-    }),
-    privacy: Type.Object({
+    })),
+    privacy: JsonBSchema(Type.Object({
         readReceipts: Type.Boolean({ default: true }),
         lastSeen: PrivacyLevelSchema,
         email: PrivacyLevelSchema,
         dp: PrivacyLevelSchema,
         dob: PrivacyLevelSchema,
         bio: PrivacyLevelSchema
-    }),
-    backup: Type.Object({
+    })),
+    backup: JsonBSchema(Type.Object({
         enabled: Type.Boolean({ default: false }),
         provider: Type.Optional(Type.String()),
         backupLocation: Type.Optional(Type.String()),
         backupFrequency: Type.Optional(BackupFrequencySchema),
         overWifiOnly: Type.Boolean({ default: true }),
         lastBackupAt: Type.Optional(EpochTimestampSchema)
-    }),
-    account: Type.Object({
+    })),
+    account: JsonBSchema(Type.Object({
         accountStatus: AccountStatusSchema,
         twoFactorAuth: Type.Boolean({ default: false }),
         mfa: Type.Object({
@@ -89,7 +89,7 @@ export const UserSettingsSchema = DBTableSchema({
         }),
         recoveryCodesHash: Type.Optional(Type.Array(Type.String())),
         lastPasswordChange: Type.Optional(EpochTimestampSchema)
-    }),
+    })),
     lastActiveAt: Type.Optional(EpochTimestampSchema)
 }, { $id: 'UserSettingsSchema' });
 
@@ -124,7 +124,7 @@ export const DeviceSchema = DBTableSchema({
     fcmToken: Type.Optional(Type.String()),
     isActive: Type.Boolean({ default: true }),
     lastActiveAt: Type.Optional(EpochTimestampSchema),
-    chatPrefs: Type.Object({
+    chatPrefs: JsonBSchema(Type.Object({
         theme: ThemeSchema,
         fontSize: FontSizeSchema,
         mediaAutoDownload: Type.Object({
@@ -133,13 +133,13 @@ export const DeviceSchema = DBTableSchema({
             audio: Type.Boolean({ default: true }),
             documents: Type.Boolean({ default: true })
         })
-    }),
-    notificationPrefs: Type.Object({
+    })),
+    notificationPrefs: JsonBSchema(Type.Object({
         enabled: Type.Boolean({ default: true }),
         groupNotifications: Type.Boolean({ default: true }),
         vibration: Type.Boolean({ default: true }),
         sound: Type.Boolean({ default: true })
-    })
+    }))
 }, { $id: 'DeviceSchema' });
 
 export const UserRelationshipSchema = DBTableSchema({

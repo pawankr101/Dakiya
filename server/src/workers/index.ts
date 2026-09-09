@@ -1,6 +1,6 @@
 import { parentPort } from 'node:worker_threads';
-import type { Func, ObjectOf } from '@dakiya/shared';
-import methods from './methods.js';
+import type { Func, ObjectOf } from '@dakiya/utils';
+import methods from './methods';
 
 interface WorkerInput {
     method: string;

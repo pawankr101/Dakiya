@@ -1,4 +1,4 @@
-import { Exception } from "@dakiya/shared"
+import { Exception } from "@dakiya/utils"
 
 type WorkerMessageDataInput<T=unknown> = {
     method: string,

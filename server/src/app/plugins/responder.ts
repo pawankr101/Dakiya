@@ -1,4 +1,4 @@
-import { mapLoop } from "@dakiya/shared";
+import { mapLoop } from "@dakiya/utils";
 import type { FastifyError } from "fastify";
 import { fastifyPlugin } from "fastify-plugin";
 import { ApiException } from "../exception";

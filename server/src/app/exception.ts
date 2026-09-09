@@ -1,4 +1,4 @@
-import { Exception, type ExceptionOptions, Guards, type HttpCode, type Reason } from "@dakiya/shared";
+import { Exception, type ExceptionOptions, Guards, type HttpCode, type Reason } from "@dakiya/utils";
 
 type BulkIssues = Array<{ message: string, [x:string]: string }>
 type ApiExceptionOptions = ExceptionOptions & { httpCode?: HttpCode, issues?: BulkIssues };

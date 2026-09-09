@@ -1,5 +1,5 @@
-import { ApiResponse } from "../../response.js";
-import type { EndPointHandler } from "../../types.js";
+import { ApiResponse } from "../../response";
+import type { EndPointHandler } from "../../types";
 
 export const register: EndPointHandler = async (_request) => {
     // Implement registration logic here.

@@ -1,6 +1,6 @@
 import type { Duplex } from 'node:stream';
 import { type WebSocket as Ws, WebSocketServer as Wss } from 'ws';
-import type { Request } from './index.js';
+import type { Request } from './index';
 
 class WSServer {
     readonly #wss: Wss;

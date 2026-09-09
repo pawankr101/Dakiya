@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import { Guards } from '@dakiya/shared';
+import { Guards } from '@dakiya/utils';
 import { App } from './app';
 
 function renderApp() {

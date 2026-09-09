@@ -3,8 +3,8 @@ import http2 from 'node:http2';
 import https from 'node:https';
 import type { ListenOptions } from 'node:net';
 import type { Duplex } from 'node:stream';
-import { Exception, getUuid } from '@dakiya/shared';
-import { WSSERVER } from './index.js';
+import { Exception, getUuid } from '@dakiya/utils';
+import { WSSERVER } from './websocket';
 
 /* ***** Type Declarations: Start ***** */
 

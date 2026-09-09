@@ -1,7 +1,7 @@
 import type { Readable } from "node:stream";
-import { Exception, Guards, type ObjectOf } from "@dakiya/shared";
+import { Exception, Guards, type ObjectOf } from "@dakiya/utils";
 import { type Algorithm, type DecodeOptions, decode, type Signature, type SignOptions, sign, verify } from "jws";
-import { AUTH } from "../config.js";
+import { AUTH } from "../config";
 
 /**
  * Asynchronously signs a JWT signature.

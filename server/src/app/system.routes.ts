@@ -1,4 +1,4 @@
-import { Chrono } from "@dakiya/shared";
+import { Chrono } from "@dakiya/utils";
 import type { FastifyReply, FastifyRequest, FastifySchema } from "fastify";
 import { Type } from "typebox";
 import { Nats } from "../services";

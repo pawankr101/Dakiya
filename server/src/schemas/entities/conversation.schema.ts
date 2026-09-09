@@ -1,5 +1,5 @@
 import { Type } from 'typebox';
-import { DBTableSchema, EpochTimestampSchema, UUIDSchema } from '../schema';
+import { DBTableSchema, EpochTimestampSchema, JsonBSchema, UUIDSchema } from '../schema';
 
 const GroupMetadataSchema = Type.Object({
     title: Type.String(),
@@ -40,15 +40,15 @@ export const ConversationSchema = Type.Intersect([
         }),
         Type.Object({
             type: Type.Literal('group'),
-            metadata: GroupMetadataSchema
+            metadata: JsonBSchema(GroupMetadataSchema)
         }),
         Type.Object({
             type: Type.Literal('channel'),
-            metadata: ChannelMetadataSchema
+            metadata: JsonBSchema(ChannelMetadataSchema)
         }),
         Type.Object({
             type: Type.Literal('system'),
-            metadata: SystemMetadataSchema
+            metadata: JsonBSchema(SystemMetadataSchema)
         })
     ])
 ], { $id: 'ConversationSchema' });
@@ -64,10 +64,10 @@ export const ConversationMemberSchema = DBTableSchema({
     userId: UUIDSchema,
     role: ConversationMemberRoleSchema,
 
-    chatPrefs: Type.Object({
+    chatPrefs: JsonBSchema(Type.Object({
         theme: Type.Optional(Type.String()),
         notificationSound: Type.Optional(Type.String())
-    }),
+    })),
     muteUntil: Type.Optional(EpochTimestampSchema),
     pinnedMessageRootId: Type.Optional(UUIDSchema),
     labelIds: Type.Array(UUIDSchema, { maxItems: 4, default: [] }),

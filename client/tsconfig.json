@@ -14,13 +14,21 @@
 		"outDir": "./dist",
 		"paths": {
 			"*": ["./src/*"],
-			"@dakiya/shared": [
-				"../packages/shared/dist/index.d.ts",
-				"../packages/shared/src/index.ts"
+			"@dakiya/utils": [
+				"../packages/utils/dist/index.d.ts",
+				"../packages/utils/src/index.ts"
 			],
-			"@dakiya/shared/*": [
-				"../packages/shared/dist/*",
-				"../packages/shared/src/*"
+			"@dakiya/utils/*": [
+				"../packages/utils/dist/*",
+				"../packages/utils/src/*"
+			],
+			"@dakiya/schemas": [
+				"../packages/schemas/dist/index.d.ts",
+				"../packages/schemas/src/index.ts"
+			],
+			"@dakiya/schemas/*": [
+				"../packages/schemas/dist/*",
+				"../packages/schemas/src/*"
 			]
 		},
 

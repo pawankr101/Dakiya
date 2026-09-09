@@ -1,4 +1,4 @@
-import { Exception, Guards, getUuid } from '@dakiya/shared';
+import { Exception, Guards, getUuid } from '@dakiya/utils';
 import Fastify, { type FastifyServerFactory } from 'fastify';
 import { HTTP_SERVER } from '../config';
 import { type HttpSecurity, HttpServer, type HttpVersion, type RequestListener, type Server, type ServerOptions } from '../servers';

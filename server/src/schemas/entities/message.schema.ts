@@ -1,5 +1,5 @@
 import { Type } from 'typebox';
-import { DBTableSchema, UUIDSchema } from '../schema';
+import { DBTableSchema, JsonBSchema, UUIDSchema } from '../schema';
 
 const TextContentSchema = Type.Object({
     text: Type.String()
@@ -83,17 +83,17 @@ export const MessageSchema = Type.Intersect([
         isForwarded: Type.Boolean({ default: false })
     }),
     Type.Union([
-        Type.Object({ type: Type.Literal('text'), content: TextContentSchema }),
-        Type.Object({ type: Type.Literal('image'), content: ImageContentSchema }),
-        Type.Object({ type: Type.Literal('video'), content: VideoContentSchema }),
-        Type.Object({ type: Type.Literal('audio'), content: AudioContentSchema }),
-        Type.Object({ type: Type.Literal('document'), content: DocumentContentSchema }),
-        Type.Object({ type: Type.Literal('contact'), content: ContactContentSchema }),
-        Type.Object({ type: Type.Literal('location'), content: LocationContentSchema }),
-        Type.Object({ type: Type.Literal('poll'), content: PollContentSchema }),
-        Type.Object({ type: Type.Literal('event'), content: EventContentSchema }),
-        Type.Object({ type: Type.Literal('system'), content: SystemContentSchema }),
-        Type.Object({ type: Type.Literal('delete'), content: DeleteContentSchema }),
+        Type.Object({ type: Type.Literal('text'), content: JsonBSchema(TextContentSchema) }),
+        Type.Object({ type: Type.Literal('image'), content: JsonBSchema(ImageContentSchema) }),
+        Type.Object({ type: Type.Literal('video'), content: JsonBSchema(VideoContentSchema) }),
+        Type.Object({ type: Type.Literal('audio'), content: JsonBSchema(AudioContentSchema) }),
+        Type.Object({ type: Type.Literal('document'), content: JsonBSchema(DocumentContentSchema) }),
+        Type.Object({ type: Type.Literal('contact'), content: JsonBSchema(ContactContentSchema) }),
+        Type.Object({ type: Type.Literal('location'), content: JsonBSchema(LocationContentSchema) }),
+        Type.Object({ type: Type.Literal('poll'), content: JsonBSchema(PollContentSchema) }),
+        Type.Object({ type: Type.Literal('event'), content: JsonBSchema(EventContentSchema) }),
+        Type.Object({ type: Type.Literal('system'), content: JsonBSchema(SystemContentSchema) }),
+        Type.Object({ type: Type.Literal('delete'), content: JsonBSchema(DeleteContentSchema) }),
     ])
 ], { $id: 'MessageSchema' });
 

@@ -1,7 +1,6 @@
-import type { User } from "../../../entities/models.js";
-import { Jwt } from "../../../services/index.js";
+import { Jwt } from "../../../services";
 
-export const registerUser = async (_user: User): Promise<string> => {
+export const registerUser = async (_user: Object): Promise<string> => {
     // Implement registration logic here
     // For example, call UsersQuery.createUser(user);
     return 'user_id';

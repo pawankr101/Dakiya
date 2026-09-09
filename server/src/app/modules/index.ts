@@ -1,6 +1,6 @@
-import type { AppFastify, AppPlugin } from "../types.js";
-import { AuthRoutes } from "./auth/index.js";
-import { SyncRoutes } from "./sync/index.js";
+import type { AppFastify, AppPlugin } from "../types";
+import { AuthRoutes } from "./auth";
+import { SyncRoutes } from "./sync";
 
 export const ModuleRoutes: AppPlugin = async (fastify: AppFastify) => {
 

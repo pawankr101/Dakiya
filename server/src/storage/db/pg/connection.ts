@@ -1,4 +1,4 @@
-import { Exception } from '@dakiya/shared';
+import { Exception } from '@dakiya/utils';
 import postgres, { type Sql } from 'postgres';
 import { DB } from '../../../config';
 import { createDbIfNotExists, initTables } from './queries/db.query';

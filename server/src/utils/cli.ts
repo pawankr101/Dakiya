@@ -1,5 +1,5 @@
 import { createInterface } from 'node:readline/promises';
-import { Guards } from '@dakiya/shared';
+import { Guards } from '@dakiya/utils';
 
 export interface PromptOptions {
     /** The question to display to the user */

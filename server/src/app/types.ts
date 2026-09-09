@@ -1,4 +1,4 @@
-import type { ObjectOf } from "@dakiya/shared";
+import type { ObjectOf } from "@dakiya/utils";
 import type { HTTP_SERVER } from "config";
 import type { FastifyInstance, FastifyPluginAsync, RawReplyDefaultExpression, RequestGenericInterface, RouteHandlerMethod } from "fastify";
 import type { Request, Server } from "../servers/http-server";

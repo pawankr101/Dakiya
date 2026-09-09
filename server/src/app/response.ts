@@ -1,4 +1,4 @@
-import type { HttpCode } from "@dakiya/shared";
+import type { HttpCode } from "@dakiya/utils";
 
 export class ApiResponse<T = unknown> {
     /**
