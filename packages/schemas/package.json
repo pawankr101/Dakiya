@@ -4,6 +4,8 @@
     "type": "module",
     "types": "./dist/index.d.ts",
     "scripts": {
-        "build": "rm -rf ./dist && tsc"
+        "generate": "npx tsx scripts/compiler.ts",
+        "clean": "rm -rf dist src/validator.js",
+        "build": "npm run clean && npm run generate && tsc"
     }
 }
