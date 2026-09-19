@@ -352,16 +352,16 @@ export class ArrayList<T> implements List<T> {
     }
 
     add(...item: T[]): void {
-        const ilen = item.length, size = this.#size;
-        if (this.#needToIncrease(size + ilen, this.#capacity)) {
-            this.#inceaseCapacity(ilen);
+        const iLen = item.length, size = this.#size;
+        if (this.#needToIncrease(size + iLen, this.#capacity)) {
+            this.#inceaseCapacity(iLen);
         }
         let i = 0;
-        while (i < ilen) {
+        while (i < iLen) {
             this.#data[size + i] = item[i];
             i++;
         }
-        this.#size = size + ilen;
+        this.#size = size + iLen;
     }
 
     addOne(item: T): T {
@@ -378,19 +378,19 @@ export class ArrayList<T> implements List<T> {
         const size = this.#size;
         if(index < 0 || index > size) throw new Error('Index out of bounds');
 
-        const ilen = item.length;
-        if (this.#needToIncrease(size + ilen, this.#capacity)) {
-            this.#inceaseCapacity(ilen);
+        const iLen = item.length;
+        if (this.#needToIncrease(size + iLen, this.#capacity)) {
+            this.#inceaseCapacity(iLen);
         }
         const data = this.#data;
-        if (index < size) data.copyWithin(index + ilen, index, size);
+        if (index < size) data.copyWithin(index + iLen, index, size);
 
         let i = 0;
-        while (i < ilen) {
+        while (i < iLen) {
             data[index + i] = item[i];
             i++;
         }
-        this.#size = size + ilen;
+        this.#size = size + iLen;
     }
 
     insertOne(index: number, item: T): T {
@@ -485,9 +485,9 @@ export class ArrayList<T> implements List<T> {
 
     loop(cb: LoopCallback<T>): void;
     loop(reverse: true, cb: LoopCallback<T>): void;
-    loop(larg: LoopArguments<T>, lcb?: LoopCallback<T>): void {
-        const cb = lcb || (larg as LoopCallback<T>);
-        if (larg === true) this.#loopListReverse(cb);
+    loop(lArg: LoopArguments<T>, lCb?: LoopCallback<T>): void {
+        const cb = lCb || (lArg as LoopCallback<T>);
+        if (lArg === true) this.#loopListReverse(cb);
         else this.#loopList(cb);
     }
 
@@ -497,10 +497,10 @@ export class ArrayList<T> implements List<T> {
 
         let index = 0;
         while(index < size) {
-            const cbRetun = cb(data[index], index);
-            if(cbRetun === LoopControl.break) break;
-            else if(cbRetun !== undefined) {
-                result.addOne(cbRetun as U);
+            const cbReturn = cb(data[index], index);
+            if(cbReturn === LoopControl.break) break;
+            else if(cbReturn !== undefined) {
+                result.addOne(cbReturn as U);
             }
             index++;
         }
@@ -908,10 +908,10 @@ export class LinkedList<T> implements List<T> {
 
     loop(cb: LoopCallback<T>): void;
     loop(reverse: true, cb: LoopCallback<T>): void;
-    loop(larg: LoopArguments<T>, lcb?: LoopCallback<T>): void {
+    loop(lArg: LoopArguments<T>, lCb?: LoopCallback<T>): void {
         if(this.#size === 0) return;
-        const cb = lcb || (larg as LoopCallback<T>);
-        if (larg === true) this.#loopListReverse(cb);
+        const cb = lCb || (lArg as LoopCallback<T>);
+        if (lArg === true) this.#loopListReverse(cb);
         else this.#loopList(cb);
     }
 
@@ -921,10 +921,10 @@ export class LinkedList<T> implements List<T> {
 
         let node = this.#head, index = 0;
         while(node) {
-            const cbRetun = cb(node.value, index);
-            if(cbRetun === LoopControl.break) break;
-            else if(cbRetun !== undefined) {
-                result.addOne(cbRetun as U);
+            const cbReturn = cb(node.value, index);
+            if(cbReturn === LoopControl.break) break;
+            else if(cbReturn !== undefined) {
+                result.addOne(cbReturn as U);
             }
             node = node.next;
             index++;

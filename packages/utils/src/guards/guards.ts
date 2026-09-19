@@ -167,22 +167,22 @@ const isHttpCode: (code: unknown) => code is HttpCode = (code: unknown): code is
 }
 
 export const Guards = (() => {
-    const Guards: Guards = Object.create(null);
+    const GuardsObj: Guards = Object.create(null);
 
-    Guards.isDefined = isDefined;
-    Guards.isUndefined = isUndefined;
-    Guards.isNull = isNull;
-    Guards.isUndefinedOrNull = isUndefinedOrNull;
-    Guards.isDefinedAndNotNull = isDefinedAndNotNull;
-    Guards.isString = isString;
-    Guards.isNumber = isNumber;
-    Guards.isBoolean = isBoolean;
-    Guards.isFunction = isFunction;
-    Guards.isArray = isArray;
-    Guards.isArrayOf = isArrayOf;
-    Guards.isNotEmptyArray = isNotEmptyArray;
-    Guards.isDate = isDate;
-    Guards.isHttpCode = isHttpCode;
+    GuardsObj.isDefined = isDefined;
+    GuardsObj.isUndefined = isUndefined;
+    GuardsObj.isNull = isNull;
+    GuardsObj.isUndefinedOrNull = isUndefinedOrNull;
+    GuardsObj.isDefinedAndNotNull = isDefinedAndNotNull;
+    GuardsObj.isString = isString;
+    GuardsObj.isNumber = isNumber;
+    GuardsObj.isBoolean = isBoolean;
+    GuardsObj.isFunction = isFunction;
+    GuardsObj.isArray = isArray;
+    GuardsObj.isArrayOf = isArrayOf;
+    GuardsObj.isNotEmptyArray = isNotEmptyArray;
+    GuardsObj.isDate = isDate;
+    GuardsObj.isHttpCode = isHttpCode;
 
-    return Guards;
+    return Object.freeze(GuardsObj);
 })();
