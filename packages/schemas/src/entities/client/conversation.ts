@@ -25,11 +25,28 @@ export const SystemMetadataSchema = DType.Object({
     avatarUrl: DType.Optional(DType.String())
 }, { $id: 'SystemMetadataSchema' });
 
+export const ConversationMemberChatPrefsSchema = DType.Object({
+    theme: DType.Optional(DType.String()),
+    notificationSound: DType.Optional(DType.String())
+}, { $id: 'ConversationMemberChatPrefsSchema' });
+
 export const ConversationSchema = DType.DbTable(DType.Intersection([
     DType.Object({
         pinnedMessageRootId: DType.Optional(DType.Uuid()),
-        isDeleted: DType.Boolean({ default: false }),
-        deletedAt: DType.Optional(DType.Epoch())
+        pinnedMessageRootIdForMe: DType.Optional(DType.Uuid()),
+        mutedUntil: DType.Optional(DType.Epoch()),
+
+        labelIds: DType.Array(DType.Uuid(), { default: [] }),
+
+        isActive: DType.Boolean({ default: true }),
+        joinedAt: DType.Epoch(),
+        leftAt: DType.Optional(DType.Epoch()),
+        clearedAt: DType.Optional(DType.Epoch()),
+
+        lastReadMessageId: DType.Optional(DType.Uuid()),
+        lastReadAt: DType.Optional(DType.Epoch()),
+
+        chatPrefs: DType.JsonB(ConversationMemberChatPrefsSchema)
     }),
     DType.Union([
         DType.Object({
@@ -53,23 +70,8 @@ export const ConversationSchema = DType.DbTable(DType.Intersection([
     ])
 ]), { $id: 'ConversationSchema' });
 
-export const ConversationMemberChatPrefsSchema = DType.Object({
-    theme: DType.Optional(DType.String()),
-    notificationSound: DType.Optional(DType.String())
-}, { $id: 'ConversationMemberChatPrefsSchema' });
-
 export const ConversationMemberSchema = DType.DbTable(DType.Object({
     conversationId: DType.Uuid(),
     userId: DType.Uuid(),
-    role: ConversationMemberRoleSchema,
-    chatPrefs: DType.JsonB(ConversationMemberChatPrefsSchema),
-    muteUntil: DType.Optional(DType.Epoch()),
-    pinnedMessageRootId: DType.Optional(DType.Uuid()),
-    labelIds: DType.Array(DType.Uuid(), { maxItems: 4, default: [] }),
-    isActive: DType.Boolean({ default: true }),
-    joinedAt: DType.Epoch(),
-    leftAt: DType.Optional(DType.Epoch()),
-    clearedAt: DType.Optional(DType.Epoch()),
-    lastReadMessageId: DType.Optional(DType.Uuid()),
-    lastReadAt: DType.Optional(DType.Epoch())
+    role: ConversationMemberRoleSchema
 }), { $id: 'ConversationMemberSchema' });
