@@ -99,7 +99,7 @@ export const ProfileSettingsSchema = DType.Object({
     hlc: DType.Hlc()
 }, { $id: 'ProfileSettingsSchema' });
 
-export const ProfileDeviceSchema = DType.Object({
+export const ProfileDevicesSchema = DType.Array(DType.Object({
     id: DType.Uuid(),
 
     clientId: DType.String(),
@@ -112,9 +112,9 @@ export const ProfileDeviceSchema = DType.Object({
     createdAt: DType.Epoch(),
     updatedAt: DType.Epoch(),
     hlc: DType.Hlc()
-}, { $id: 'ProfileDeviceSchema' });
+}), { $id: 'ProfileDevicesSchema' });
 
-export const ProfileRelationshipSchema = DType.Object({
+export const ProfileRelationshipsSchema = DType.Array(DType.Object({
     id: DType.Uuid(),
 
     userId: DType.Uuid(),
@@ -126,13 +126,13 @@ export const ProfileRelationshipSchema = DType.Object({
     createdAt: DType.Epoch(),
     updatedAt: DType.Epoch(),
     hlc: DType.Hlc()
-}, { $id: 'ProfileRelationshipSchema' });
+}), { $id: 'ProfileRelationshipsSchema' });
 
 export const ProfileSchema = DType.Object({
     info: DType.JsonB(ProfileInfoSchema),
     settings: DType.JsonB(ProfileSettingsSchema),
-    devices: DType.JsonB(DType.Array(ProfileDeviceSchema, { $id: 'ProfileDevicesSchema' })),
-    relationships: DType.JsonB(DType.Array(ProfileRelationshipSchema, { $id: 'ProfileRelationshipsSchema' })),
+    devices: DType.JsonB(ProfileDevicesSchema),
+    relationships: DType.JsonB(ProfileRelationshipsSchema),
 });
 
 export const UserSchema = DType.DbTable(DType.Object({
