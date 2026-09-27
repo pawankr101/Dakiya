@@ -13,3 +13,6 @@ export const SCHEMA_REGISTRY = {
     MessageExclusionSchema,
     MessageReactionSchema
 };
+
+export type SchemaId = keyof typeof SCHEMA_REGISTRY;
+export type SchemaRegistry = Record<SchemaId, typeof SCHEMA_REGISTRY[SchemaId]>;

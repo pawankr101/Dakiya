@@ -1,7 +1,5 @@
-import type { SCHEMA_REGISTRY } from "../registry";
+import type { SCHEMA_REGISTRY, SchemaId } from "../registry";
 import type { DSchemaWith$id, DTypeOf } from "../schema";
-
-type SchemaId = keyof typeof SCHEMA_REGISTRY;
 
 class Schema<SI extends SchemaId = SchemaId, S extends DSchemaWith$id = DSchemaWith$id> {
     id: SI;

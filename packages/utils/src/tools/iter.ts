@@ -10,7 +10,7 @@ export const LoopControl = (() => {
 
 type LoopCallback<U = void> = () => LoopControl | U;
 type LoopCallbackWithIndex<U = void> = (index: number) => LoopControl | U;
-type LoopDataCallback<T, K extends string | number = number, U = void> = (item: T, index: K) => LoopControl | U;
+type LoopDataCallback<T, K, U = void> = (item: T, index: K) => LoopControl | U;
 type MapLoopCallback<T, U, V = void> = (item: T, index: number) => LoopControl | U | V;
 type LoopFunctionOverloads = {
     /**
@@ -48,7 +48,7 @@ type LoopFunctionOverloads = {
     *  // Value: 1, Key: a
     *  // Value: 2, Key: b
     */
-    <T>(model: ObjectOf<T>, cb: LoopDataCallback<T, string>): void;
+    <T, K extends string | number>(model: ObjectOf<T, K>, cb: LoopDataCallback<T, K>): void;
 
     /**
     * Loop through an Array.

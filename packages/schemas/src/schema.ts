@@ -1,4 +1,4 @@
-import { type Static, type TArray, type TBoolean, type TFormat, type TIntersect, type TLiteral, type TNumber, type TObject, type TOptional, type TSchema, type TSchemaOptions, type TString, type TUnion, Type } from 'typebox'
+import { type Static, type TArray, type TBoolean, type TIntersect, type TLiteral, type TNumber, type TObject, type TOptional, type TSchema, type TSchemaOptions, type TString, type TUnion, Type } from 'typebox'
 
 export interface DSchema extends TSchema {}
 
@@ -42,11 +42,13 @@ export interface DDbTable<S extends DDbTableBodySchema> extends DSchemaWith$id, 
 
 export interface DSchemaOptions extends TSchemaOptions {}
 
+type DStringFormat = 'date-time' | 'date' | 'duration' | 'email' | 'hostname' | 'idn-email' | 'idn-hostname' | 'ipv4' | 'ipv6' | 'iri-reference' | 'iri' | 'json-pointer-uri-fragment' | 'json-pointer' | 'json-string' | 'regex' | 'relative-json-pointer' | 'time' | 'uri-reference' | 'uri-template' | 'uri' | 'url' | 'uuid';
+
 export interface DStringOptions extends DSchemaOptions {
     /**
      * Specifies the expected string format. May also be a custom format string.
      */
-    format?: TFormat;
+    format?: DStringFormat;
     /**
      * Specifies the minimum number of characters allowed in the string.
      * Must be a non-negative integer.
