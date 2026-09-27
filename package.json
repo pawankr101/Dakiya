@@ -34,8 +34,8 @@
         "packages/*"
     ],
     "dependencies": {
-        "@dakiya/schemas": "^1.0.0",
-        "@dakiya/utils": "^1.0.0",
+        "@dakiya/schemas": "1.0.0",
+        "@dakiya/utils": "1.0.0",
         "@fastify/cors": "^11.3.0",
         "@fastify/helmet": "^13.1.1",
         "@fastify/swagger": "^9.9.0",
@@ -51,7 +51,7 @@
         "postgres": "^3.4.9",
         "typebox": "1.3.34",
         "uuid": "^14.0.2",
-        "ws": "^8.21.3"
+        "ws": "^8.22.0"
     },
     "devDependencies": {
         "@biomejs/biome": "2.5.14",
