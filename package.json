@@ -21,11 +21,12 @@
         "server:test": "cd ./server && npm run test",
         "utils:build": "cd ./packages/utils && npm run build",
         "schemas:build": "cd ./packages/schemas && npm run build",
+        "packages:build": "concurrently \"npm run utils:build\" \"npm run schemas:build\"",
         "build": "concurrently --kill-others \"npm run server:build\" \"npm run client:build\"",
         "build:prod": "concurrently --kill-others \"npm run server:build:prod\" \"npm run client:build\"",
         "lint": "concurrently --kill-others \"npm run server:lint\" \"npm run client:lint\"",
         "start": "concurrently --kill-others \"npm run server:start\" \"npm run client:start\"",
-        "reinstall": "rm -rf node_modules && rm -f package-lock.json && npm install && npm audit fix && npm run utils:build && npm run schemas:build",
+        "reinstall": "rm -rf node_modules && rm -f package-lock.json && npm install && npm audit fix && npm run packages:build",
         "update": "ncu -u -x \"@dakiya/*\" && npm run reinstall"
     },
     "workspaces": [

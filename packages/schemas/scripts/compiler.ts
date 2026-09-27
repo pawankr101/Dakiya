@@ -44,7 +44,7 @@ const ValidatorCompiler = (() => {
     const CURRENT_DIR = fileURLToPath(new URL('.', import.meta.url));
     const SRC_DIR = resolve(CURRENT_DIR, '..', 'src');
     const CONFIG = {
-        generatedValidatorDir: resolve(SRC_DIR, '..', 'bin'),
+        generatedValidatorDir: resolve(SRC_DIR, '__precompiled__'),
         generatedValidatorFileName: 'validator',
         generatedValidatorFileExtension: '.ts',
     };

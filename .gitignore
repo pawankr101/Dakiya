@@ -13,7 +13,7 @@
 dist
 
 # Generated Schemas
-packages/schemas/bin/
+packages/schemas/src/__precompiled__
 
 # dependencies
 /node_modules

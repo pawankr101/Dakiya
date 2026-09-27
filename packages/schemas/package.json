@@ -5,7 +5,7 @@
     "types": "./dist/index.d.ts",
     "scripts": {
         "generate": "tsx scripts/compiler.ts",
-        "clean": "rm -rf dist bin",
+        "clean": "rm -rf dist src/__precompiled__",
         "build": "npm run clean && npm run generate && tsc"
     }
 }
