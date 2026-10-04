@@ -21,7 +21,7 @@ Instead, please report them privately using one of the following methods:
 
 ### How to Report
 
-1. **Email:** Send a detailed email to `[your-email@example.com]` (Please replace this with the actual security contact email).
+1. **Email:** Send a detailed email to `pawan.akshaykr@gmail.com`.
 2. **GitHub Private Vulnerability Reporting:** If enabled on this repository, navigate to the **Security** tab, click **Advisories**, and then click **Report a vulnerability**.
 
 ### What to Include
