@@ -1,7 +1,7 @@
 Database Design Document
     <=> we are using Local-First database along with Bring-Your-Own-Storage (BYOS) approach for our application.
     <=> Database:
-        => WatermelonDB (Local-First Database) - uses indexedDB / SQLite as local storage
+        => Op-Sqlite (Local-First Client Database)
         => PostgreSQL (Cloud Storage Database)
         => NATS KV (In-memory Database for Caching and Real-time Data Handling)
 
@@ -273,7 +273,7 @@ Database Design Document
 
 3. MESSAGE MANAGEMENT
     * Message:
-        => id: "UUID, Primary Key, Immutable" (Generated locally by WatermelonDB so users can message offline)
+        => id: "UUID, Primary Key, Immutable"
         => root_id: "UUID, Immutable, Indexed, NOT NULL (The constant ID for the whole "conversation thread" of this message)"
         => version: "Integer, Immutable, NOT NULL, Default: 0 (The version number of this message. 0-indexed: 0, 1, 2...)"
         //-- Unique Constraint Exception
@@ -413,7 +413,7 @@ Database Design Document
         => hlc: "String (Hybrid Logical Clock), used for sync tracking"
 
     * MessageReactions:
-        => id: "UUID, Primary Key, Immutable" (Generated locally by WatermelonDB so users can message offline)
+        => id: "UUID, Primary Key, Immutable"
 
         //-- Foreign Keys
         => message_root_id: "UUID, Foreign Key to Messages.root_id, Indexed, NOT NULL"
@@ -434,10 +434,10 @@ Database Design Document
         => hlc: "String (Hybrid Logical Clock), used for sync tracking"
 
 
-* Local-First Database Design (WatermelonDB)
+* Local-First Database Design (Client Database)
 --------------------------------------------
 1. PROFILE AND USER DATA
-    * Profile: // this will be save as JSON in WatermelonDB localstorage
+    * Profile: // this will be save as JSON
         //-- User's profile information.
         => info {
             => id: "UUID, Primary Key, Immutable"
@@ -657,7 +657,7 @@ Database Design Document
 
 3. MESSAGE MANAGEMENT
     * Message:
-        => id: "UUID, Primary Key, Immutable" (Generated locally by WatermelonDB so users can message offline)
+        => id: "UUID, Primary Key, Immutable"
         => root_id: "UUID, Immutable, Indexed, NOT NULL (The constant ID for the whole "conversation thread" of this message)"
         => version: "Integer, Immutable, NOT NULL, Default: 0 (The version number of this message. 0-indexed: 0, 1, 2...)"
         //-- Unique Constraint Exception
@@ -758,7 +758,7 @@ Database Design Document
         => hlc: "String (Hybrid Logical Clock), used for sync tracking"
 
     * MessageReactions:
-        => id: "UUID, Primary Key, Immutable" (Generated locally by WatermelonDB so users can message offline)
+        => id: "UUID, Primary Key, Immutable"
 
         //-- Foreign Keys
         => message_root_id: "UUID, Foreign Key to Messages.root_id, Indexed, NOT NULL"
