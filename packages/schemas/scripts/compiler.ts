@@ -287,9 +287,16 @@ const ValidatorCompiler = (() => {
     function buildInterfacesCode(): string {
         let sc = '';
 
+        sc += `export interface ValidationIssue {\n`;
+        sc += `    /** JSON pointer to the offending field (e.g. "/email"); "/" for a root-level issue. */\n`;
+        sc += `    field: string;\n`;
+        sc += `    message: string;\n`;
+        sc += `}\n\n`;
+
+
         sc += `export type ValidationResult =\n`;
         sc += `    | { valid: true; errors?: undefined }\n`;
-        sc += `    | { valid: false; errors: TLocalizedValidationError[] };\n\n`;
+        sc += `    | { valid: false; errors: ValidationIssue[] };\n\n`;
 
         sc += `export interface Validator<S extends DSchemaWith$id> {\n`;
         sc += `    /** Type guard backed by the precompiled check. No allocations. */\n`;
@@ -300,30 +307,36 @@ const ValidatorCompiler = (() => {
         sc += `    deserialize(json: string): DTypeOf<S>;\n`;
         sc += `    /** Validate + JSON.stringify. Throws SchemaValidationError when the data is invalid. */\n`;
         sc += `    serialize(data: DTypeOf<S>): string;\n`;
+        sc += `    getAst(): S;\n`;
         sc += `}\n\n`;
 
         sc += `export class SchemaValidationError extends Error {\n`;
         sc += `    readonly schemaId: string;\n`;
-        sc += `    readonly errors: TLocalizedValidationError[];\n`;
-        sc += `    constructor(schemaId: string, errors: TLocalizedValidationError[]) {\n`;
+        sc += `    readonly errors: ValidationIssue[];\n`;
+        sc += `    constructor(schemaId: string, errors: ValidationIssue[]) {\n`;
         sc += `        const first = errors[0];\n`;
-        sc += `        super(schemaId + ' validation failed' + (first ? ': ' + (first.instancePath || '/') + ' ' + first.message : ''));\n`;
+        sc += `        super(schemaId + ' validation failed' + (first ? ': ' + first.field + ' ' + first.message : ''));\n`;
         sc += `        this.name = 'SchemaValidationError';\n`;
         sc += `        this.schemaId = schemaId;\n`;
         sc += `        this.errors = errors;\n`;
         sc += `    }\n`;
         sc += `}\n\n`;
 
-        sc += `function createValidator<S extends DSchemaWith$id>(id: string, schema: S, check: (value: unknown) => boolean): Validator<S> {\n`;
+        sc += `function toValidationIssues(errors: TLocalizedValidationError[]): ValidationIssue[] {\n`;
+        sc += `    return errors.map((error) => ({ field: error.instancePath || '/', message: error.message }));\n`;
+        sc += `}\n\n`;
+
+        sc += `function createValidator<S extends DSchemaWith$id>(id: string, schema: S, check: (value: unknown) => boolean, astString: string): Validator<S> {\n`;
         sc += `    const assertValid = (data: unknown): DTypeOf<S> => {\n`;
-        sc += `        if (!check(data)) throw new SchemaValidationError(id, Errors(schema, data));\n`;
+        sc += `        if (!check(data)) throw new SchemaValidationError(id, toValidationIssues(Errors(schema, data)));\n`;
         sc += `        return data as DTypeOf<S>;\n`;
         sc += `    };\n`;
         sc += `    return {\n`;
         sc += `        isValid: (data: unknown): data is DTypeOf<S> => check(data),\n`;
-        sc += `        validate: (data: unknown): ValidationResult => (check(data) ? { valid: true } : { valid: false, errors: Errors(schema, data) }),\n`;
+        sc += `        validate: (data: unknown): ValidationResult => (check(data) ? { valid: true } : { valid: false, errors: toValidationIssues(Errors(schema, data)) }),\n`;
         sc += `        deserialize: (json: string) => assertValid(JSON.parse(json)),\n`;
-        sc += `        serialize: (data: DTypeOf<S>) => JSON.stringify(assertValid(data))\n`;
+        sc += `        serialize: (data: DTypeOf<S>) => JSON.stringify(assertValid(data)),\n`;
+        sc += `        getAst: () => JSON.parse(astString)\n`;
         sc += `    };\n`;
         sc += `}\n`;
 
@@ -346,8 +359,13 @@ const ValidatorCompiler = (() => {
     function buildRegistryCode(ids: readonly SchemaId[]): string {
         let sc = '';
         sc += ids
-            .map((id) => `export const ${id}Validator = createValidator("${id}", SCHEMA_REGISTRY.${id}, createCheck_${id}())`)
-            .join(';\n');
+            .map((id) => {
+                const astString = JSON.stringify(SCHEMA_REGISTRY[id], (_key, value) => {
+                    if(value instanceof RegExp) return value.source;
+                    return value;
+                });
+                return `export const ${id}Validator = createValidator("${id}", SCHEMA_REGISTRY.${id}, createCheck_${id}(), ${JSON.stringify(astString)})`;
+            }).join(';\n');
         return sc;
     }
 
