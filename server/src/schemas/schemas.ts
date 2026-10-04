@@ -1,28 +1,29 @@
 export type * from '@dakiya/schemas';
 
-import { type DSchemaWith$id, type DTypeOf, type SchemaRegistry, UserSchemaValidator, type ValidationResult, type Validator } from '@dakiya/schemas';
+import { type DTypeOf, type SchemaRegistry, UserSchemaValidator, UserSettingsSchemaValidator, type ValidationResult, type Validator } from '@dakiya/schemas';
 import { loop } from '@dakiya/utils';
 
 
 const VALIDATORS = {
     UserSchema: UserSchemaValidator,
+    UserSettingsSchema: UserSettingsSchemaValidator,
     // Add more validators here
 };
 
 export type SchemaId = keyof typeof VALIDATORS;
 
-export interface Schema<SI extends SchemaId = SchemaId, S extends DSchemaWith$id = DSchemaWith$id> {
+export interface Schema<SI extends SchemaId = SchemaId> {
     id: SI;
-    ast: S;
+    ast: SchemaRegistry[SI];
 
-    isValid: (data: unknown) => data is DTypeOf<S>;
+    isValid: (data: unknown) => data is DTypeOf<SchemaRegistry[SI]>;
     validate: (data: unknown) => ValidationResult;
-    deserialize: (json: string) => DTypeOf<S>;
-    serialize: (data: DTypeOf<S>) => string;
+    deserialize: (json: string) => DTypeOf<SchemaRegistry[SI]>;
+    serialize: (data: DTypeOf<SchemaRegistry[SI]>) => string;
 }
 
 export interface Schemas {
-    getSchema<SI extends SchemaId = SchemaId>(schemaId: SI): Schema<SI, SchemaRegistry[SI]>;
+    getSchema<SI extends SchemaId = SchemaId>(schemaId: SI): Schema<SI>;
     init(): void;
 }
 
@@ -31,13 +32,13 @@ export const Schemas: Schemas = (() => {
     type V = Record<SchemaId, Validator<SchemaRegistry[SchemaId]>>;
 
     const scm: Schemas = Object.create(null);
-    const registry: Record<SchemaId, Schema<SchemaId, SchemaRegistry[SchemaId]>> = Object.create(null)
+    const registry: Record<SchemaId, Schema<SchemaId>> = Object.create(null)
 
-    const buildSchema = <SI extends SchemaId = SchemaId>(schemaId: SI, validator: V[SI]): Schema<SI, SchemaRegistry[SI]> => {
-        const sch: Schema<SI, SchemaRegistry[SI]> = Object.create(null);
+    const buildSchema = <SI extends SchemaId = SchemaId>(schemaId: SI, validator: V[SI]): Schema<SI> => {
+        const sch: Schema<SI> = Object.create(null);
 
         sch.id = schemaId;
-        sch.ast = validator.getAst();
+        sch.ast = validator.getAst() as SchemaRegistry[SI];
         sch.isValid = validator.isValid as (data: unknown) => data is DTypeOf<SchemaRegistry[SI]>;
         sch.validate = validator.validate as (data: unknown) => ValidationResult;
         sch.deserialize = validator.deserialize as (json: string) => DTypeOf<SchemaRegistry[SI]>;
@@ -53,9 +54,9 @@ export const Schemas: Schemas = (() => {
         Object.freeze(registry);
     };
 
-    scm.getSchema = <SI extends SchemaId = SchemaId>(schemaId: SI): Schema<SI, SchemaRegistry[SI]> => {
+    scm.getSchema = <SI extends SchemaId = SchemaId>(schemaId: SI): Schema<SI> => {
         const s = registry[schemaId];
-        if(s) return s as Schema<SI, SchemaRegistry[SI]>;
+        if(s) return s as Schema<SI>;
         throw new Error(`Schema with id '${schemaId}' not found.`);
     };
 

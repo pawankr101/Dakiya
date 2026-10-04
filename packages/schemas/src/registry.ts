@@ -90,5 +90,5 @@ export const SCHEMA_REGISTRY = {
     ClientConversationMemberSchema
 };
 
-export type SchemaId = keyof typeof SCHEMA_REGISTRY;
-export type SchemaRegistry = Record<SchemaId, typeof SCHEMA_REGISTRY[SchemaId]>;
+export type SchemaRegistry = typeof SCHEMA_REGISTRY;
+export type SchemaId = keyof SchemaRegistry;
