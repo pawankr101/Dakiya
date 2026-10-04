@@ -1,5 +1,5 @@
 import { DType } from '../../schema';
-import { AccountStatusSchema, BackupFrequencySchema, FontSizeSchema, GenderSchema, PlatformSchema, PrivacyLevelSchema, ThemeSchema } from '../shared';
+import { DeviceChatPrefsSchema, GenderSchema, LabelsAndCirclesSchema, PlatformSchema, UserSettingsAccountSchema, UserSettingsBackupSchema, UserSettingsPrivacySchema } from '../shared';
 
 export const ProfileInfoSchema = DType.Object({
     id: DType.Uuid(),
@@ -22,62 +22,14 @@ export const ProfileInfoSchema = DType.Object({
     hlc: DType.Hlc()
 }, { $id: 'ProfileInfoSchema' });
 
-
-export const LabelsAndCirclesSchema = DType.Array(DType.Object({
-    id: DType.Uuid(),
-    name: DType.Optional(DType.String()),
-    position: DType.Number()
-}), { maxItems: 8, default: [], $id: 'LabelsAndCirclesSchema' });
-
-export const DeviceChatPrefsSchema = DType.Object({
-    theme: ThemeSchema,
-    fontSize: FontSizeSchema,
-    mediaAutoDownload: DType.Object({
-        photos: DType.Boolean({ default: true }),
-        videos: DType.Boolean({ default: true }),
-        audio: DType.Boolean({ default: true }),
-        documents: DType.Boolean({ default: true })
-    })
-}, { $id: 'DeviceChatPrefsSchema' });
-
-export const UserSettingsNotificationsSchema = DType.Object({
+export const ClientUserSettingsNotificationsSchema = DType.Object({
     enabled: DType.Boolean({ default: true }),
     vibration: DType.Boolean({ default: true }),
     sound: DType.Boolean({ default: true }),
     groupNotifications: DType.Boolean({ default: true }),
     popupNotifications: DType.Boolean({ default: true }),
     emailNotifications: DType.Boolean({ default: true })
-}, { $id: 'UserSettingsNotificationsSchema' });
-
-export const UserSettingsPrivacySchema = DType.Object({
-    readReceipts: DType.Boolean({ default: true }),
-    lastSeen: PrivacyLevelSchema,
-    email: PrivacyLevelSchema,
-    dp: PrivacyLevelSchema,
-    dob: PrivacyLevelSchema,
-    bio: PrivacyLevelSchema
-}, { $id: 'UserSettingsPrivacySchema' });
-
-export const UserSettingsBackupSchema = DType.Object({
-    enabled: DType.Boolean({ default: false }),
-    provider: DType.Optional(DType.String()),
-    backupLocation: DType.Optional(DType.String()),
-    backupFrequency: BackupFrequencySchema,
-    overWifiOnly: DType.Boolean({ default: true }),
-    lastBackupAt: DType.Optional(DType.Epoch())
-}, { $id: 'UserSettingsBackupSchema' });
-
-export const UserSettingsAccountSchema = DType.Object({
-    accountStatus: AccountStatusSchema,
-    twoFactorAuth: DType.Boolean({ default: false }),
-    mfa: DType.Object({
-        sms: DType.Optional(DType.String()),
-        email: DType.Optional(DType.String()),
-        totp: DType.Optional(DType.String())
-    }),
-    recoveryCodesHash: DType.Optional(DType.Array(DType.String())),
-    lastPasswordChange: DType.Optional(DType.Epoch())
-}, { $id: 'UserSettingsAccountSchema' });
+}, { $id: 'ClientUserSettingsNotificationsSchema' });
 
 export const ProfileSettingsSchema = DType.Object({
     id: DType.Uuid(),
@@ -89,7 +41,7 @@ export const ProfileSettingsSchema = DType.Object({
     labels: LabelsAndCirclesSchema,
     circles: LabelsAndCirclesSchema,
     chats: DeviceChatPrefsSchema,
-    notifications: UserSettingsNotificationsSchema,
+    notifications: ClientUserSettingsNotificationsSchema,
     privacy: UserSettingsPrivacySchema,
     backup: UserSettingsBackupSchema,
     account: UserSettingsAccountSchema,
@@ -133,9 +85,9 @@ export const ProfileSchema = DType.Object({
     settings: DType.JsonB(ProfileSettingsSchema),
     devices: DType.JsonB(ProfileDevicesSchema),
     relationships: DType.JsonB(ProfileRelationshipsSchema),
-});
+}, { $id: 'ProfileSchema' });
 
-export const UserSchema = DType.DbTable(DType.Object({
+export const ClientUserSchema = DType.DbTable(DType.Object({
     username: DType.String(),
     mobile: DType.String(),
     email: DType.Optional(DType.String({ format: 'email' })),
@@ -148,4 +100,4 @@ export const UserSchema = DType.DbTable(DType.Object({
 
     dp: DType.Optional(DType.String( { format: 'uri' })),
     bio: DType.Optional(DType.String())
-}), { $id: 'UserSchema' });
+}), { $id: 'ClientUserSchema' });
