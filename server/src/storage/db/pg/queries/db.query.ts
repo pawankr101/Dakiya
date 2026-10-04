@@ -464,7 +464,7 @@ const createMessageReactionsTable = async (connection: Sql) => {
 const createIndexes = async (connection: Sql) => {
     try {
         // ==========================================
-        // 1. WATERMELONDB SYNC INDEXES
+        // 1. LOCAL-FIRST SYNC INDEXES
         // Critical for: `SELECT * FROM table WHERE updated_at > last_pulled_at`
         // ==========================================
         await connection`CREATE INDEX IF NOT EXISTS idx_conversations_updated_at ON conversations(updated_at);`;

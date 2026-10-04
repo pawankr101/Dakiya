@@ -1,4 +1,4 @@
-import type { Conversation, ConversationMember, Device, Message, MessageExclusion, MessageReaction, User, UserRelationship, UserSettings } from './entities.type';
+import type { Conversation, ConversationMember, Device, Message, MessageExclusion, MessageReaction, User, UserRelationship, UserSettings } from '../schemas';
 
 export type SyncEntity = User | UserRelationship | Conversation | ConversationMember | Message | MessageReaction | MessageExclusion;
 
