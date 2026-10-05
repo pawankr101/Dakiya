@@ -1,6 +1,9 @@
 words = [
+    "DAKIYA",
     "HLC",
+    "NATS",
     "Wifi",
+    "fastify",
     "fcm",
     "sms",
     "totp",

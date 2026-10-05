@@ -22,6 +22,13 @@ export interface PG {
     ping(): Promise<boolean>;
 
     /**
+     * Fetch current timestamp in milliseconds from the PostgreSQL server.
+     * @returns A promise that resolves to the current timestamp in milliseconds since the Unix epoch.
+     * @throws An exception if there is an issue with the connection or if the query fails.
+     */
+    now(): Promise<number>;
+
+    /**
      * Closes the PostgreSQL connection.
      * This method should be called when the connection is no longer needed to release resources.
      */
@@ -74,6 +81,16 @@ export const PG = (() => {
             return true;
         } catch {
             return false;
+        }
+    };
+
+    PG.now = async () => {
+        if (!isConnected) throw new Exception('PostgreSQL connection is not established.', { code: 'DAKIYA_PG_ERROR' });
+        try {
+            const [{dt}] = await connection<{ dt: string; }[]>`SELECT (EXTRACT(EPOCH FROM NOW()) * 1000)::bigint AS dt`;
+            return Number(dt);
+        } catch (error) {
+            throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
         }
     };
 

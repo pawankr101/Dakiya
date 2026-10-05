@@ -11,7 +11,7 @@ export const pullSyncQuery = async (userId: string, lastPulledAtIso?: string): P
             WITH snap AS (SELECT NOW() AS ts)
             SELECT
                 (EXTRACT(EPOCH FROM ts) * 1000)::bigint AS server_time_ms,
-                to_char((ts - (INTERVAL '1 day' * ${DB.syncBoundryInDays})) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS boundary_iso
+                to_char((ts - (INTERVAL '1 day' * ${DB.syncBoundaryInDays})) AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS boundary_iso
             FROM snap
         `;
 

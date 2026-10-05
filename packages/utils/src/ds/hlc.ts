@@ -80,7 +80,7 @@ export class Hlc {
 
 	static now() {
 	    return Chrono.now() + Hlc.#timestampOffset;
-    }
+	}
 
     static #buildFromHlcString(hlcString: string): Hlc {
         const hlc = new Hlc(Hlc.#staticHash);
@@ -103,7 +103,6 @@ export class Hlc {
         hlc.#cId = cId;
         return hlc;
     }
-
     static #getUpdatedHlc(hlc: HLC, now: number): Hlc {
         const remote = Guards.isString(hlc) ? Hlc.#buildFromHlcString(hlc) : hlc;
         const ts = Math.max(now, Hlc.#lastTimestamp, remote.timestamp);
@@ -122,7 +121,6 @@ export class Hlc {
 
         return Hlc.#buildFromComponents(ts, ct, Hlc.#currentClientId);
     }
-
     static #getNewHlc(now: number): Hlc {
         if (now > Hlc.#lastTimestamp) {
             Hlc.#lastTimestamp = now;

@@ -59,7 +59,7 @@ export const DB = {
     maxPoolSize: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
-    syncBoundryInDays: 30
+    syncBoundaryInDays: 30
 }
 
 export const NATS = {
@@ -73,4 +73,17 @@ export const NATS = {
 export const CACHE = {
     database: process.env.DAKIYA_CACHE_DATABASE,
     maxTTL: 24 * 60 * 60 // 24 hours in seconds
+}
+
+export const HLC = {
+    cacheKey: '__dakiya_last_hlc__',
+    maxOffsetToleranceMS: 1000 * 60 * 60 * 24, // 24 hours in milliseconds
+    offsetUpdateIntervalMS: 1000 * 60 * 15 // 15 minutes in milliseconds
+}
+
+export const LOGGING = {
+    level: process.env.DAKIYA_LOGGING_LEVEL || 'info',
+    prettyPrint: process.env.DAKIYA_LOGGING_PRETTY_PRINT === 'true',
+    logToFile: process.env.DAKIYA_LOGGING_LOG_TO_FILE === 'true',
+    logFilePath: resolve(ROOT_DIR, 'logs', 'dakiya.log')
 }
