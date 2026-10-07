@@ -32,7 +32,7 @@ export const createDbIfNotExists = async () => {
     } finally {
         await tempConnection.end();
     }
-}
+};
 
 export const initTables = async (connection: Sql) => {
     await createRequiredEnums(connection);
@@ -51,7 +51,7 @@ export const initTables = async (connection: Sql) => {
 
     await createIndexes(connection);
     await createTriggers(connection);
-}
+};
 const createRequiredEnums = async (connection: Sql) => {
     try {
         await connection`
@@ -98,7 +98,7 @@ const createRequiredEnums = async (connection: Sql) => {
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
     }
-}
+};
 
 const createUserTable = async (connection: Sql) => {
     try {
@@ -138,7 +138,7 @@ const createUserTable = async (connection: Sql) => {
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
     }
-}
+};
 const createUserSettingsTable = async (connection: Sql) => {
     try {
         await connection`
@@ -193,7 +193,7 @@ const createUserSettingsTable = async (connection: Sql) => {
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
     }
-}
+};
 const createDevicesTable = async (connection: Sql) => {
     try {
         await connection`
@@ -240,7 +240,7 @@ const createDevicesTable = async (connection: Sql) => {
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
     }
-}
+};
 const createUserRelationshipsTable = async (connection: Sql) => {
     try {
         await connection`
@@ -273,7 +273,7 @@ const createUserRelationshipsTable = async (connection: Sql) => {
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
     }
-}
+};
 
 const createConversationsTable = async (connection: Sql) => {
     try {
@@ -307,7 +307,7 @@ const createConversationsTable = async (connection: Sql) => {
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
     }
-}
+};
 const createConversationMembersTable = async (connection: Sql) => {
     try {
         await connection`
@@ -347,7 +347,7 @@ const createConversationMembersTable = async (connection: Sql) => {
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
     }
-}
+};
 
 const createMessagesTable = async (connection: Sql) => {
     try {
@@ -396,7 +396,7 @@ const createMessagesTable = async (connection: Sql) => {
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
     }
-}
+};
 const createMessageExclusionsTable = async (connection: Sql) => {
     try {
         await connection`
@@ -424,7 +424,7 @@ const createMessageExclusionsTable = async (connection: Sql) => {
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
     }
-}
+};
 const createMessageReactionsTable = async (connection: Sql) => {
     try {
         await connection`
@@ -459,31 +459,27 @@ const createMessageReactionsTable = async (connection: Sql) => {
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
     }
-}
+};
 
 const createIndexes = async (connection: Sql) => {
     try {
         // ==========================================
-        // 1. LOCAL-FIRST SYNC INDEXES
-        // Critical for: `SELECT * FROM table WHERE updated_at > last_pulled_at`
+        // 1. LOCAL-FIRST SYNC INDEXES`
         // ==========================================
-        await connection`CREATE INDEX IF NOT EXISTS idx_conversations_updated_at ON conversations(updated_at);`;
-        await connection`CREATE INDEX IF NOT EXISTS idx_conversation_members_updated_at ON conversation_members(updated_at);`;
-        await connection`CREATE INDEX IF NOT EXISTS idx_messages_updated_at ON messages(updated_at);`;
-        await connection`CREATE INDEX IF NOT EXISTS idx_message_exclusions_updated_at ON message_exclusions(updated_at);`;
-        await connection`CREATE INDEX IF NOT EXISTS idx_message_reactions_updated_at ON message_reactions(updated_at);`;
+        await connection`CREATE INDEX IF NOT EXISTS idx_conversations_hlc ON conversations(hlc);`;
+        await connection`CREATE INDEX IF NOT EXISTS idx_conversation_members_hlc ON conversation_members(hlc);`;
+        await connection`CREATE INDEX IF NOT EXISTS idx_messages_hlc ON messages(hlc);`;
+        await connection`CREATE INDEX IF NOT EXISTS idx_message_exclusions_hlc ON message_exclusions(hlc);`;
+        await connection`CREATE INDEX IF NOT EXISTS idx_message_reactions_hlc ON message_reactions(hlc);`;
 
         // ==========================================
         // 2. COMPOSED SYNC INDEXES (High Performance)
-        // Critical for scoped syncs: `WHERE conversation_id IN (...) AND updated_at > ?`
         // ==========================================
-        await connection`CREATE INDEX IF NOT EXISTS idx_messages_conv_updated ON messages(conversation_id, updated_at DESC);`;
-        await connection`CREATE INDEX IF NOT EXISTS idx_conversation_members_conv_updated ON conversation_members(conversation_id, updated_at DESC);`;
+        await connection`CREATE INDEX IF NOT EXISTS idx_messages_conv_hlc ON messages(conversation_id, hlc DESC);`;
+        await connection`CREATE INDEX IF NOT EXISTS idx_conversation_members_conv_hlc ON conversation_members(conversation_id, hlc DESC);`;
 
         // ==========================================
         // 3. THREADING & TRIGGER OPTIMIZATION
-        // Critical for: The exclusion validation trigger we wrote earlier uses
-        // `WHERE root_id = NEW.message_root_id LIMIT 1`
         // ==========================================
         await connection`CREATE INDEX IF NOT EXISTS idx_messages_root_id ON messages(root_id);`;
         await connection`CREATE INDEX IF NOT EXISTS idx_message_reactions_root_id ON message_reactions(message_root_id);`;
@@ -503,7 +499,7 @@ const createTriggers = async (connection: Sql) => {
     await createOwnershipTransferTrigger(connection);
     await createMessageChainTombstoneTrigger(connection);
     await createMessageDeletedForTrigger(connection);
-}
+};
 
 /***************** Triggers: Start *****************/
 
@@ -536,7 +532,7 @@ const createImmutableTombstoneTrigger = async (connection: Sql) => {
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
     }
-}
+};
 const createOwnershipTransferTrigger = async (connection: Sql) => {
     try {
         // Step 1: Define the PL/pgSQL function
@@ -565,7 +561,10 @@ const createOwnershipTransferTrigger = async (connection: Sql) => {
 
                     -- If an admin is found, promote them and exit
                     IF v_new_owner_id IS NOT NULL THEN
-                        UPDATE conversation_members SET role = 'owner', updated_at = CURRENT_TIMESTAMP WHERE conversation_id = NEW.conversation_id AND user_id = v_new_owner_id;
+                        UPDATE conversation_members
+                        SET role = 'owner', updated_at = CURRENT_TIMESTAMP, hlc = NEW.hlc
+                        WHERE conversation_id = NEW.conversation_id AND user_id = v_new_owner_id;
+
                         RETURN NEW;
                     END IF;
 
@@ -583,15 +582,21 @@ const createOwnershipTransferTrigger = async (connection: Sql) => {
 
                         IF v_new_owner_id IS NOT NULL THEN
                             -- Promote member to owner
-                            UPDATE conversation_members SET role = 'owner', updated_at = CURRENT_TIMESTAMP WHERE conversation_id = NEW.conversation_id AND user_id = v_new_owner_id;
+                            UPDATE conversation_members
+                            SET role = 'owner', updated_at = CURRENT_TIMESTAMP, hlc = NEW.hlc
+                            WHERE conversation_id = NEW.conversation_id AND user_id = v_new_owner_id;
                         ELSE
                             -- Rule 2b: Group is completely empty, soft-delete the conversation
-                            UPDATE conversations SET is_deleted = TRUE, deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = NEW.conversation_id;
+                            UPDATE conversations
+                            SET is_deleted = TRUE, deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP, hlc = NEW.hlc
+                            WHERE id = NEW.conversation_id;
                         END IF;
 
                     ELSIF v_conv_type = 'channel' THEN
                         -- Rule 3: Channels do not promote regular members. Soft-delete the channel.
-                        UPDATE conversations SET is_deleted = TRUE, deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = NEW.conversation_id;
+                        UPDATE conversations
+                        SET is_deleted = TRUE, deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP, hlc = NEW.hlc
+                        WHERE id = NEW.conversation_id;
                     END IF;
                 END IF;
 
@@ -614,7 +619,7 @@ const createOwnershipTransferTrigger = async (connection: Sql) => {
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
     }
-}
+};
 const createMessageChainTombstoneTrigger = async (connection: Sql) => {
     try {
         // Step 1: Define the PL/pgSQL function
@@ -649,7 +654,7 @@ const createMessageChainTombstoneTrigger = async (connection: Sql) => {
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
     }
-}
+};
 const createMessageDeletedForTrigger = async (connection: Sql) => {
     try {
         // Step 1: Define the PL/pgSQL function
@@ -722,6 +727,6 @@ const createMessageDeletedForTrigger = async (connection: Sql) => {
     } catch (error) {
         throw Exception.from(error as Error, { code: 'DAKIYA_PG_ERROR' });
     }
-}
+};
 
 /***************** Triggers: End *****************/
