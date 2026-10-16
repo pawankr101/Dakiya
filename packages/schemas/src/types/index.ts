@@ -1,3 +1,5 @@
-export type * from "../registry";
-export type * from "../schema";
-export type * from "./entities";
+export type * from "../core/registry";
+export type * from "../core/schema";
+export type * from "./client";
+export type * from "./server";
+export type * from "./shared";

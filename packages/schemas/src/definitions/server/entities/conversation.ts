@@ -1,5 +1,5 @@
-import { DType } from '../../schema';
-import { ChannelMetadataSchema, ConversationMemberChatPrefsSchema, ConversationMemberRoleSchema, GroupMetadataSchema, SystemMetadataSchema } from '../shared';
+import { DType } from '../../../core/schema';
+import { ChannelMetadataSchema, ConversationMemberChatPrefsSchema, ConversationMemberRoleSchema, GroupMetadataSchema, SystemMetadataSchema } from '../../shared/entities';
 
 export const ConversationSchema = DType.DbTable(DType.Intersection([
     DType.Object({

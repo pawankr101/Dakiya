@@ -1,4 +1,4 @@
-import { DType } from '../../schema';
+import { DType } from '../../../core/schema';
 
 export const GroupMetadataSchema = DType.Object({
     title: DType.String(),

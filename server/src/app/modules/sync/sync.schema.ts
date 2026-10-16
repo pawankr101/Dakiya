@@ -6,8 +6,7 @@ const TAGS = ['Synchronization'] as const;
 
 const makeTableChangeSetSchema = <T extends TSchema>(itemSchema: T) => {
 	return Type.Optional(Type.Object({
-		created: Type.Array(itemSchema),
-		updated: Type.Array(itemSchema),
+		modified: Type.Array(itemSchema),
 		deleted: Type.Array(Type.String({ format: 'uuid' }))
 	}));
 }
@@ -23,12 +22,13 @@ const DatabaseChangesSchema = Type.Object({
 });
 
 export const PullChangesQuerySchema = Type.Object({
-    last_pulled_at: Type.Optional(Type.Number())
+    last_iso: Type.Optional(Type.String())
 });
 
 export const PullChangesSuccessSchema = Type.Object({
-    lastPulledAt: Type.Number(),
-    changes: DatabaseChangesSchema
+    lastHlc: Type.String(),
+    changes: DatabaseChangesSchema,
+    hasMore: Type.Boolean()
 });
 
 const PushBodySchema = Type.Object({

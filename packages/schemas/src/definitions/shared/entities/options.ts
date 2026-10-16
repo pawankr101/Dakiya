@@ -1,4 +1,4 @@
-import { DType } from '../../schema';
+import { DType } from '../../../core/schema';
 
 export const GenderSchema = DType.Union([
     DType.Literal('male'),

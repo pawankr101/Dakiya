@@ -59,7 +59,7 @@ export const DB = {
     maxPoolSize: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
-    syncBoundaryInDays: 30
+    syncBoundaryInMS: 30 * 24 * 60 * 60 * 1000 // 30 days in milliseconds
 }
 
 export const NATS = {

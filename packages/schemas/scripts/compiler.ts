@@ -6,8 +6,7 @@ import { Code } from "typebox/compile";
 import Format, { type TFormatCheckFunction } from "typebox/format";
 import type { XSchemaObject } from "typebox/schema";
 import { Intern } from "typebox/schema";
-import { SCHEMA_REGISTRY, type SchemaId } from "../src/registry";
-import { DType } from "../src/schema";
+import { DType, SCHEMA_REGISTRY, type SchemaId } from "../src/core";
 
 /**
  * Ahead-of-time validator compiler.
@@ -199,11 +198,10 @@ const ValidatorCompiler = (() => {
 
     /** Imports the generated file always needs, regardless of which schemas end up in the registry. */
     const BASE_IMPORTED_MODULES: Readonly<Record<ModuleName, ModuleExports>> = {
+        'typebox/error': ['type TLocalizedValidationError'],
         'typebox/format': 'Format',
-        'typebox/error': ['TLocalizedValidationError'],
         'typebox/value': ['Errors'],
-        '../registry': ['SCHEMA_REGISTRY', 'SchemaId'],
-        '../schema': ['DSchemaWith$id', 'DTypeOf']
+        '../core': ['type DSchemaWith$id', 'type DTypeOf', 'SCHEMA_REGISTRY']
     };
 
     /**

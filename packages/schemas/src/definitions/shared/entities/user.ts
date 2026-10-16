@@ -1,4 +1,4 @@
-import { DType } from '../../schema';
+import { DType } from '../../../core/schema';
 import { AccountStatusSchema, BackupFrequencySchema, FontSizeSchema, PrivacyLevelSchema, ThemeSchema } from './options';
 
 export const LabelsAndCirclesSchema = DType.Array(DType.Object({

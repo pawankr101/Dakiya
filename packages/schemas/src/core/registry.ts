@@ -39,7 +39,7 @@ import {
     UserSettingsPrivacySchema,
     UserSettingsSchema,
     VideoContentSchema
-} from './entities';
+} from '../definitions';
 
 export const SCHEMA_REGISTRY = {
     LabelsAndCirclesSchema,

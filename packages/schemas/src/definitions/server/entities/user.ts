@@ -1,5 +1,5 @@
-import { DType } from '../../schema';
-import { DeviceChatPrefsSchema, GenderSchema, LabelsAndCirclesSchema, PlatformSchema, UserSettingsAccountSchema, UserSettingsBackupSchema, UserSettingsPrivacySchema } from '../shared';
+import { DType } from '../../../core/schema';
+import { DeviceChatPrefsSchema, GenderSchema, LabelsAndCirclesSchema, PlatformSchema, UserSettingsAccountSchema, UserSettingsBackupSchema, UserSettingsPrivacySchema } from '../../shared/entities';
 
 export const UserSchema = DType.DbTable(DType.Object({
     username: DType.String(),
