@@ -3,6 +3,8 @@ import type { ObjectOf } from "../types";
 
 type ValueErrorRangeType = { toValue?: number, error?: number, errorPercentage?: number, lowerRange?: number, upperRange?: number, distance?: number };
 type NumberComparatorType = number | { toValue: number, error: number } | { toValue: number, errorPercentage: number } | { lowerRange: number, upperRange: number } | { lowerRange: number, distance: number } | { upperRange: number, distance: number };
+type DeepReadonly<T> = T extends (infer R)[] ? ReadonlyArray<DeepReadonly<R>> : T extends Function ? T : T extends Map<infer K, infer V> ? ReadonlyMap<DeepReadonly<K>, DeepReadonly<V>> : T extends Set<infer U> ? ReadonlySet<DeepReadonly<U>> : T extends object ? { readonly [P in keyof T]: DeepReadonly<T[P]> } : T;
+
 
 /**
 * Extract value on key inside given model object
@@ -180,3 +182,51 @@ export const bytesToSize = (bytes: number): string => {
     sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
     return `${(bytes / (1024 ** i)).toFixed(2)} ${sizes[i]}`;
 }
+
+/**
+* Freeze an object and its nested objects recursively.
+* @param obj - The object to freeze.
+* @returns The frozen object.
+* @example
+* const obj = { a: 1, b: { c: 2 } };
+* const frozenObj = freeze(obj);
+* frozenObj.a = 2; // Error: Cannot assign to read only property 'a'
+* frozenObj.b.c = 3; // Error: Cannot assign to read only property 'c'
+*/
+export const freeze = (() => {
+    const lock = (target: object, methods: string[]): void => {
+      for (const m of methods) {
+        Object.defineProperty(target, m, {
+          value: () => { throw new TypeError(`Cannot call ${m} on a frozen collection`); },
+        });
+      }
+    };
+
+    const walk = (value: unknown, seen: WeakSet<object>): void => {
+        if (value === null || (typeof value !== "object" && typeof value !== "function")) return;
+        if (seen.has(value)) return;
+        seen.add(value);
+
+        if (value instanceof Map) {
+            for (const [k, v] of value) { walk(k, seen); walk(v, seen); }
+            if (Object.isExtensible(value)) lock(value, ["set", "delete", "clear"]);
+        } else if (value instanceof Set) {
+            for (const v of value) walk(v, seen);
+            if (Object.isExtensible(value)) lock(value, ["add", "delete", "clear"]);
+        }
+
+        if(ArrayBuffer.isView(value) && !(value instanceof DataView) && ((value as ArrayBufferView).byteLength !== 0)) return;
+        Object.freeze(value);
+
+        for (const key of Reflect.ownKeys(value)) {
+            const descriptor = Object.getOwnPropertyDescriptor(value, key);
+            if (descriptor && "value" in descriptor) walk(descriptor.value, seen);
+        }
+    };
+
+    return <T = unknown>(obj: T): DeepReadonly<T> => {
+        const seen = new WeakSet<object>();
+        walk(obj, seen);
+        return obj as DeepReadonly<T>;
+    }
+})();

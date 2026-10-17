@@ -1,7 +1,7 @@
 export type * from '@dakiya/schemas';
 
 import { type DTypeOf, type SchemaRegistry, UserSchemaValidator, UserSettingsSchemaValidator, type ValidationResult, type Validator } from '@dakiya/schemas';
-import { loop } from '@dakiya/utils';
+import { freeze, loop } from '@dakiya/utils';
 
 
 const VALIDATORS = {
@@ -38,7 +38,7 @@ export const Schemas: Schemas = (() => {
         const sch: Schema<SI> = Object.create(null);
 
         sch.id = schemaId;
-        sch.ast = validator.getAst() as SchemaRegistry[SI];
+        sch.ast = freeze(validator.getAst()) as SchemaRegistry[SI];
         sch.isValid = validator.isValid as (data: unknown) => data is DTypeOf<SchemaRegistry[SI]>;
         sch.validate = validator.validate as (data: unknown) => ValidationResult;
         sch.deserialize = validator.deserialize as (json: string) => DTypeOf<SchemaRegistry[SI]>;
