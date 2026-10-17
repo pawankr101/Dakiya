@@ -334,7 +334,7 @@ const ValidatorCompiler = (() => {
         sc += `/* @__NO_SIDE_EFFECTS__ */\n`;
         sc += `function createValidator<S extends DSchemaWith$id>(id: string, check: (value: unknown) => boolean, astString: string): Validator<S> {\n`;
         sc += `    let cachedAst: S | undefined;\n`;
-        sc += `    const getAst = (): S => (cachedAst ??= JSON.parse(astString) as S);\n`;
+        sc += `    const getAst = (): S => (cachedAst ??= Object.freeze(JSON.parse(astString)) as S);\n`;
         sc += `    const assertValid = (data: unknown): DTypeOf<S> => {\n`;
         sc += `        if (!check(data)) throw new SchemaValidationError(id, toValidationIssues(Errors(getAst(), data)));\n`;
         sc += `        return data as DTypeOf<S>;\n`;
