@@ -67,8 +67,9 @@ const ValidatorCompiler = (() => {
 
         if (typeof value === "function") {
             const name = formatNames.get(value as TFormatCheckFunction);
-            if (name) return `Format.Get(${JSON.stringify(name)})`; } throw new Error( `[${id}] cannot inline External[${index}] (${typeof value}). Only RegExp and registered format checks are supported.`
-        );
+            if (name) return `Format.Get(${JSON.stringify(name)})`;
+        }
+        throw new Error( `[${id}] cannot inline External[${index}] (${typeof value}). Only RegExp and registered format checks are supported.`);
     }
 
     function parseImport(id: string, line: string): ParsedImport {
