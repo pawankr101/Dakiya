@@ -12,7 +12,8 @@
             "**/*.css",
             "**/*.md",
             "!**/*/node_modules/*",
-            "!**/*/dist/*"
+            "!**/*/dist/*",
+            "!**/*/__precompiled__/*"
         ]
     },
     "linter": {
