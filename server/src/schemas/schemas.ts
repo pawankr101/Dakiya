@@ -1,8 +1,5 @@
-export type * from '@dakiya/schemas';
-
 import { type DTypeOf, type SchemaRegistry, UserSchemaValidator, UserSettingsSchemaValidator, type ValidationResult, type Validator } from '@dakiya/schemas';
 import { freeze, loop } from '@dakiya/utils';
-
 
 const VALIDATORS = {
     UserSchema: UserSchemaValidator,
@@ -22,13 +19,12 @@ export interface Schema<SI extends SchemaId = SchemaId> {
     serialize: (data: DTypeOf<SchemaRegistry[SI]>) => string;
 }
 
-export interface Schemas {
+interface Schemas {
     getSchema<SI extends SchemaId = SchemaId>(schemaId: SI): Schema<SI>;
     init(): void;
 }
 
 export const Schemas: Schemas = (() => {
-
     type V = Record<SchemaId, Validator<SchemaRegistry[SchemaId]>>;
 
     const scm: Schemas = Object.create(null);

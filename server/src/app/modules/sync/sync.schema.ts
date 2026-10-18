@@ -1,55 +1,18 @@
 import type { FastifySchema } from 'fastify';
-import { type TSchema, Type } from 'typebox';
-import { buildApiErrorSchema, buildApiResponseSchema } from '../../schema';
 
 const TAGS = ['Synchronization'] as const;
-
-const makeTableChangeSetSchema = <T extends TSchema>(itemSchema: T) => {
-	return Type.Optional(Type.Object({
-		modified: Type.Array(itemSchema),
-		deleted: Type.Array(Type.String({ format: 'uuid' }))
-	}));
-}
-
-const DatabaseChangesSchema = Type.Object({
-    users: makeTableChangeSetSchema(Type.Ref('UserSchema')),
-    user_relationships: makeTableChangeSetSchema(Type.Ref('UserRelationshipSchema')),
-	conversations: makeTableChangeSetSchema(Type.Ref('ConversationSchema')),
-	conversation_members: makeTableChangeSetSchema(Type.Ref('ConversationMemberSchema')),
-	messages: makeTableChangeSetSchema(Type.Ref('MessageSchema')),
-	message_reactions: makeTableChangeSetSchema(Type.Ref('MessageReactionSchema')),
-	message_exclusions: makeTableChangeSetSchema(Type.Ref('MessageExclusionSchema'))
-});
-
-export const PullChangesQuerySchema = Type.Object({
-    last_iso: Type.Optional(Type.String())
-});
-
-export const PullChangesSuccessSchema = Type.Object({
-    lastHlc: Type.String(),
-    changes: DatabaseChangesSchema,
-    hasMore: Type.Boolean()
-});
-
-const PushBodySchema = Type.Object({
-    changes: DatabaseChangesSchema,
-    lastPulledAt: Type.Number()
-});
 
 export const PullChangesSchema: FastifySchema = {
     summary: 'Pull changes',
     description: 'Pull changes from the server since the last pull time.',
     tags: TAGS,
-    querystring: PullChangesQuerySchema,
+    querystring: "ApiQuerySchema",
     response: {
-        200: buildApiResponseSchema(PullChangesSuccessSchema),
-        400: buildApiErrorSchema(Type.Array(Type.Object({
-            field: Type.String(),
-            message: Type.String()
-        }))),
-        401: buildApiErrorSchema(),
-        404: buildApiErrorSchema(),
-        500: buildApiErrorSchema()
+        200: "ApiResponseSchema",
+        400: "ApiErrorSchema",
+        401: "ApiErrorSchema",
+        404: "ApiErrorSchema",
+        500: "ApiErrorSchema"
     }
 };
 
@@ -57,18 +20,12 @@ export const PushChangesSchema: FastifySchema = {
     summary: 'Push changes',
     description: 'Push local changes to the server and receive any new changes since the last pull time.',
     tags: TAGS,
-    body: PushBodySchema,
+    body: "ApiBodySchema",
     response: {
-        200: buildApiResponseSchema(Type.Object({
-            message: Type.String(),
-            changes: DatabaseChangesSchema
-        })),
-        400: buildApiErrorSchema(Type.Array(Type.Object({
-            field: Type.String(),
-            message: Type.String()
-        }))),
-        401: buildApiErrorSchema(),
-        404: buildApiErrorSchema(),
-        500: buildApiErrorSchema()
+        200: "ApiResponseSchema",
+        400: "ApiErrorSchema",
+        401: "ApiErrorSchema",
+        404: "ApiErrorSchema",
+        500: "ApiErrorSchema"
     }
 };

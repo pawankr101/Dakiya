@@ -7,11 +7,11 @@ type HLC = Hlc | string;
 
 export class Hlc {
     /*************************** Static Members: Start *******************************/
-    /** Random Hash for Private Constructor @__PURE__*/
-    static readonly #staticHash: string = getShortId();
+    /** Random Hash for Private Constructor */
+    static readonly #staticHash: string = /* @__PURE__ */ getShortId();
 
-    /** Current Client ID for HLC Generation @__PURE__*/
-    static #currentClientId: string = getShortId();
+    /** Current Client ID for HLC Generation */
+    static #currentClientId: string = /* @__PURE__ */ getShortId();
 
     /** Timestamp Offset for HLC Generation */
     static #timestampOffset: number = 0;
@@ -140,8 +140,7 @@ export class Hlc {
         return hlc ? Hlc.#getUpdatedHlc(hlc, now) : Hlc.#getNewHlc(now);
     }
 
-    /** @__PURE__ */
-    static init = (() => {
+    static init = /* @__PURE__ */ (() => {
         let initialized = false;
         return (clientId: string, maxOffsetTolerance?: number, initialState?: { timestampOffset?: number, lastTimestamp?: number, lastCounter?: number }): void => {
             if (initialized) {

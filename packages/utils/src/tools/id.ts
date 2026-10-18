@@ -17,9 +17,8 @@ import { v7 as uuid } from 'uuid';
  * @example
  * // Get a standard v7 UUID
  * const standardUuid = getUuid(true); // e.g., '123e4567-e89b-12d3-a456-423614174000'
- * @__PURE__
  */
-export const getUuid = (() => {
+export const getUuid = /* @__PURE__ */ (() => {
     const randomBuffer = new Uint32Array(1);
     globalThis.crypto.getRandomValues(randomBuffer);
     let counter = randomBuffer[0] % 1679616; // Initialize counter with a random value between 0 and 1679615
@@ -49,9 +48,8 @@ export const getUuid = (() => {
  * @example
  * // Get a short unique ID
  * const shortId = getShortId(); // e.g., 'r8qj2l7k5m3n9p4'
- * @__PURE__
  */
-export const getShortId = (() => {
+export const getShortId = /* @__PURE__ */ (() => {
     // Custom epoch: 2026-01-01T00:00:00.000Z
     const customEpoch = 1767225600000;
     // Reusable typed array for the Web Crypto API

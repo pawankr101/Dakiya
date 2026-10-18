@@ -292,19 +292,18 @@ const ValidatorCompiler = (() => {
         let sc = "";
 
         sc += `export interface ValidationIssue {\n`;
-        sc += `    /** JSON pointer to the offending field (e.g. "/email"); "/" for a root-level issue. */\n`;
         sc += `    field: string;\n`;
         sc += `    message: string;\n`;
         sc += `}\n\n`;
 
         sc += `export type ValidationResult =\n`;
-        sc += `    | { valid: true; errors?: undefined }\n`;
-        sc += `    | { valid: false; errors: ValidationIssue[] };\n\n`;
+        sc += `    | { valid: true; issues?: undefined }\n`;
+        sc += `    | { valid: false; issues: ValidationIssue[] };\n\n`;
 
         sc += `export interface Validator<S extends DSchemaWith$id> {\n`;
         sc += `    /** Type guard backed by the precompiled check. No allocations. */\n`;
         sc += `    isValid(data: unknown): data is DTypeOf<S>;\n`;
-        sc += `    /** Same check; collects TypeBox validation errors when the data is invalid. */\n`;
+        sc += `    /** Same check; collects TypeBox validation issues when the data is invalid. */\n`;
         sc += `    validate(data: unknown): ValidationResult;\n`;
         sc += `    /** JSON.parse + validate. Throws SyntaxError on malformed JSON, SchemaValidationError on a shape mismatch. */\n`;
         sc += `    deserialize(json: string): DTypeOf<S>;\n`;
@@ -316,13 +315,13 @@ const ValidatorCompiler = (() => {
 
         sc += `export class SchemaValidationError extends Error {\n`;
         sc += `    readonly schemaId: string;\n`;
-        sc += `    readonly errors: ValidationIssue[];\n`;
-        sc += `    constructor(schemaId: string, errors: ValidationIssue[]) {\n`;
-        sc += `        const first = errors[0];\n`;
+        sc += `    readonly issues: ValidationIssue[];\n`;
+        sc += `    constructor(schemaId: string, issues: ValidationIssue[]) {\n`;
+        sc += `        const first = issues[0];\n`;
         sc += `        super(schemaId + ' validation failed' + (first ? ': ' + first.field + ' ' + first.message : ''));\n`;
         sc += `        this.name = 'SchemaValidationError';\n`;
         sc += `        this.schemaId = schemaId;\n`;
-        sc += `        this.errors = errors;\n`;
+        sc += `        this.issues = issues;\n`;
         sc += `    }\n`;
         sc += `}\n\n`;
 
@@ -341,7 +340,7 @@ const ValidatorCompiler = (() => {
         sc += `    };\n`;
         sc += `    return {\n`;
         sc += `        isValid: (data: unknown): data is DTypeOf<S> => check(data),\n`;
-        sc += `        validate: (data: unknown): ValidationResult => (check(data) ? { valid: true } : { valid: false, errors: toValidationIssues(Errors(getAst(), data)) }),\n`;
+        sc += `        validate: (data: unknown): ValidationResult => (check(data) ? { valid: true } : { valid: false, issues: toValidationIssues(Errors(getAst(), data)) }),\n`;
         sc += `        deserialize: (json: string) => assertValid(JSON.parse(json)),\n`;
         sc += `        serialize: (data: DTypeOf<S>) => JSON.stringify(assertValid(data)),\n`;
         sc += `        getAst\n`;

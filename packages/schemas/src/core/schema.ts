@@ -33,7 +33,7 @@ export type DDbTableBaseProperties = {
     createdAt: DEpoch;
     updatedAt: DEpoch;
     hlc: DHlc;
-}
+};
 
 type DObjectWithoutTableBaseProperties = DObject<DProperties & { [K in keyof DDbTableBaseProperties]?: never }>
 type DDbTableBodySchema = DObjectWithoutTableBaseProperties | DUnion<DArrayOfMin2<DDbTableBodySchema>> | DIntersection<DArrayOfMin2<DDbTableBodySchema>>;
@@ -124,8 +124,8 @@ export interface DDbTableOptions extends DSchemaOptions {
     $id: string;
 }
 
-type DNonEmptyObject<T extends {}> = keyof T extends never ? never : T;
-type DArrayOfMin2<T> = [T, T, ...T[]];
+export type DNonEmptyObject<T extends {}> = keyof T extends never ? never : T;
+export type DArrayOfMin2<T> = [T, T, ...T[]];
 
 export interface DType {
     String(options?: DStringOptions): DString;
@@ -150,7 +150,7 @@ export interface DType {
     DbTable<S extends DDbTableBodySchema>(schema: S, options: DDbTableOptions): DDbTable<S>;
 };
 
-export const DType = (() => {
+export const DType = /* @__PURE__ */ (() => {
     const DTypeObj: DType = Object.create(null);
 
     DTypeObj.String = (options) => Type.String(options);
@@ -178,7 +178,7 @@ export const DType = (() => {
     DTypeObj.Hlc = () => DTypeObj.String({
         pattern: /^[0-9a-z]{9}-[0-9a-z]{4}-[0-9a-z]{15}$/,
         description: 'Hybrid Logical Clock string',
-        examples: ['0mu8g758p-f442m-r8qj2l7k5m3n9p4', '0mu8hk6gt-t0pq-9v5j2l534m3nm8h']
+        examples: ['0mu8g758p-f42m-r8qj2l7k5m3n9p4', '0mu8hk6gt-t0pq-9v5j2l534m3nm8h']
     });
     DTypeObj.JsonB = <S extends DSchemaWith$id>(schema: S, options?: DJsonBOptions<S>) => {
         const { default: defaultValue } = options ?? {};

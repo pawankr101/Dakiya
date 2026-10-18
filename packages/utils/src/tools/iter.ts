@@ -9,9 +9,8 @@ export type LoopControl = typeof LoopControl[keyof typeof LoopControl];
 *    console.log('Hello');
 *    return LoopControl.break;
 *  });
-* @__PURE__
 */
-export const LoopControl = (() => {
+export const LoopControl = /* @__PURE__ */ (() => {
     const lc : { break: symbol } = Object.create(null);
     lc.break = Symbol('__BREAK_LOOP');
     return lc;
@@ -108,9 +107,8 @@ type LoopFunctionOverloads = {
 *  });
 *  // Value: 1, Key: a
 *  // Value: 2, Key: b
-* @__PURE__
 */
-export const loop: LoopFunctionOverloads = (() => {
+export const loop: LoopFunctionOverloads = /* @__PURE__ */ (() => {
     const infiniteLoop = (cb: LoopCallback) => {
         while (true) {
             if(cb() === LoopControl.break) break;
@@ -172,7 +170,6 @@ export const loop: LoopFunctionOverloads = (() => {
 *  // Value: 1, Index: 0
 *  // Value: 2, Index: 1
 *  // [2, 4]
-* @__PURE__
 */
 export const mapLoop = <T, U>(array: Array<T>, cb: MapLoopCallback<T, U>): Array<U> => {
     const result: Array<U> = [], len = array.length;

@@ -1,4 +1,5 @@
 import {
+    ApiErrorSchema,
     AudioContentSchema,
     ChannelMetadataSchema,
     ClientConversationMemberSchema,
@@ -28,6 +29,8 @@ import {
     ProfileRelationshipsSchema,
     ProfileSchema,
     ProfileSettingsSchema,
+    SyncPullQuerySchema,
+    SyncPullResponseSchema,
     SystemContentSchema,
     SystemMetadataSchema,
     TextContentSchema,
@@ -87,7 +90,11 @@ export const SCHEMA_REGISTRY = {
     ClientUserSchema,
 
     ClientConversationSchema,
-    ClientConversationMemberSchema
+    ClientConversationMemberSchema,
+
+    ApiErrorSchema,
+    SyncPullQuerySchema,
+    SyncPullResponseSchema
 };
 
 export type SchemaRegistry = typeof SCHEMA_REGISTRY;

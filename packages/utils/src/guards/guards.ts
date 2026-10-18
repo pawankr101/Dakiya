@@ -168,9 +168,8 @@ const isHttpCode = (code: unknown): code is HttpCode => {
 
 /**
  * A collection of utility functions for type checking.
- * @__PURE__
  */
-export const Guards: Guards = (() => {
+export const Guards: Guards = /* @__PURE__ */ (() => {
     const GuardsObj: Guards = Object.create(null);
 
     GuardsObj.isDefined = isDefined;

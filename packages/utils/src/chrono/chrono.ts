@@ -146,9 +146,8 @@ const isoNow = (): string => {
 
 /**
  * A collection of utility functions for handling date and time operations.
- * @__PURE__
  */
-export const Chrono = (() => {
+export const Chrono = /* @__PURE__ */ (() => {
     const Chrono: Chrono = Object.create(null);
 
     Chrono.getLastNYears = getLastNYears;

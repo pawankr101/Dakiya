@@ -62,9 +62,8 @@ export const getValue = <T=unknown>(model: ObjectOf<T>, key: string | number, de
 * ```
 * @remarks
 * Circular references are preserved by using a WeakMap to track visited objects.
-* @__PURE__
 */
-export const clone = (() => {
+export const clone = /* @__PURE__ */ (() => {
     const cloneObject = <T>(data: T, toJson: boolean, visited: WeakMap<object, object>): T => {
         if (data instanceof Promise) return data; // Do not clone Promise object
 
@@ -193,9 +192,8 @@ export const bytesToSize = (bytes: number): string => {
 * const frozenObj = freeze(obj);
 * frozenObj.a = 2; // Error: Cannot assign to read only property 'a'
 * frozenObj.b.c = 3; // Error: Cannot assign to read only property 'c'
-* @__PURE__
 */
-export const freeze = (() => {
+export const freeze = /* @__PURE__ */ (() => {
     const lock = (target: object, methods: string[]): void => {
       for (const m of methods) {
         Object.defineProperty(target, m, {
