@@ -1,23 +1,24 @@
 import { v7 as uuid } from 'uuid';
 
 /**
-* Generates a unique identifier.
-* By default, this method creates a compact, 28-character, base-36 encoded unique ID.
-* This is achieved by combining a standard v7 UUID with random bytes, converting the
-* resulting hexadecimal string to a BigInt, and then encoding it to base-36. The
-* result is then truncated or padded to a fixed length of 28 characters.
-*
-* @param {boolean} [original=false] - If true, the function returns a standard v7 UUID string with hyphens.
-* @returns {string} A 28-character base-36 unique ID, or a standard v7 UUID if `original` is true.
-*
-* @example
-* // Get a custom 28-character ID
-* const customId = getUuid(); // e.g., '1fpu6v0c8qj2l7k5m3n9p4o8de'
-*
-* @example
-* // Get a standard v7 UUID
-* const standardUuid = getUuid(true); // e.g., '123e4567-e89b-12d3-a456-423614174000'
-*/
+ * Generates a unique identifier.
+ * By default, this method creates a compact, 28-character, base-36 encoded unique ID.
+ * This is achieved by combining a standard v7 UUID with random bytes, converting the
+ * resulting hexadecimal string to a BigInt, and then encoding it to base-36. The
+ * result is then truncated or padded to a fixed length of 28 characters.
+ *
+ * @param {boolean} [original=false] - If true, the function returns a standard v7 UUID string with hyphens.
+ * @returns {string} A 28-character base-36 unique ID, or a standard v7 UUID if `original` is true.
+ *
+ * @example
+ * // Get a custom 28-character ID
+ * const customId = getUuid(); // e.g., '1fpu6v0c8qj2l7k5m3n9p4o8de'
+ *
+ * @example
+ * // Get a standard v7 UUID
+ * const standardUuid = getUuid(true); // e.g., '123e4567-e89b-12d3-a456-423614174000'
+ * @__PURE__
+ */
 export const getUuid = (() => {
     const randomBuffer = new Uint32Array(1);
     globalThis.crypto.getRandomValues(randomBuffer);
@@ -48,6 +49,7 @@ export const getUuid = (() => {
  * @example
  * // Get a short unique ID
  * const shortId = getShortId(); // e.g., 'r8qj2l7k5m3n9p4'
+ * @__PURE__
  */
 export const getShortId = (() => {
     // Custom epoch: 2026-01-01T00:00:00.000Z

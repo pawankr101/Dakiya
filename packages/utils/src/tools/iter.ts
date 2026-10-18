@@ -2,6 +2,15 @@ import { Guards } from "../guards";
 import type { ObjectOf } from "../types";
 
 export type LoopControl = typeof LoopControl[keyof typeof LoopControl];
+/**
+* LoopControl is an object that contains a symbol used to break out of loops.
+* @example
+*  loop(() => {
+*    console.log('Hello');
+*    return LoopControl.break;
+*  });
+* @__PURE__
+*/
 export const LoopControl = (() => {
     const lc : { break: symbol } = Object.create(null);
     lc.break = Symbol('__BREAK_LOOP');
@@ -80,6 +89,27 @@ type LoopFunctionOverloads = {
     <T>(model: Array<T>, reverse: boolean, cb: LoopDataCallback<T, number>): void;
 };
 
+/**
+* Loop through an Array or Object or a specified number of iterations or infinite loop until `LoopControl.break` is returned from callback function.
+* @param modelCountOrCB Array, Object, number of iterations or callback function to loop through.
+* @param reverseOrCB Whether to loop in reverse order or callback function to be executed in each iteration.
+* @param cb Callback function to be executed in each iteration.
+* @example
+*  loop([1, 2], (value, index) => {
+*    console.log(`Value: ${value}, Index: ${index}`);
+*    return LoopControl.break;
+*  });
+*  // Value: 1, Index: 0
+*  // Value: 2, Index: 1
+*
+*  loop({ a: 1, b: 2 }, (value, key) => {
+*    console.log(`Value: ${value}, Key: ${key}`);
+*    return LoopControl.break;
+*  });
+*  // Value: 1, Key: a
+*  // Value: 2, Key: b
+* @__PURE__
+*/
 export const loop: LoopFunctionOverloads = (() => {
     const infiniteLoop = (cb: LoopCallback) => {
         while (true) {
@@ -142,6 +172,7 @@ export const loop: LoopFunctionOverloads = (() => {
 *  // Value: 1, Index: 0
 *  // Value: 2, Index: 1
 *  // [2, 4]
+* @__PURE__
 */
 export const mapLoop = <T, U>(array: Array<T>, cb: MapLoopCallback<T, U>): Array<U> => {
     const result: Array<U> = [], len = array.length;

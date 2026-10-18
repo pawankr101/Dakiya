@@ -144,6 +144,10 @@ const isoNow = (): string => {
     return Temporal.Now.instant().toString();
 }
 
+/**
+ * A collection of utility functions for handling date and time operations.
+ * @__PURE__
+ */
 export const Chrono = (() => {
     const Chrono: Chrono = Object.create(null);
 

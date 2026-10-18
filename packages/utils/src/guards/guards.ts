@@ -162,11 +162,15 @@ const isDate = (model: unknown): model is Date => {
     return (model instanceof Date) && !Number.isNaN(model.getTime());
 }
 
-const isHttpCode: (code: unknown) => code is HttpCode = (code: unknown): code is HttpCode => {
+const isHttpCode = (code: unknown): code is HttpCode => {
     return isNumber(code) && (code >= 100 && code <= 599);
 }
 
-export const Guards = (() => {
+/**
+ * A collection of utility functions for type checking.
+ * @__PURE__
+ */
+export const Guards: Guards = (() => {
     const GuardsObj: Guards = Object.create(null);
 
     GuardsObj.isDefined = isDefined;
