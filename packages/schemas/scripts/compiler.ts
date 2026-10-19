@@ -7,6 +7,205 @@ import Format, { type TFormatCheckFunction } from "typebox/format";
 import { Intern } from "typebox/schema";
 import { type DSchemaWith$id, SCHEMA_REGISTRY, type SchemaId } from "../src/core";
 
+Format.Set("json-string", (value) => {
+    try {
+        JSON.parse(value);
+        return true;
+    } catch {
+        return false;
+    }
+});
+
+const GENERATED_RUNTIME_SOURCE = `export interface ValidationIssue {
+    field: string;
+    message: string;
+}
+
+export type ValidationResult =
+    | { valid: true; issues?: undefined }
+    | { valid: false; issues: ValidationIssue[] };
+
+export interface Validator<S extends DSchemaWith$id> {
+    /** Type guard backed by the precompiled check. No allocations. */
+    isValid(data: unknown): data is DTypeOf<S>;
+    /** Same check; collects TypeBox validation issues when the data is invalid. */
+    validate(data: unknown): ValidationResult;
+    /** JSON.parse + validate. Throws SyntaxError on malformed JSON, SchemaValidationError on a shape mismatch. */
+    deserialize(json: string): DTypeOf<S>;
+    /**
+     * Validate + AST-based serialize. Throws SchemaValidationError when the data is invalid.
+     * Only keys declared in the schema are emitted: unknown keys are stripped.
+     */
+    serialize(data: DTypeOf<S>): string;
+    /** Lazily parses and returns the JSON Schema AST. */
+    getAst(): S;
+}
+
+export class SchemaValidationError extends Error {
+    readonly schemaId: string;
+    readonly issues: ValidationIssue[];
+    constructor(schemaId: string, issues: ValidationIssue[]) {
+        const first = issues[0];
+        super(schemaId + ' validation failed' + (first ? ': ' + first.field + ' ' + first.message : ''));
+        this.name = 'SchemaValidationError';
+        this.schemaId = schemaId;
+        this.issues = issues;
+    }
+}
+
+function toValidationIssues(errors: TLocalizedValidationError[]): ValidationIssue[] {
+    if (errors.length === 0) return [{ field: '/', message: 'Invalid value' }];
+    return errors.map((error) => ({ field: error.instancePath || '/', message: error.message }));
+}
+
+// The compiler's audit guarantees schemas only use this keyword subset.
+interface AstSchema {
+    type?: string;
+    const?: string | number | boolean;
+    required?: readonly string[];
+    anyOf?: readonly AstSchema[];
+    allOf?: readonly AstSchema[];
+    properties?: Readonly<Record<string, AstSchema>>;
+    items?: AstSchema;
+}
+
+const hasOwn = (obj: object, key: string): boolean => Object.prototype.hasOwnProperty.call(obj, key);
+const isPlainObject = (data: unknown): data is Record<string, unknown> =>
+    typeof data === 'object' && data !== null && !Array.isArray(data);
+
+/** Loose structural match used to pick union branches. Does not check formats or ranges. */
+function astMatch(schema: AstSchema, data: unknown): boolean {
+    if (schema.const !== undefined) return data === schema.const;
+    if (schema.anyOf) return schema.anyOf.some((s) => astMatch(s, data));
+    if (schema.allOf) return schema.allOf.every((s) => astMatch(s, data));
+
+    switch (schema.type) {
+        case 'string': return typeof data === 'string';
+        case 'number':
+        case 'integer': return typeof data === 'number';
+        case 'boolean': return typeof data === 'boolean';
+        case 'array': return Array.isArray(data);
+        case 'object': {
+            if (!isPlainObject(data)) return false;
+            if (schema.required) {
+                for (const key of schema.required) {
+                    if (!hasOwn(data, key) || data[key] === undefined) return false;
+                }
+            }
+            for (const key in schema.properties) {
+                if (!hasOwn(data, key) || data[key] === undefined) continue;
+                if (!astMatch(schema.properties[key], data[key])) return false;
+            }
+            return true;
+        }
+        default:
+            return schema.type === undefined; // unconstrained schema matches anything
+    }
+}
+
+function hasObjectBranch(schema: AstSchema): boolean {
+    return !!schema.anyOf?.some((s) => s.type === 'object' || !!s.properties || !!s.allOf || hasObjectBranch(s));
+}
+
+/** Gathers declared properties from every branch that applies to data. */
+function collectProperties(schema: AstSchema, data: unknown, out: Record<string, AstSchema>): void {
+    if (schema.properties) Object.assign(out, schema.properties);
+    for (const sub of schema.allOf ?? []) collectProperties(sub, data, out);
+    for (const sub of schema.anyOf ?? []) {
+        if (astMatch(sub, data)) collectProperties(sub, data, out);
+    }
+}
+
+function astSerialize(schema: AstSchema, data: unknown): string {
+    if (data === undefined) return '';
+    if (data === null) return 'null';
+    if (schema.const !== undefined) return typeof schema.const === 'string' ? JSON.stringify(schema.const) : String(schema.const);
+
+    if (schema.anyOf && !schema.properties && schema.type !== 'object') {
+        // Scalar/array unions: first structurally matching branch wins. Unions with object branches
+        // fall through to the merge path below for object data, so overlapping branches
+        // ({a} vs {a, b}) cannot drop the fields of a later one.
+        if (!isPlainObject(data) || !hasObjectBranch(schema)) {
+            for (const sub of schema.anyOf) {
+                if (astMatch(sub, data)) return astSerialize(sub, data);
+            }
+        }
+    }
+
+    switch (schema.type) {
+        case 'string': return JSON.stringify(data);
+        case 'number':
+        case 'integer': return Number.isFinite(data as number) ? String(data) : 'null';
+        case 'boolean': return data ? 'true' : 'false';
+    }
+
+    if (schema.type === 'array' && schema.items) {
+        const arr = data as unknown[];
+        let out = '[';
+        for (let i = 0; i < arr.length; i++) {
+            if (i > 0) out += ',';
+            out += arr[i] === undefined ? 'null' : astSerialize(schema.items, arr[i]);
+        }
+        return out + ']';
+    }
+
+    if (schema.type === 'object' || schema.properties || schema.allOf || schema.anyOf) {
+        const obj = data as Record<string, unknown>;
+        const props: Record<string, AstSchema> = Object.create(null);
+        collectProperties(schema, data, props);
+        let out = '{';
+        let first = true;
+        for (const key in props) {
+            if (!hasOwn(obj, key) || obj[key] === undefined) continue;
+            if (!first) out += ',';
+            first = false;
+            out += JSON.stringify(key) + ':' + astSerialize(props[key], obj[key]);
+        }
+        return out + '}';
+    }
+
+    // Unreachable for audited schemas; stay lossless instead of emitting null.
+    return JSON.stringify(data);
+}
+
+if (!Format.Has('json-string')) {
+    Format.Set('json-string', (value: string): boolean => {
+        try {
+            JSON.parse(value);
+            return true;
+        } catch {
+            return false;
+        }
+    });
+}
+
+/** Resolves a registered format check at module init; fails loudly instead of skipping it. */
+/* @__NO_SIDE_EFFECTS__ */
+function requireFormat(name: string): (value: string) => boolean {
+    const check = Format.Get(name);
+    if (!check) throw new Error('Format "' + name + '" is not registered.');
+    return check;
+}
+
+/* @__NO_SIDE_EFFECTS__ */
+function createValidator<S extends DSchemaWith$id>(id: string, check: (value: unknown) => boolean, astString: string): Validator<S> {
+    let cachedAst: S | undefined;
+    const getAst = (): S => (cachedAst ??= JSON.parse(astString) as S);
+    const assertValid = (data: unknown): DTypeOf<S> => {
+        if (!check(data)) throw new SchemaValidationError(id, toValidationIssues(Errors(getAst(), data)));
+        return data as DTypeOf<S>;
+    };
+    return {
+        isValid: (data: unknown): data is DTypeOf<S> => check(data),
+        validate: (data: unknown): ValidationResult =>
+            check(data) ? { valid: true } : { valid: false, issues: toValidationIssues(Errors(getAst(), data)) },
+        deserialize: (json: string) => assertValid(JSON.parse(json)),
+        serialize: (data: DTypeOf<S>) => astSerialize(getAst() as AstSchema, assertValid(data)),
+        getAst
+    };
+}
+`;
+
 const ValidatorCompiler = (() => {
     interface ParsedImport {
         names: string[];
@@ -67,7 +266,7 @@ const ValidatorCompiler = (() => {
 
         if (typeof value === "function") {
             const name = formatNames.get(value as TFormatCheckFunction);
-            if (name) return `Format.Get(${JSON.stringify(name)})`;
+            if (name) return `requireFormat(${JSON.stringify(name)})`;
         }
         throw new Error( `[${id}] cannot inline External[${index}] (${typeof value}). Only RegExp and registered format checks are supported.`);
     }
@@ -87,24 +286,81 @@ const ValidatorCompiler = (() => {
         return delta;
     }
 
+    // One alternation so whichever token starts first wins. Stripping comments before strings
+    // would mangle string literals that contain `//` (e.g. Literal("https://x")).
+    const COMMENTS_AND_STRINGS = /\/\/.*$|\/\*[\s\S]*?\*\/|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/gm;
+
     /**
      * Strips comments and string literals before tokenizing identifiers so:
      * 1. Identifiers starting with `$` are matched accurately (unlike `\b`), and
      * 2. Words inside string literals or comments never trigger false-positive imports.
      */
     function extractUsedIdentifiers(source: string): Set<string> {
-        const stripped = source
-            .replace(/\/\/.*$/gm, " ")
-            .replace(/\/\*[\s\S]*?\*\//g, " ")
-            .replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/g, " ");
-        return new Set(stripped.match(IDENTIFIER_TOKEN) ?? []);
+        return new Set(source.replace(COMMENTS_AND_STRINGS, " ").match(IDENTIFIER_TOKEN) ?? []);
+    }
+
+    // ------------------------------------------------------------------
+    // schema audit
+    // ------------------------------------------------------------------
+
+    // Everything DType can emit. The generated runtime (astMatch/astSerialize) only understands
+    // this subset, so anything else is rejected at build time instead of being silently
+    // mis-serialized. Extend both together.
+    const STRUCTURAL_KEYWORDS: ReadonlySet<string> = new Set([
+        "type", "const", "anyOf", "allOf", "properties", "required", "items", "additionalProperties"
+    ]);
+    const ANNOTATION_KEYWORDS: ReadonlySet<string> = new Set([
+        "$id", "title", "description", "default", "examples", "format", "pattern",
+        "minLength", "maxLength", "minimum", "maximum", "minItems", "maxItems", "uniqueItems"
+    ]);
+    const SUPPORTED_TYPES: ReadonlySet<string> = new Set(["string", "number", "boolean", "object", "array"]);
+
+    function buildKnownFormats(): Set<string> {
+        return new Set([...Format.Entries()].map(([name]) => name));
+    }
+
+    function auditSchema(id: string, node: unknown, path: string, formats: ReadonlySet<string>): void {
+        if (typeof node !== "object" || node === null) return;
+        const schema = node as Record<string, unknown>;
+
+        for (const key of Object.keys(schema)) {
+            if (key.startsWith("~")) continue; // TypeBox-internal markers, if any survive JSON
+            if (!STRUCTURAL_KEYWORDS.has(key) && !ANNOTATION_KEYWORDS.has(key)) {
+                throw new Error(`[${id}] unsupported keyword "${key}" at ${path}`);
+            }
+        }
+        if (schema.type !== undefined && !SUPPORTED_TYPES.has(schema.type as string)) {
+            throw new Error(`[${id}] unsupported type ${JSON.stringify(schema.type)} at ${path}`);
+        }
+        if(schema.const !== undefined && typeof schema.const !== "string" && typeof schema.const !== "number" && typeof schema.const !== "boolean") {
+            throw new Error(`[${id}] unsupported const value ${JSON.stringify(schema.const)} at ${path}`);
+        }
+        if (schema.additionalProperties !== undefined && schema.additionalProperties !== false) {
+            throw new Error(`[${id}] additionalProperties other than false is not serializable at ${path}: the serializer only emits declared keys.`);
+        }
+        if (typeof schema.format === "string" && !formats.has(schema.format)) {
+            throw new Error(`[${id}] format "${schema.format}" at ${path} is not registered at build time, so the generated check would not enforce it.`);
+        }
+        if (schema.type === "array" && (typeof schema.items !== "object" || schema.items === null)) {
+            throw new Error(`[${id}] array without "items" at ${path}`);
+        }
+
+        for (const [name, child] of Object.entries((schema.properties as Record<string, unknown> | undefined) ?? {})) {
+            auditSchema(id, child, `${path}/properties/${name}`, formats);
+        }
+        if (schema.items !== undefined) auditSchema(id, schema.items, `${path}/items`, formats);
+        for (const keyword of ["anyOf", "allOf"] as const) {
+            const branches = schema[keyword];
+            if (!Array.isArray(branches)) continue;
+            branches.forEach((branch, i) => auditSchema(id, branch, `${path}/${keyword}/${i}`, formats));
+        }
     }
 
     // ------------------------------------------------------------------
     // per-schema compilation
     // ------------------------------------------------------------------
 
-    function compileSchema(id: SchemaId, formatNames: Map<TFormatCheckFunction, string>): CompiledSchema {
+    function compileSchema(id: SchemaId, formatNames: Map<TFormatCheckFunction, string>, knownFormats: ReadonlySet<string>): CompiledSchema {
         const rawSchema = SCHEMA_REGISTRY[id];
         if (!IDENTIFIER.test(id)) throw new Error(`[${id}] registry key must be a valid identifier`);
         if (rawSchema.$id !== id) throw new Error(`[${id}] registry key does not match schema $id "${rawSchema.$id}"`);
@@ -113,10 +369,15 @@ const ValidatorCompiler = (() => {
         // operate on the exact same normalized JSON Schema AST.
         const astString = JSON.stringify(rawSchema, (key, value) => {
             if (key === "$id" && typeof value === "string" && value !== id) return undefined;
-            if (value instanceof RegExp) return value.source;
+            if (value instanceof RegExp) {
+                // Dropping flags would silently change what the AST-driven Errors() path enforces.
+                if (value.flags) throw new Error(`[${id}] RegExp flags are not supported (key "${key}": ${value}).`);
+                return value.source;
+            }
             return value;
         });
         const normalizedSchema = JSON.parse(astString) as DSchemaWith$id;
+        auditSchema(id, normalizedSchema, "#", knownFormats);
 
         const { Code: code, External } = Code(Intern(normalizedSchema));
         const identifier = External.identifier;
@@ -288,68 +549,6 @@ const ValidatorCompiler = (() => {
         }, "");
     }
 
-    function buildInterfacesCode(): string {
-        let sc = "";
-
-        sc += `export interface ValidationIssue {\n`;
-        sc += `    field: string;\n`;
-        sc += `    message: string;\n`;
-        sc += `}\n\n`;
-
-        sc += `export type ValidationResult =\n`;
-        sc += `    | { valid: true; issues?: undefined }\n`;
-        sc += `    | { valid: false; issues: ValidationIssue[] };\n\n`;
-
-        sc += `export interface Validator<S extends DSchemaWith$id> {\n`;
-        sc += `    /** Type guard backed by the precompiled check. No allocations. */\n`;
-        sc += `    isValid(data: unknown): data is DTypeOf<S>;\n`;
-        sc += `    /** Same check; collects TypeBox validation issues when the data is invalid. */\n`;
-        sc += `    validate(data: unknown): ValidationResult;\n`;
-        sc += `    /** JSON.parse + validate. Throws SyntaxError on malformed JSON, SchemaValidationError on a shape mismatch. */\n`;
-        sc += `    deserialize(json: string): DTypeOf<S>;\n`;
-        sc += `    /** Validate + JSON.stringify. Throws SchemaValidationError when the data is invalid. */\n`;
-        sc += `    serialize(data: DTypeOf<S>): string;\n`;
-        sc += `    /** Lazily parses and returns the JSON Schema AST. */\n`;
-        sc += `    getAst(): S;\n`;
-        sc += `}\n\n`;
-
-        sc += `export class SchemaValidationError extends Error {\n`;
-        sc += `    readonly schemaId: string;\n`;
-        sc += `    readonly issues: ValidationIssue[];\n`;
-        sc += `    constructor(schemaId: string, issues: ValidationIssue[]) {\n`;
-        sc += `        const first = issues[0];\n`;
-        sc += `        super(schemaId + ' validation failed' + (first ? ': ' + first.field + ' ' + first.message : ''));\n`;
-        sc += `        this.name = 'SchemaValidationError';\n`;
-        sc += `        this.schemaId = schemaId;\n`;
-        sc += `        this.issues = issues;\n`;
-        sc += `    }\n`;
-        sc += `}\n\n`;
-
-        sc += `function toValidationIssues(errors: TLocalizedValidationError[]): ValidationIssue[] {\n`;
-        sc += `    if (errors.length === 0) return [{ field: '/', message: 'Invalid value' }];\n`;
-        sc += `    return errors.map((error) => ({ field: error.instancePath || '/', message: error.message }));\n`;
-        sc += `}\n\n`;
-
-        sc += `/* @__NO_SIDE_EFFECTS__ */\n`;
-        sc += `function createValidator<S extends DSchemaWith$id>(id: string, check: (value: unknown) => boolean, astString: string): Validator<S> {\n`;
-        sc += `    let cachedAst: S | undefined;\n`;
-        sc += `    const getAst = (): S => (cachedAst ??= JSON.parse(astString) as S);\n`;
-        sc += `    const assertValid = (data: unknown): DTypeOf<S> => {\n`;
-        sc += `        if (!check(data)) throw new SchemaValidationError(id, toValidationIssues(Errors(getAst(), data)));\n`;
-        sc += `        return data as DTypeOf<S>;\n`;
-        sc += `    };\n`;
-        sc += `    return {\n`;
-        sc += `        isValid: (data: unknown): data is DTypeOf<S> => check(data),\n`;
-        sc += `        validate: (data: unknown): ValidationResult => (check(data) ? { valid: true } : { valid: false, issues: toValidationIssues(Errors(getAst(), data)) }),\n`;
-        sc += `        deserialize: (json: string) => assertValid(JSON.parse(json)),\n`;
-        sc += `        serialize: (data: DTypeOf<S>) => JSON.stringify(assertValid(data)),\n`;
-        sc += `        getAst\n`;
-        sc += `    };\n`;
-        sc += `}\n`;
-
-        return sc;
-    }
-
     function buildCheckFactoryCode({ id, identifier, externals, body }: CompiledSchema): string {
         let sc = `/* @__NO_SIDE_EFFECTS__ */\n`;
         sc += `function createCheck_${id}(): (value: unknown) => boolean {\n`;
@@ -372,13 +571,14 @@ const ValidatorCompiler = (() => {
 
     function buildValidatorCodeBody(): string {
         const formatNames = buildFormatNameIndex();
+        const knownFormats = buildKnownFormats();
 
-        const ids = Object.keys(SCHEMA_REGISTRY) as SchemaId[];
-        const compiled = ids.map((id) => compileSchema(id, formatNames));
+        const ids = (Object.keys(SCHEMA_REGISTRY) as SchemaId[]).sort(); // stable diffs
+        const compiled = ids.map((id) => compileSchema(id, formatNames, knownFormats));
 
         const sections = [
             buildImports(compiled),
-            buildInterfacesCode(),
+            GENERATED_RUNTIME_SOURCE,
             ...compiled.map(buildCheckFactoryCode),
             buildRegistryCode(compiled)
         ];
