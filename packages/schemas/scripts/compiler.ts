@@ -54,8 +54,14 @@ export class SchemaValidationError extends Error {
 }
 
 function toValidationIssues(errors: TLocalizedValidationError[]): ValidationIssue[] {
-    if (errors.length === 0) return [{ field: '/', message: 'Invalid value' }];
-    return errors.map((error) => ({ field: error.instancePath || '/', message: error.message }));
+    if (errors.length === 0) return [{ field: '', message: 'Invalid value' }];
+    return errors.map((error) => {
+        const path = error.instancePath || '';
+        return {
+            field: path.startsWith('/') ? path.substring(1) : path,
+            message: error.message
+        };
+    });
 }
 
 // The compiler's audit guarantees schemas only use this keyword subset.

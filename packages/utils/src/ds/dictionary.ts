@@ -1,15 +1,15 @@
 import { LoopControl } from '../tools';
 import type { ObjectOf } from '../types';
 
-type LoopCallback<T, U = void> = (item: T, index: number) => LoopControl | U;
+type LoopCallback<T, K extends string = string, U = void> = (item: T, key: K) => LoopControl | U;
 
 /**
 * A generic Mapper class to manage a collection of data items identified by unique string keys.
 * Provides methods to get, set, delete, and retrieve all items in the collection.
 * @template T - The type of data stored in the collection.
 */
-export class Dictionary<T> {
-    #data: ObjectOf<T, string> = Object.create(null);
+export class Dictionary<T, K extends string = string> {
+    #data: ObjectOf<T, K> = Object.create(null);
     #size: number = 0;
 
     /**
@@ -40,11 +40,20 @@ export class Dictionary<T> {
     }
 
     /**
+    * Checks if a data item exists by its key.
+    * @param key - The unique key of the item to check.
+    * @returns True if the item exists, false otherwise.
+    */
+    has(key: K): boolean {
+        return key in this.#data;
+    }
+
+    /**
     * Retrieves a data item by its key.
     * @param key - The unique key of the item to retrieve.
     * @returns The data item associated with the given key, or undefined if not found.
     */
-    get(key: string): T {
+    get(key: K): T {
         return this.#data[key];
     }
 
@@ -54,7 +63,7 @@ export class Dictionary<T> {
     * @param val - The data item to associate with the given key.
     * @returns The data item that was added or updated.
     */
-    set(key: string, val: T): T {
+    set(key: K, val: T): T {
         if (!(key in this.#data)) this.#size++;
         this.#data[key] = val;
         return val;
@@ -66,7 +75,7 @@ export class Dictionary<T> {
     * @returns The data item that was deleted, or undefined if not found.
     * @remarks This method checks if the specified key exists in the collection. If it does, it retrieves the associated value, deletes the key-value pair from the collection, and decrements the size counter. Finally, it returns the deleted value. If the key does not exist, it returns undefined.
     */
-    delete(key: string): T {
+    delete(key: K): T {
         const data = this.#data;
         if (key in data) {
             const value = data[key];
@@ -90,8 +99,8 @@ export class Dictionary<T> {
     * Retrieves all keys of the data items in the collection.
     * @returns An array of all item keys.
     */
-    keys(): string[] {
-        return Object.keys(this.#data);
+    keys(): K[] {
+        return Object.keys(this.#data) as K[];
     }
 
     /**
@@ -106,11 +115,11 @@ export class Dictionary<T> {
     * Iterates over all data items in the collection.
     * @param cb - The callback function to execute for each item.
     */
-    loop(cb: LoopCallback<T>): void {
+    loop(cb: LoopCallback<T, K>): void {
         const data = this.#data, keys = Object.keys(data), len = keys.length;
         let index = 0;
         while(index < len) {
-            if(cb(data[keys[index]], index) === LoopControl.break) break;
+            if(cb(data[keys[index]], keys[index] as K) === LoopControl.break) break;
             index++;
         }
     }
@@ -119,7 +128,7 @@ export class Dictionary<T> {
     * Clones the dictionary.
     * @returns A new dictionary with the same data.
     */
-    clone(): Dictionary<T> {
-        return new Dictionary<T>(this.#data);
+    clone(): Dictionary<T, K> {
+        return new Dictionary<T, K>(this.#data);
     }
 }

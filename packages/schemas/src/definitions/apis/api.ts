@@ -4,6 +4,12 @@ export interface DApiError extends DSchemaWith$id, DObject<{
     requestId: DUuid;
     code: DString;
     message: DString;
+}> {}
+
+export interface DApiErrorWithIssues extends DSchemaWith$id, DObject<{
+    requestId: DUuid;
+    code: DString;
+    message: DString;
     issues: DOptional<DArray<DObject<{ field: DString; message: DString }>>>;
 }> {}
 
@@ -21,7 +27,7 @@ export interface DApiQuery<P extends DProperties> extends DSchemaWith$id, DObjec
 export interface ApiSchema {
     query<P extends DProperties>(properties: DNonEmptyObject<P>, options: DObjectOptionsWithId): DApiQuery<P>;
     success<D extends DSchema, M extends DSchema>(dataSchema: D, options: { $id: string; metaSchema?: M; pagination?: boolean; description?: string }): DApiResponse<D, M>;
-    error: () => DApiError;
+    error<W extends boolean = false>(options: { $id: string; withValidationIssues?: W; description?: string }): W extends true ? DApiErrorWithIssues : DApiError;
 }
 
 export const ApiSchema: ApiSchema = /* @__PURE__ */ (() => {
@@ -40,19 +46,29 @@ export const ApiSchema: ApiSchema = /* @__PURE__ */ (() => {
         }, { $id, description }) as DApiResponse<D, M>;
     };
 
-    api.error = () => DType.Object({
-        requestId: DType.Uuid(),
-        code: DType.String(),
-        message: DType.String(),
-        issues: DType.Optional(
-            DType.Array(
-                DType.Object({
-                    field: DType.String(),
-                    message: DType.String()
-                })
-            )
-        )
-    }, { $id: 'ApiErrorSchema', description: 'Error Response'});
+    api.error = <W extends boolean = false>(options: { $id: string; withValidationIssues?: W; description?: string }): W extends true ? DApiErrorWithIssues : DApiError => {
+        const { $id, withValidationIssues = false, description = 'Error Response' } = options;
+        if (withValidationIssues) {
+            return DType.Object({
+                requestId: DType.Uuid(),
+                code: DType.String(),
+                message: DType.String(),
+                issues: DType.Optional(
+                    DType.Array(
+                        DType.Object({
+                            field: DType.String(),
+                            message: DType.String()
+                        })
+                    )
+                )
+            }, { $id, description }) as DApiErrorWithIssues;
+        }
+        return DType.Object({
+            requestId: DType.Uuid(),
+            code: DType.String(),
+            message: DType.String()
+        }, { $id , description}) as W extends true ? DApiErrorWithIssues : DApiError;
+    }
 
     return Object.freeze(api);
 })();

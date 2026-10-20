@@ -1,37 +1,19 @@
 import { Chrono } from "@dakiya/utils";
 import type { FastifyReply, FastifyRequest, FastifySchema } from "fastify";
-import { Type } from "typebox";
+import { Schemas } from "../schemas";
 import { Nats } from "../services";
 import { PG } from "../storage";
 import type { AppFastify, AppPlugin } from "./types";
 
-const ServiceStatusSchema = Type.Object({
-    status: Type.Union([
-        Type.Literal('connected'),
-        Type.Literal('disconnected')
-    ])
-});
-
-const HealthSchma: FastifySchema = {
+const HealthSchema: FastifySchema = Schemas.route({
     tags: ['System'],
-    summary: 'Liveness and Readiness Probe',
-    description: 'Verifies HTTP server liveness and active connections to Database and Cache.',
+    summary: 'Liveliness and Readiness Probe',
+    description: 'Verifies HTTP server Liveliness and active connections to Database and Cache.',
     response: {
-        200: Type.Object({
-            healthy: Type.Literal(true),
-            timestamp: Type.String({ format: 'date-time' }),
-            services: Type.Object({
-                postgres: ServiceStatusSchema,
-                nats: ServiceStatusSchema
-            })
-        }),
-        503: Type.Object({
-            healthy: Type.Literal(false),
-            timestamp: Type.String({ format: 'date-time' }),
-            error: Type.String()
-        })
+        200: 'SystemHealthSuccessSchema',
+        503: 'SystemHealthErrorSchema'
     }
-};
+});
 
 const healthHandler = async (_request: FastifyRequest, response: FastifyReply) => {
     try {
@@ -39,42 +21,42 @@ const healthHandler = async (_request: FastifyRequest, response: FastifyReply) =
             PG.ping(),
             Nats.ping()
         ]);
-        response.send({
+        response.code(200);
+        return {
             healthy: true,
             timestamp: Chrono.isoNow(),
             services: {
                 postgres: { status: 'connected' },
                 nats: { status: 'connected' }
             }
-        });
+        };
     } catch (error) {
-        response.status(503).send({
+        response.code(503);
+        return {
             healthy: false,
-            timestamp: Chrono.isoNow(),
+            timestamp: Chrono.now(),
             error: (error as Error).message || 'Service Unavailable'
-        });
+        };
     }
-
 };
 
-const TimeSchema: FastifySchema = {
+const TimeSchema: FastifySchema = Schemas.route({
     tags: ['System'],
     summary: 'Get Server Time',
     description: 'Returns the current server time in Unix milliseconds time format.',
     response: {
-        200: Type.Object({
-            timestamp: Type.Number()
-        })
+        200: 'SystemTimeResponseSchema'
     }
-};
+});
 
 const timeHandler = async (_request: FastifyRequest, response: FastifyReply) => {
-    response.send({
+    response.code(200);
+    return {
         timestamp: Chrono.now()
-    });
+    };
 };
 
 export const SystemRoutes: AppPlugin = async (fastify: AppFastify) => {
-    fastify.get('/health', { schema: HealthSchma }, healthHandler);
+    fastify.get('/health', { schema: HealthSchema }, healthHandler);
     fastify.get('/time', { schema: TimeSchema }, timeHandler);
 };

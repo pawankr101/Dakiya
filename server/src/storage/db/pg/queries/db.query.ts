@@ -155,7 +155,7 @@ const createUserSettingsTable = async (connection: Sql) => {
                 labels JSONB DEFAULT '[]',
                 circles JSONB DEFAULT '[]',
 
-                -- Settings (Note: camelCase JSON keys to match TypeBox schema)
+                -- Settings (Note: camelCase JSON keys to match schema)
                 notifications JSONB DEFAULT '{
                     "email": false
                 }',
@@ -212,7 +212,7 @@ const createDevicesTable = async (connection: Sql) => {
                 fcm_token TEXT,
                 is_active BOOLEAN DEFAULT TRUE,
 
-                -- Device-Specific Preferences (camelCase JSON keys to match TypeBox schema)
+                -- Device-Specific Preferences (camelCase JSON keys to match schema)
                 chat_prefs JSONB NOT NULL DEFAULT '{
                     "theme": "system",
                     "fontSize": "medium",

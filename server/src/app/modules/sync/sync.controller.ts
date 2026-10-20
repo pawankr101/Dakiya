@@ -1,16 +1,16 @@
 import { ApiResponse } from "../../response";
 import type { EndPointHandler } from "../../types";
 import { pullChangesService } from "./sync.service";
-import type { PullChangesQuery, PulledChanges } from "./sync.type";
+import type { SyncPullQuery, SyncPullResponse } from "./sync.type";
 
 
 /**
  * Gets the changes from the server since the last sync.
  * The client should send the timestamp of the last successful sync, and the server will return all changes that occurred after that timestamp.
  */
-export const pullChanges: EndPointHandler<{Querystring: PullChangesQuery}, PulledChanges> = async (request) => {
-    const { last_pulled_at } = request.query ?? {};
-    const changes = await pullChangesService('32f0cfcd-7731-4086-96bd-1f30dcace35c', last_pulled_at);
+export const pullChanges: EndPointHandler<{Querystring: SyncPullQuery}, SyncPullResponse> = async (request) => {
+    const { last_hlc } = request.query ?? {};
+    const changes = await pullChangesService('32f0cfcd-7731-4086-96bd-1f30dcace35c', last_hlc);
     return new ApiResponse(200, changes);
 }
 

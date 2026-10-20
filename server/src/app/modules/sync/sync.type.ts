@@ -1,5 +1,4 @@
-import type { Static } from "typebox";
-import type { PullChangesQuerySchema, PullChangesSuccessSchema } from "./sync.schema";
+import type { Schemas } from "../../../schemas";
 
-export interface PullChangesQuery extends Static<typeof PullChangesQuerySchema> { }
-export interface PulledChanges extends Static<typeof PullChangesSuccessSchema> { }
+export type SyncPullQuery  = Schemas.TypeOf<'SyncPullQuerySchema'>;
+export type SyncPullResponse = Schemas.TypeOf<'SyncPullResponseSchema'>;

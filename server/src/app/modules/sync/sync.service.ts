@@ -1,9 +1,8 @@
-// server/src/app/modules/sync/sync.service.ts
 import { loop } from "@dakiya/utils";
 import { pullSyncData } from "../../../storage/db/repositories";
 import type { DatabaseTables } from "../../../types";
 import { ApiException } from "../../exception";
-import type { PulledChanges } from "./sync.type";
+import type { SyncPullResponse } from "./sync.type";
 
 interface SyncRecord {
     id: string;
@@ -52,12 +51,12 @@ const categorizeChanges = (() => {
     };
 })();
 
-export const pullChangesService = async (userId: string, lastHlc?: string): Promise<PulledChanges> => {
+export const pullChangesService = async (userId: string, lastHlc?: string): Promise<SyncPullResponse> => {
     try {
         const BATCH_LIMIT = 2000;
         const data = await pullSyncData(userId, lastHlc);
 
-        const { messages, message_reactions, conversation_members } = data.rawData;
+        const { messages, message_reactions } = data.rawData;
 
         let hasMore = false;
         let checkpointHlc = data.serverHlc; // Default to absolute present
@@ -72,9 +71,11 @@ export const pullChangesService = async (userId: string, lastHlc?: string): Prom
         }
 
         return {
-            lastHlc: checkpointHlc, // Send the checkpoint, NOT the present time
-            hasMore,
-            changes: categorizeChanges(data.rawData)
+            data: categorizeChanges(data.rawData) as unknown as SyncPullResponse['data'],
+            pagination: {
+                cursor: checkpointHlc,
+                hasMore
+            }
         };
     } catch (error) {
         throw new ApiException(error as Error, { code: 'SYNC_PULL_ERROR', httpCode: 500 });

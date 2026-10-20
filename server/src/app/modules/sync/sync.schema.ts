@@ -1,31 +1,30 @@
 import type { FastifySchema } from 'fastify';
+import { Schemas } from '../../../schemas';
 
-const TAGS = ['Synchronization'] as const;
+const TAGS = ['Synchronization'];
 
-export const PullChangesSchema: FastifySchema = {
+export const PullChangesSchema: FastifySchema = Schemas.route({
+    tags: TAGS,
     summary: 'Pull changes',
     description: 'Pull changes from the server since the last pull time.',
-    tags: TAGS,
-    querystring: "ApiQuerySchema",
+    request: {
+        query: 'SyncPullQuerySchema'
+    },
     response: {
-        200: "ApiResponseSchema",
-        400: "ApiErrorSchema",
-        401: "ApiErrorSchema",
-        404: "ApiErrorSchema",
-        500: "ApiErrorSchema"
+        200: 'SyncPullResponseSchema',
+        401: 'ApiErrorSchema'
     }
-};
+});
 
-export const PushChangesSchema: FastifySchema = {
+export const PushChangesSchema: FastifySchema = Schemas.route({
+    tags: TAGS,
     summary: 'Push changes',
     description: 'Push local changes to the server and receive any new changes since the last pull time.',
-    tags: TAGS,
-    body: "ApiBodySchema",
+    request: {
+        body: 'SyncPullResponseSchema'
+    },
     response: {
-        200: "ApiResponseSchema",
-        400: "ApiErrorSchema",
-        401: "ApiErrorSchema",
-        404: "ApiErrorSchema",
-        500: "ApiErrorSchema"
+        200: 'SyncPullQuerySchema',
+        401: 'ApiErrorSchema'
     }
-};
+});

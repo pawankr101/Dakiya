@@ -18,7 +18,10 @@ const CONFIG = {
         { in: resolvePath(CWD, "src", "index.ts"), out: "index" },
         { in: resolvePath(CWD, "src", "workers/index.ts"), out: "worker" }
     ],
-    alias: {},
+    alias: {
+        "@dakiya/utils": resolvePath(CWD, "../packages/utils/src/index.ts"),
+        "@dakiya/schemas": resolvePath(CWD, "../packages/schemas/src/index.ts")
+    },
     target: ["node24", "ES2022"],
     envFile: resolvePath(CWD, "env", ".env.dev"),
     watcherDelay: 2000
@@ -190,7 +193,7 @@ class AppRunner {
     async #stopOldProcess() {
         if(this.#instance) {
             /** @type{Promise<void>} */
-            let gracefullExit;
+            let gracefulExit;
             /** @type{Promise<void>} */
             let forceExit;
 
@@ -198,7 +201,7 @@ class AppRunner {
             if (this.#instance instanceof Worker) {
                 // WORKER CLEANUP
                 // 1. Send shutdown message and wait for exit
-                gracefullExit = new Promise((resolve, reject) => {
+                gracefulExit = new Promise((resolve, reject) => {
                     if (this.#instance instanceof Worker) {
                         this.#instance.on('exit', (exitCode) => {
                             this.#instance.instanceKilled = true;
@@ -220,7 +223,7 @@ class AppRunner {
             } else {
                 // SPAWN CLEANUP
                 // 1. Polite request to stop
-                gracefullExit = new Promise((resolve, reject) => {
+                gracefulExit = new Promise((resolve, reject) => {
                     this.#instance.on("exit", (exitCode) => {
                         this.#instance.instanceKilled = true;
                         if(exitCode) reject(new Error(`Process stopped with exit code ${exitCode}`));
@@ -240,7 +243,7 @@ class AppRunner {
                 });
             }
 
-            await Promise.race([gracefullExit, forceExit]);
+            await Promise.race([gracefulExit, forceExit]);
             this.#instance = null;
         }
     }
@@ -318,9 +321,9 @@ class AppRunner {
 
             if(!isFirstBuild) console.log(`\u001b[36m  [S] Changes found.`);
 
-            const isBuildSuccesiful = await this.#buildProject();
+            const isBuildSuccessful = await this.#buildProject();
 
-            if (isBuildSuccesiful && !needRebuild) {
+            if (isBuildSuccessful && !needRebuild) {
                 if(isFirstBuild) console.log(`\u001b[34m  [S] Starting application...`);
                 else console.log(`\u001b[34m  [S] Restarting application...`);
                 this.#startNewProcess();

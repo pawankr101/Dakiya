@@ -33,6 +33,7 @@ export class Application<hv extends HttpVersion = AppHttpVersion, hs extends Htt
         this.#httpServer = HttpServer.build(hv, hs, serverOptions);
         this.#fastifyApp = Fastify({
             serverFactory: ((requestHandler: RequestListener): Server => (this.#httpServer as HttpServer).addRequestListener(requestHandler)) as unknown as FastifyServerFactory<Server>,
+            genReqId: () => getUuid(true),
             pluginTimeout: 30000
         }) as unknown as AppFastify;
     }
