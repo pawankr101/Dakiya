@@ -1,8 +1,19 @@
-import type { DTypeOf } from '../../core/schema';
-import type { ConversationMemberSchema, ConversationSchema, DeviceSchema, UserRelationshipSchema, UserSchema, UserSettingsSchema } from '../../definitions/server/entities';
+import type { DTypeOf } from '../../core';
+import type {
+    ConversationMemberSchema,
+    ConversationSchema,
+    DeviceNotificationPrefsSchema,
+    DeviceSchema,
+    UserRelationshipSchema,
+    UserSchema,
+    UserSettingsNotificationsSchema,
+    UserSettingsSchema
+} from '../../definitions/server/entities';
 
 export interface User extends DTypeOf<typeof UserSchema> { }
+export interface UserSettingsNotifications extends DTypeOf<typeof UserSettingsNotificationsSchema> { }
 export interface UserSettings extends DTypeOf<typeof UserSettingsSchema> { }
+export interface DeviceNotificationPrefs extends DTypeOf<typeof DeviceNotificationPrefsSchema> { }
 export interface Device extends DTypeOf<typeof DeviceSchema> { }
 export interface UserRelationship extends DTypeOf<typeof UserRelationshipSchema> { }
 

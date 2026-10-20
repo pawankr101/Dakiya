@@ -1,4 +1,13 @@
-export { SchemaValidationError } from '@dakiya/schemas';
+export {
+    Conversation,
+    ConversationMember,
+    Message,
+    MessageExclusion,
+    MessageReaction,
+    SchemaValidationError,
+    User,
+    UserRelationship
+} from '@dakiya/schemas';
 
 import {
     ApiErrorSchemaValidator,
