@@ -10,7 +10,7 @@ import type { SyncPullQuery, SyncPullResponse } from "./sync.type";
  */
 export const pullChanges: EndPointHandler<{Querystring: SyncPullQuery}, SyncPullResponse> = async (request) => {
     const { last_hlc } = request.query ?? {};
-    const changes = await pullChangesService('32f0cfcd-7731-4086-96bd-1f30dcace35c', last_hlc);
+    const changes = await pullChangesService('019fc224-7155-7268-b2dc-ab866fa35a47', last_hlc);
     return new ApiResponse(200, changes);
 }
 

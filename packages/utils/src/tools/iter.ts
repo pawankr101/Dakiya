@@ -171,15 +171,15 @@ export const loop: LoopFunctionOverloads = /* @__PURE__ */ (() => {
 *  // Value: 2, Index: 1
 *  // [2, 4]
 */
-export const mapLoop = <T, U>(array: Array<T>, cb: MapLoopCallback<T, U>): Array<U> => {
-    const result: Array<U> = [], len = array.length;
+export const mapLoop = <T, U>(array: Array<T>, cb: MapLoopCallback<T, U>): Array<Exclude<U, undefined>> => {
+    const result: Array<Exclude<U, undefined>> = [], len = array.length;
     let index = 0;
 
     while (index < len) {
         const cbr = cb(array[index], index);
         if (cbr === LoopControl.break) break;
         else if (cbr !== undefined) {
-            result.push(cbr as U);
+            result.push(cbr as Exclude<U, undefined>);
         }
         index++;
     }

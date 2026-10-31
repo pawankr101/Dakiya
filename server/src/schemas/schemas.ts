@@ -1,12 +1,15 @@
 export {
     Conversation,
     ConversationMember,
+    Device,
     Message,
     MessageExclusion,
     MessageReaction,
     SchemaValidationError,
+    SyncChange,
     User,
-    UserRelationship
+    UserRelationship,
+    UserSettings
 } from '@dakiya/schemas';
 
 import {

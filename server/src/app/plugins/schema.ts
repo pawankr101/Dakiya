@@ -42,6 +42,6 @@ export const GlobalSchemas: AppPlugin = fastifyPlugin(async (fastify: AppFastify
         const schemaId = resolveSchemaId(schema as FastifySchemaWithId);
         const compiled = Schemas.getSchema(schemaId);
 
-        return (data: unknown) => compiled.serialize(data as Schemas.TypeOf<SchemaId>);
+        return (payload: { data: unknown }) => compiled.serialize(payload.data as Schemas.TypeOf<SchemaId>);
     });
 });

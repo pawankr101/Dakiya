@@ -10,7 +10,7 @@ const makePullChangeSetSchema = <T extends DSchema>(itemSchema: T) => {
     }));
 };
 
-const SyncPullChangeSchema = DType.Object({
+export const SyncChangeSchema = DType.Object({
     users: makePullChangeSetSchema(UserSchema),
     user_relationships: makePullChangeSetSchema(UserRelationshipSchema),
     conversations: makePullChangeSetSchema(ConversationSchema),
@@ -19,7 +19,7 @@ const SyncPullChangeSchema = DType.Object({
     message_reactions: makePullChangeSetSchema(MessageReactionSchema)
 });
 
-export const SyncPullResponseSchema = ApiSchema.success(SyncPullChangeSchema, {
+export const SyncPullResponseSchema = ApiSchema.success(SyncChangeSchema, {
     $id: 'SyncPullResponseSchema',
     pagination: true
 });

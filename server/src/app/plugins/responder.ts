@@ -1,6 +1,6 @@
 import type { FastifyError } from "fastify";
 import { fastifyPlugin } from "fastify-plugin";
-import { Schemas, SchemaValidationError } from "../../schemas";
+import { SchemaValidationError } from "../../schemas";
 import { ApiException } from "../exception";
 import { ApiResponse } from "../response";
 import type { AppFastify, AppPlugin } from "../types";

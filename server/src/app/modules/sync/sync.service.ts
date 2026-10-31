@@ -1,8 +1,9 @@
-import { loop } from "@dakiya/utils";
+import { loop, mapLoop } from "@dakiya/utils";
 import { pullSyncData } from "../../../storage/db/repositories";
 import type { DatabaseTables } from "../../../types";
 import { ApiException } from "../../exception";
 import type { SyncPullResponse } from "./sync.type";
+import type { MessageExclusion } from "../../../schemas";
 
 interface SyncRecord {
     id: string;
@@ -16,11 +17,9 @@ const categorizeChanges = (() => {
         const modified: T[] = [], deleted: string[] = [];
 
         loop(records, (record) => {
-            // Check tombstone flags
             if (record.isDeleted === true || record.isActive === false) {
                 deleted.push(record.id);
             } else {
-                // Everything else is just an upsert
                 modified.push(record);
             }
         });
@@ -28,7 +27,7 @@ const categorizeChanges = (() => {
         return { modified, deleted };
     };
 
-    return (rawData: Partial<DatabaseTables>) => {
+    return (rawData: Partial<DatabaseTables & { message_exclusions?: MessageExclusion[] }>) => {
         const {
             users = [],
             user_relationships = [],
@@ -39,42 +38,48 @@ const categorizeChanges = (() => {
             message_exclusions = []
         } = rawData;
 
+        const messagesChangeSet = buildChangeSet(messages as SyncRecord[]);
+        const reactionsChangeSet = buildChangeSet(message_reactions as SyncRecord[]);
+
+        loop(message_exclusions, (exclusion) => {
+            const removedMessageRootId = exclusion.messageRootId;
+
+            const removedMessageIds = mapLoop(messages, (msg) => {
+                if(msg.rootId === removedMessageRootId) {
+                    return msg.id;
+                }
+            });
+            messagesChangeSet.deleted.push(...removedMessageIds);
+
+            const removedReactionIds = mapLoop(message_reactions, (reaction) => {
+                if(reaction.messageRootId === removedMessageRootId) {
+                    return reaction.id;
+                }
+            });
+            reactionsChangeSet.deleted.push(...removedReactionIds);
+        });
+        messagesChangeSet.deleted = Array.from(new Set([...messagesChangeSet.deleted]));
+        reactionsChangeSet.deleted = Array.from(new Set([...reactionsChangeSet.deleted]));
+
         return {
             users: buildChangeSet(users as SyncRecord[]),
             user_relationships: buildChangeSet(user_relationships as SyncRecord[]),
             conversations: buildChangeSet(conversations as SyncRecord[]),
             conversation_members: buildChangeSet(conversation_members as SyncRecord[]),
-            messages: buildChangeSet(messages as SyncRecord[]),
-            message_reactions: buildChangeSet(message_reactions as SyncRecord[]),
-            message_exclusions: buildChangeSet(message_exclusions as SyncRecord[])
+            messages: messagesChangeSet,
+            message_reactions: reactionsChangeSet
         };
     };
 })();
 
 export const pullChangesService = async (userId: string, lastHlc?: string): Promise<SyncPullResponse> => {
     try {
-        const BATCH_LIMIT = 2000;
         const data = await pullSyncData(userId, lastHlc);
-
-        const { messages, message_reactions } = data.rawData;
-
-        let hasMore = false;
-        let checkpointHlc = data.serverHlc; // Default to absolute present
-
-        // Check if any high-volume table hit the pagination limit
-        if (messages?.length === BATCH_LIMIT) {
-            hasMore = true;
-            checkpointHlc = messages[BATCH_LIMIT - 1].hlc; // Use the HLC of the 2000th message
-        } else if (message_reactions?.length === BATCH_LIMIT) {
-            hasMore = true;
-            checkpointHlc = message_reactions[BATCH_LIMIT - 1].hlc;
-        }
-
         return {
             data: categorizeChanges(data.rawData) as unknown as SyncPullResponse['data'],
             pagination: {
-                cursor: checkpointHlc,
-                hasMore
+                cursor: data.serverHlc,
+                hasMore: false
             }
         };
     } catch (error) {

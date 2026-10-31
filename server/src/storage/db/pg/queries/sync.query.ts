@@ -1,20 +1,18 @@
 import { Hlc } from '@dakiya/utils';
 import { DB } from '../../../../config';
 import type { Conversation, ConversationMember, Message, MessageExclusion, MessageReaction, User, UserRelationship } from '../../../../schemas';
-import type { DatabaseTables, DatabaseTablesChanges } from '../../../../types';
+import type { DatabaseTables } from '../../../../types';
 import { PG } from '../connection';
 
-export const pullSyncQuery = async (userId: string, lastHlc?: string): Promise<{ serverHlc: string, rawData: Partial<DatabaseTables> }> => {
+export const pullSyncQuery = async (userId: string, lastHlc?: string): Promise<{ serverHlc: string, rawData: Partial<DatabaseTables & {message_exclusions: MessageExclusion[]}> }> => {
     return PG.sql.begin('ISOLATION LEVEL REPEATABLE READ', async (tx) => {
-
-        // 1. Generate the server HLC bookmark for this exact transaction snapshot
         const serverHlc = Hlc.generate().toString();
-
-        let rawData: Partial<DatabaseTables>;
+        let rawData: Partial<DatabaseTables & {message_exclusions: MessageExclusion[]}>;
 
         if (!lastHlc) {
-            // --- INITIAL SYNC ---
-            // Construct a boundary HLC prefix utilizing the synchronized database offset
+            // ==========================================
+            // INITIAL SYNC: Fetch only active, non-deleted records
+            // ==========================================
             const boundaryTs = Hlc.now() - DB.syncBoundaryInMS;
             const boundaryHlc = `${boundaryTs.toString(36).padStart(9, '0')}-0000-000000000000000`;
 
@@ -28,70 +26,66 @@ export const pullSyncQuery = async (userId: string, lastHlc?: string): Promise<{
                 message_exclusions
             ] = await Promise.all([
                 tx<User[]>`
-                    SELECT * FROM users
-                    WHERE is_deleted = false
+                    SELECT u.* FROM users u
+                    WHERE u.is_deleted = false
                       AND (
-                          id = ${userId}
-                          OR id IN (SELECT user_id FROM user_relationships WHERE owner_id = ${userId})
-                          OR id IN (
-                              SELECT user_id FROM conversation_members
-                              WHERE is_active = true
-                                AND conversation_id IN (
-                                    SELECT conversation_id FROM conversation_members
-                                    WHERE user_id = ${userId} AND is_active = true
-                                )
+                          u.id = ${userId}
+                          OR EXISTS (SELECT 1 FROM user_relationships ur WHERE ur.owner_id = ${userId} AND ur.user_id = u.id)
+                          OR EXISTS (
+                              SELECT 1 FROM conversation_members cm_peer
+                              JOIN conversation_members cm_me ON cm_peer.conversation_id = cm_me.conversation_id
+                              WHERE cm_peer.user_id = u.id AND cm_peer.is_active = true
+                                AND cm_me.user_id = ${userId} AND cm_me.is_active = true
                           )
                       )
                 `,
                 tx<UserRelationship[]>`
-                    SELECT * FROM user_relationships
-                    WHERE owner_id = ${userId}
+                    SELECT * FROM user_relationships WHERE owner_id = ${userId}
                 `,
                 tx<Conversation[]>`
-                    SELECT * FROM conversations
-                    WHERE is_deleted = false
-                      AND id IN (
-                          SELECT conversation_id FROM conversation_members
-                          WHERE user_id = ${userId} AND is_active = true
+                    SELECT c.* FROM conversations c
+                    WHERE c.is_deleted = false
+                      AND EXISTS (
+                          SELECT 1 FROM conversation_members cm
+                          WHERE cm.conversation_id = c.id AND cm.user_id = ${userId} AND cm.is_active = true
                       )
                 `,
                 tx<ConversationMember[]>`
-                    SELECT * FROM conversation_members
-                    WHERE is_active = true
-                      AND conversation_id IN (
-                          SELECT conversation_id FROM conversation_members
-                          WHERE user_id = ${userId} AND is_active = true
+                    SELECT cm.* FROM conversation_members cm
+                    WHERE cm.is_active = true
+                      AND EXISTS (
+                          SELECT 1 FROM conversation_members my_cm
+                          WHERE my_cm.conversation_id = cm.conversation_id AND my_cm.user_id = ${userId} AND my_cm.is_active = true
                       )
                 `,
                 tx<Message[]>`
-                    SELECT * FROM messages
-                    WHERE conversation_id IN (
-                        SELECT conversation_id FROM conversation_members
-                        WHERE user_id = ${userId} AND is_active = true
-                    )
-                    AND hlc >= ${boundaryHlc}
+                    SELECT m.* FROM messages m
+                    WHERE m.hlc >= ${boundaryHlc}
+                      AND EXISTS (
+                          SELECT 1 FROM conversation_members cm
+                          WHERE cm.conversation_id = m.conversation_id AND cm.user_id = ${userId} AND cm.is_active = true
+                      )
                 `,
                 tx<MessageReaction[]>`
                     SELECT mr.* FROM message_reactions mr
                     JOIN messages m ON mr.message_id = m.id
                     WHERE mr.is_deleted = false
-                      AND m.conversation_id IN (
-                          SELECT conversation_id FROM conversation_members
-                          WHERE user_id = ${userId} AND is_active = true
-                      )
                       AND mr.hlc >= ${boundaryHlc}
+                      AND EXISTS (
+                          SELECT 1 FROM conversation_members cm
+                          WHERE cm.conversation_id = m.conversation_id AND cm.user_id = ${userId} AND cm.is_active = true
+                      )
                 `,
                 tx<MessageExclusion[]>`
                     SELECT * FROM message_exclusions
-                    WHERE deleted_for = ${userId}
-                      AND hlc >= ${boundaryHlc}
+                    WHERE deleted_for = ${userId} AND hlc >= ${boundaryHlc}
                 `
             ]);
-
             rawData = { users, user_relationships, conversations, conversation_members, messages, message_reactions, message_exclusions };
         } else {
-            // --- DELTA SYNC ---
-            // Fetch everything mutated strictly after the client's last HLC (including soft-deleted records)
+            // ==========================================
+            // INCREMENTAL SYNC: Fetch all changes (including tombstones/deletions) since lastHlc
+            // ==========================================
             const [
                 users,
                 user_relationships,
@@ -102,50 +96,60 @@ export const pullSyncQuery = async (userId: string, lastHlc?: string): Promise<{
                 message_exclusions
             ] = await Promise.all([
                 tx<User[]>`
-                    SELECT * FROM users
-                    WHERE hlc > ${lastHlc}
+                    SELECT u.* FROM users u
+                    WHERE u.hlc > ${lastHlc}
                       AND (
-                          id = ${userId}
-                          OR id IN (SELECT user_id FROM user_relationships WHERE owner_id = ${userId})
-                          OR id IN (
-                              SELECT user_id FROM conversation_members
-                              WHERE conversation_id IN (SELECT conversation_id FROM conversation_members WHERE user_id = ${userId})
+                          u.id = ${userId}
+                          OR EXISTS (SELECT 1 FROM user_relationships ur WHERE ur.owner_id = ${userId} AND ur.user_id = u.id)
+                          OR EXISTS (
+                              SELECT 1 FROM conversation_members cm_peer
+                              JOIN conversation_members cm_me ON cm_peer.conversation_id = cm_me.conversation_id
+                              WHERE cm_peer.user_id = u.id AND cm_me.user_id = ${userId}
                           )
                       )
                 `,
                 tx<UserRelationship[]>`
                     SELECT * FROM user_relationships
-                    WHERE owner_id = ${userId}
-                      AND hlc > ${lastHlc}
+                    WHERE owner_id = ${userId} AND hlc > ${lastHlc}
                 `,
                 tx<Conversation[]>`
-                    SELECT * FROM conversations
-                    WHERE hlc > ${lastHlc}
-                      AND id IN (SELECT conversation_id FROM conversation_members WHERE user_id = ${userId})
+                    SELECT c.* FROM conversations c
+                    WHERE c.hlc > ${lastHlc}
+                      AND EXISTS (
+                          SELECT 1 FROM conversation_members cm
+                          WHERE cm.conversation_id = c.id AND cm.user_id = ${userId}
+                      )
                 `,
                 tx<ConversationMember[]>`
-                    SELECT * FROM conversation_members
-                    WHERE hlc > ${lastHlc}
-                      AND conversation_id IN (SELECT conversation_id FROM conversation_members WHERE user_id = ${userId})
+                    SELECT cm.* FROM conversation_members cm
+                    WHERE cm.hlc > ${lastHlc}
+                      AND EXISTS (
+                          SELECT 1 FROM conversation_members my_cm
+                          WHERE my_cm.conversation_id = cm.conversation_id AND my_cm.user_id = ${userId}
+                      )
                 `,
                 tx<Message[]>`
-                    SELECT * FROM messages
-                    WHERE hlc > ${lastHlc}
-                      AND conversation_id IN (SELECT conversation_id FROM conversation_members WHERE user_id = ${userId})
+                    SELECT m.* FROM messages m
+                    WHERE m.hlc > ${lastHlc}
+                      AND EXISTS (
+                          SELECT 1 FROM conversation_members cm
+                          WHERE cm.conversation_id = m.conversation_id AND cm.user_id = ${userId}
+                      )
                 `,
                 tx<MessageReaction[]>`
                     SELECT mr.* FROM message_reactions mr
                     JOIN messages m ON mr.message_id = m.id
                     WHERE mr.hlc > ${lastHlc}
-                      AND m.conversation_id IN (SELECT conversation_id FROM conversation_members WHERE user_id = ${userId})
+                      AND EXISTS (
+                          SELECT 1 FROM conversation_members cm
+                          WHERE cm.conversation_id = m.conversation_id AND cm.user_id = ${userId}
+                      )
                 `,
                 tx<MessageExclusion[]>`
                     SELECT * FROM message_exclusions
-                    WHERE hlc > ${lastHlc}
-                      AND deleted_for = ${userId}
+                    WHERE hlc > ${lastHlc} AND deleted_for = ${userId}
                 `
             ]);
-
             rawData = { users, user_relationships, conversations, conversation_members, messages, message_reactions, message_exclusions };
         }
 
@@ -153,7 +157,7 @@ export const pullSyncQuery = async (userId: string, lastHlc?: string): Promise<{
     });
 };
 
-export const pushSyncQuery = async (userId: string, changes: Partial<DatabaseTablesChanges>): Promise<void> => {
+export const pushSyncQuery = async (_userId: string, _changes: Partial<DatabaseTables>): Promise<void> => {
     await PG.sql.begin(async (_tx) => {
         // Push resolution stub: LWW (Last-Writer-Wins) logic using incoming HLCs
     });
