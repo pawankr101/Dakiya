@@ -55,6 +55,16 @@ export const PG = (() => {
                 host, port, database, user, password, max, idle_timeout, connect_timeout,
                 transform: postgres.camel,
                 onnotice: () => { }, // Disable notice messages from PostgreSQL
+                types: {
+                    timestamptz: {
+                        to: 1184,
+                        from: [1184],
+                        // INBOUND (Node -> Postgres): Passing ISO string as it is.
+                        serialize: (value: number) => value,
+                        // OUTBOUND (Postgres -> Node): Convert ISO string to Node.js Date timestamp
+                        parse: (raw: string) => Date.parse(raw)
+                    }
+                }
             });
             isConnected = true;
             await initTables(connection);

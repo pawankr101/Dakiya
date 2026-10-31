@@ -30,8 +30,8 @@ export interface DJsonB<T extends DJsonBBodySchema> extends DUnion<[DString, T]>
 
 export type DDbTableBaseProperties = {
     id: DUuid;
-    createdAt: DString;
-    updatedAt: DString;
+    createdAt: DEpoch;
+    updatedAt: DEpoch;
     hlc: DHlc;
 };
 
@@ -191,8 +191,8 @@ export const DType = /* @__PURE__ */ (() => {
         return DTypeObj.Intersection([
             DTypeObj.Object({
                 id: DTypeObj.Uuid(),
-                createdAt: DTypeObj.String({ format: 'date-time' }),
-                updatedAt: DTypeObj.String({ format: 'date-time' }),
+                createdAt: DTypeObj.Epoch(),
+                updatedAt: DTypeObj.Epoch(),
                 hlc: DTypeObj.Hlc()
             }),
             schema
