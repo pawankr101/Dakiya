@@ -56,6 +56,12 @@ export const PG = (() => {
                 transform: postgres.camel,
                 onnotice: () => { }, // Disable notice messages from PostgreSQL
                 types: {
+                    date: {
+                        to: 1082,
+                        from: [1082],
+                        serialize: (value: string) => value,
+                        parse: (raw: string) => raw // Keep 'YYYY-MM-DD' as a string
+                    },
                     timestamptz: {
                         to: 1184,
                         from: [1184],
