@@ -1,6 +1,6 @@
 import { Exception, Guards, getUuid } from '@dakiya/utils';
 import Fastify, { type FastifyServerFactory } from 'fastify';
-import { HTTP_SERVER } from '../config';
+import { API_DOCS, HTTP_SERVER } from '../config';
 import { type HttpSecurity, HttpServer, type HttpVersion, type RequestListener, type Server, type ServerOptions } from '../servers';
 import { AppRoutes } from './app.route';
 import { AppPlugins } from './plugins';
@@ -92,7 +92,7 @@ export class Application<hv extends HttpVersion = AppHttpVersion, hs extends Htt
                 },
                 listener: () => {
                     console.log(`\u001b[34m  [S] Server Started:`);
-                    console.log(`\u001b[34m  [S] Server info:\n\u001b[34m      Base Route: ${this.#httpSecurity}://${host}:${port}\n\u001b[34m      Network Protocol: ${this.#httpVersion}\n\u001b[34m      Process id: ${process.pid}`);
+                    console.log(`\u001b[34m  [S] Server info:\n\u001b[34m      Base URL: ${this.#httpSecurity}://${host}:${port}\n\u001b[34m      Swagger URL: ${this.#httpSecurity}://${host}:${port}${API_DOCS.routePrefix}\n\u001b[34m      Network Protocol: ${this.#httpVersion}\n\u001b[34m      Process id: ${process.pid}`);
                 }
             });
         } catch (error) {

@@ -1,8 +1,9 @@
 import { Chrono } from "@dakiya/utils";
-import type { FastifyReply, FastifyRequest, FastifySchema } from "fastify";
+import type { FastifySchema } from "fastify";
 import { Schemas } from "../schemas";
 import { Nats } from "../services";
 import { PG } from "../storage";
+import { ApiResponse } from "./response";
 import type { AppFastify, AppPlugin } from "./types";
 
 const HealthSchema: FastifySchema = Schemas.route({
@@ -11,33 +12,22 @@ const HealthSchema: FastifySchema = Schemas.route({
     description: 'Verifies HTTP server Liveliness and active connections to Database and Cache.',
     response: {
         200: 'SystemHealthSuccessSchema',
-        503: 'SystemHealthErrorSchema'
     }
 });
 
-const healthHandler = async (_request: FastifyRequest, response: FastifyReply) => {
-    try {
-        await Promise.all([
-            PG.ping(),
-            Nats.ping()
-        ]);
-        response.code(200);
-        return {
-            healthy: true,
-            timestamp: Chrono.isoNow(),
-            services: {
-                postgres: { status: 'connected' },
-                nats: { status: 'connected' }
-            }
-        };
-    } catch (error) {
-        response.code(503);
-        return {
-            healthy: false,
-            timestamp: Chrono.now(),
-            error: (error as Error).message || 'Service Unavailable'
-        };
-    }
+const healthHandler = async () => {
+    await Promise.all([
+        PG.ping(),
+        Nats.ping()
+    ]);
+    return new ApiResponse(200, {
+        healthy: true,
+        timestamp: Chrono.now(),
+        services: {
+            postgres: { status: 'connected' },
+            nats: { status: 'connected' }
+        }
+    });
 };
 
 const TimeSchema: FastifySchema = Schemas.route({
@@ -49,11 +39,10 @@ const TimeSchema: FastifySchema = Schemas.route({
     }
 });
 
-const timeHandler = async (_request: FastifyRequest, response: FastifyReply) => {
-    response.code(200);
-    return {
+const timeHandler = async () => {
+    return new ApiResponse(200, {
         timestamp: Chrono.now()
-    };
+    });
 };
 
 export const SystemRoutes: AppPlugin = async (fastify: AppFastify) => {

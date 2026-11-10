@@ -53,7 +53,12 @@ export const PG = (() => {
             const { host, port, database, user, password, maxPoolSize: max, idleTimeoutMillis: idle_timeout, connectionTimeoutMillis: connect_timeout } = DB;
             connection = postgres({
                 host, port, database, user, password, max, idle_timeout, connect_timeout,
-                transform: postgres.camel,
+                transform: {
+                    ...postgres.camel,
+                    value: {
+                        from: (value) => (value === null ? undefined : value),
+                    },
+                },
                 onnotice: () => { }, // Disable notice messages from PostgreSQL
                 types: {
                     date: {

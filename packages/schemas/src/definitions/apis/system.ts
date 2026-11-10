@@ -23,5 +23,6 @@ export const SystemHealthErrorSchema = DType.Object({
 }, { $id: 'SystemHealthErrorSchema' });
 
 export const SystemTimeResponseSchema = DType.Object({
-    timestamp: DType.Epoch()
+    timestamp: DType.Epoch(),
+    ts: DType.Optional(DType.Epoch())
 }, { $id: 'SystemTimeResponseSchema' });
