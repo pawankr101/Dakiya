@@ -33,7 +33,6 @@ import {
     SyncPullQuerySchema,
     SyncPullResponseSchema,
     SystemContentSchema,
-    SystemHealthErrorSchema,
     SystemHealthSuccessSchema,
     SystemMetadataSchema,
     SystemTimeResponseSchema,
@@ -101,7 +100,6 @@ export const SCHEMA_REGISTRY = {
     SyncPullQuerySchema,
     SyncPullResponseSchema,
     SystemHealthSuccessSchema,
-    SystemHealthErrorSchema,
     SystemTimeResponseSchema
 };
 

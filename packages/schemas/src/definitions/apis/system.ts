@@ -1,4 +1,5 @@
 import { DType } from "../../core";
+import { ApiSchema } from "./api";
 
 const ServiceStatusSchema = DType.Object({
     status: DType.Union([
@@ -7,22 +8,15 @@ const ServiceStatusSchema = DType.Object({
     ])
 });
 
-export const SystemHealthSuccessSchema = DType.Object({
+export const SystemHealthSuccessSchema = ApiSchema.success(DType.Object({
     healthy: DType.Literal(true),
     timestamp: DType.Epoch(),
     services: DType.Object({
         postgres: ServiceStatusSchema,
         nats: ServiceStatusSchema
     })
-}, { $id: 'SystemHealthSuccessSchema' });
+}), { $id: 'SystemHealthSuccessSchema', description: 'System Health Check Success Response Schema' });
 
-export const SystemHealthErrorSchema = DType.Object({
-    healthy: DType.Literal(false),
-    timestamp: DType.Epoch(),
-    error: DType.String()
-}, { $id: 'SystemHealthErrorSchema' });
-
-export const SystemTimeResponseSchema = DType.Object({
-    timestamp: DType.Epoch(),
-    ts: DType.Optional(DType.Epoch())
-}, { $id: 'SystemTimeResponseSchema' });
+export const SystemTimeResponseSchema = ApiSchema.success(DType.Object({
+    timestamp: DType.Epoch()
+}), { $id: 'SystemTimeResponseSchema', description: 'System Time Response Schema' });

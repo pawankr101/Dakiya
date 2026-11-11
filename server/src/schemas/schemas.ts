@@ -1,4 +1,7 @@
 export {
+    type ApiError,
+    type ApiErrorWithIssues,
+    type ApiResponse,
     Conversation,
     ConversationMember,
     Device,
@@ -25,7 +28,6 @@ import {
     type SchemaRegistry,
     SyncPullQuerySchemaValidator,
     SyncPullResponseSchemaValidator,
-    SystemHealthErrorSchemaValidator,
     SystemHealthSuccessSchemaValidator,
     SystemTimeResponseSchemaValidator,
     UserRelationshipSchemaValidator,
@@ -55,7 +57,6 @@ const VALIDATORS = {
     SyncPullQuerySchema: SyncPullQuerySchemaValidator,
     SyncPullResponseSchema: SyncPullResponseSchemaValidator,
     SystemHealthSuccessSchema: SystemHealthSuccessSchemaValidator,
-    SystemHealthErrorSchema: SystemHealthErrorSchemaValidator,
     SystemTimeResponseSchema: SystemTimeResponseSchemaValidator
 } as const;
 

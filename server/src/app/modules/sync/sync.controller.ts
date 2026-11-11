@@ -10,8 +10,8 @@ import type { SyncPullQuery, SyncPullResponse } from "./sync.type";
  */
 export const pullChanges: EndPointHandler<{Querystring: SyncPullQuery}, SyncPullResponse> = async (request) => {
     const { last_hlc } = request.query ?? {};
-    const changes = await pullChangesService('019fc224-7155-7268-b2dc-ab866fa35002', last_hlc);
-    return new ApiResponse(200, changes);
+    const { data, pagination} = await pullChangesService('019fc224-7155-7268-b2dc-ab866fa35002', last_hlc);
+    return new ApiResponse(200, data, { pagination });
 }
 
 /**

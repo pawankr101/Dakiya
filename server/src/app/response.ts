@@ -1,23 +1,25 @@
 import type { HttpCode } from "@dakiya/utils";
+import type { ApiResponse as IApiResponse } from "../schemas";
 
 export interface ApiPagination {
     cursor: string;
     hasMore: boolean;
 }
 
-export class ApiResponse<T = unknown> {
-    public readonly pagination?: ApiPagination;
-    public readonly meta?: Record<string, unknown>;
+export class ApiResponse<D, M = unknown> implements IApiResponse<D, M> {
+    public readonly pagination?: IApiResponse<D, M>["pagination"];
+    public readonly meta?: M;
 
     /**
-     * @param status The HTTP status code (e.g., 200, 201, 202).
-     * @param data The main payload. Mapped directly to the 'data' property in the JSON envelope.
-     * @param options Optional pagination and metadata.
+     * Creates a new ApiResponse instance.
+     * @param status - The HTTP status code for the response.
+     * @param data - The data payload of the response.
+     * @param options - Optional parameters including pagination and meta information.
      */
     constructor(
         public readonly status: HttpCode,
-        public readonly data: T | null,
-        options?: { pagination?: ApiPagination; meta?: Record<string, unknown> }
+        public readonly data: D,
+        options?: { pagination?: IApiResponse<D, M>["pagination"]; meta?: M }
     ) {
         const { pagination, meta } = options ?? {};
         if (pagination) this.pagination = pagination;

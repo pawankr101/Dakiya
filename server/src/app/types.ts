@@ -13,4 +13,4 @@ type R = Request<AppHttpVersion>;
 type Rs = RawReplyDefaultExpression<S>;
 export type AppFastify = FastifyInstance<S, R, Rs>;
 export type AppPlugin = FastifyPluginAsync<ObjectOf, S>;
-export type EndPointHandler<Req extends RequestGenericInterface = RequestGenericInterface, Res = unknown> = RouteHandlerMethod<S, R, Rs, Req & {Reply: ApiResponse<Res>|Promise<ApiResponse<Res>>}>;
+export type EndPointHandler<Req extends RequestGenericInterface = RequestGenericInterface, Res extends { data: unknown, meta?: unknown } = { data: unknown, meta?: unknown }> = RouteHandlerMethod<S, R, Rs, Req & {Reply: ApiResponse<Res['data'], Res['meta']>|Promise<ApiResponse<Res['data'], Res['meta']>>}>;
