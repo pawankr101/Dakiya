@@ -1,4 +1,3 @@
-import { Exception } from "@dakiya/utils";
 import { fastifyPlugin } from "fastify-plugin";
 import { HLC } from "../../config";
 import { initializeHlc, Nats, saveLatestHlcToCache, updateHlcOffset } from "../../services";
@@ -25,7 +24,7 @@ export const Startup: AppPlugin = fastifyPlugin(async (fastify: AppFastify) => {
             await updateHlcOffset();
             await saveLatestHlcToCache();
         } catch(error) {
-            throw Exception.from(error as Error, { code: 'DAKIYA_HLC_ERROR' });
+            console.error('Error updating HLC offset or saving state to cache:', error);
         }
     }, HLC.offsetUpdateIntervalMS);
 
