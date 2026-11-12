@@ -40,11 +40,32 @@ type DDbTableBodySchema = DObjectWithoutTableBaseProperties | DUnion<DArrayOfMin
 
 export interface DDbTable<S extends DDbTableBodySchema> extends DSchemaWith$id, DIntersection<[DObject<DDbTableBaseProperties>, S]>  {}
 
-export interface DSchemaOptions extends TSchemaOptions {}
+export interface DSchemaOptions<T=unknown> {
+    /**
+     * A URI that serves as a unique identifier for the schema.
+     */
+    $id?: string;
+    /**
+     * A detailed explanation of the data described by the schema.
+     */
+    description?: string;
+    /**
+     * A default value for the data, used when no value is provided.
+     */
+    default?: T;
+    /**
+     * Provides one or more examples of valid data conforming to the schema.
+     */
+    examples?: T[];
+    /**
+     * Indicates that the data should only be readable and not modified.
+     */
+    readOnly?: boolean;
+}
 
 type DStringFormat = 'date-time' | 'date' | 'duration' | 'email' | 'hostname' | 'idn-email' | 'idn-hostname' | 'ipv4' | 'ipv6' | 'iri-reference' | 'iri' | 'json-pointer-uri-fragment' | 'json-pointer' | 'json-string' | 'regex' | 'relative-json-pointer' | 'time' | 'uri-reference' | 'uri-template' | 'uri' | 'url' | 'uuid';
 
-export interface DStringOptions extends DSchemaOptions {
+export interface DStringOptions extends DSchemaOptions<string> {
     /**
      * Specifies the expected string format. May also be a custom format string.
      */
@@ -61,7 +82,7 @@ export interface DStringOptions extends DSchemaOptions {
     maxLength?: number;
 }
 
-export interface DNumberOptions extends DSchemaOptions {
+export interface DNumberOptions extends DSchemaOptions<number> {
     /**
      * Specifies an inclusive upper limit for the number (number must be less than or equal to this value).
      */
@@ -72,21 +93,21 @@ export interface DNumberOptions extends DSchemaOptions {
     minimum?: number;
 }
 
-export interface DObjectOptions extends Omit<DSchemaOptions, '$id'> {
+export interface DObjectOptions<T=unknown> extends Omit<DSchemaOptions<T>, '$id'> {
     /**
      * Defines whether additional properties are allowed beyond those explicitly defined in `properties`.
      */
     additionalProperties?: DSchema | boolean;
 }
 
-export interface DObjectOptionsWithId extends DObjectOptions {
+export interface DObjectOptionsWithId<T=unknown> extends DObjectOptions<T> {
     /**
      * A URI that serves as a unique identifier for the schema.
      */
     $id: string;
 }
 
-export interface DArrayOptions extends DSchemaOptions {
+export interface DArrayOptions<T=unknown> extends DSchemaOptions<T[]> {
     /**
      * Specifies the minimum number of items allowed in the array.
      * Must be a non-negative integer.
@@ -103,7 +124,7 @@ export interface DArrayOptions extends DSchemaOptions {
     uniqueItems?: boolean;
 }
 
-export interface DArrayOptionsWithId extends DArrayOptions {
+export interface DArrayOptionsWithId<T=unknown> extends DArrayOptions<T> {
     /**
      * A URI that serves as a unique identifier for the schema.
      */
@@ -130,17 +151,17 @@ export type DArrayOfMin2<T> = [T, T, ...T[]];
 export interface DType {
     String(options?: DStringOptions): DString;
     Number(options?: DNumberOptions): DNumber;
-    Boolean(options?: DSchemaOptions): DBoolean;
-    Literal<T extends string | number | boolean>(value: T, options?: DSchemaOptions): DLiteral<T>;
+    Boolean(options?: DSchemaOptions<boolean>): DBoolean;
+    Literal<T extends string | number | boolean>(value: T, options?: DSchemaOptions<T>): DLiteral<T>;
 
-    Object<P extends DProperties>(properties: DNonEmptyObject<P>, options: DObjectOptionsWithId): DObject<P> & DSchemaWith$id;
-    Object<P extends DProperties>(properties: DNonEmptyObject<P>, options?: DObjectOptions): DObject<P>;
-    Array<T extends DSchema>(item: T, options: DArrayOptionsWithId): DArray<T> & DSchemaWith$id;
-    Array<T extends DSchema>(item: T, options?: DArrayOptions): DArray<T>;
+    Object<P extends DProperties>(properties: DNonEmptyObject<P>, options: DObjectOptionsWithId<Static<DObject<P>>>): DObject<P> & DSchemaWith$id;
+    Object<P extends DProperties>(properties: DNonEmptyObject<P>, options?: DObjectOptions<Static<DObject<P>>>): DObject<P>;
+    Array<T extends DSchema>(item: T, options: DArrayOptionsWithId<Static<DArray<T>>>): DArray<T> & DSchemaWith$id;
+    Array<T extends DSchema>(item: T, options?: DArrayOptions<Static<DArray<T>>>): DArray<T>;
 
     Optional<T extends DSchema>(type: T): DOptional<T>;
-    Union<T extends DArrayOfMin2<DSchema>>(anyOf: T, options?: DSchemaOptions): DUnion<T>;
-    Intersection<T extends DArrayOfMin2<DSchema>>(allOf: T, options?: DSchemaOptions): DIntersection<T>;
+    Union<T extends DArrayOfMin2<DSchema>>(anyOf: T, options?: DSchemaOptions<Static<DUnion<T>>>): DUnion<T>;
+    Intersection<T extends DArrayOfMin2<DSchema>>(allOf: T, options?: DSchemaOptions<Static<DIntersection<T>>>): DIntersection<T>;
 
     Epoch(): DEpoch;
     Uuid(): DUuid;
@@ -153,17 +174,17 @@ export interface DType {
 export const DType = /* @__PURE__ */ (() => {
     const DTypeObj: DType = Object.create(null);
 
-    DTypeObj.String = (options) => Type.String(options);
-    DTypeObj.Number = (options) => Type.Number(options);
-    DTypeObj.Boolean = (options) => Type.Boolean(options);
-    DTypeObj.Literal = (value, options) => Type.Literal(value, options);
+    DTypeObj.String = (options) => Type.String(options as TSchemaOptions);
+    DTypeObj.Number = (options) => Type.Number(options as TSchemaOptions);
+    DTypeObj.Boolean = (options) => Type.Boolean(options as TSchemaOptions);
+    DTypeObj.Literal = (value, options) => Type.Literal(value, options as TSchemaOptions);
 
-    DTypeObj.Object = (<P extends DProperties>(properties: DNonEmptyObject<P>, options: DObjectOptionsWithId | DObjectOptions) => Type.Object(properties as {}, options)) as DType['Object'];
-    DTypeObj.Array = (<T extends DSchema>(item: T, options: DArrayOptionsWithId | DArrayOptions) => Type.Array(item, options)) as DType['Array'];
+    DTypeObj.Object = (<P extends DProperties>(properties: DNonEmptyObject<P>, options: DObjectOptionsWithId | DObjectOptions) => Type.Object(properties, options as TSchemaOptions)) as DType['Object'];
+    DTypeObj.Array = (<T extends DSchema>(item: T, options: DArrayOptionsWithId | DArrayOptions) => Type.Array(item, options as TSchemaOptions)) as DType['Array'];
 
     DTypeObj.Optional = (type) => Type.Optional(type) as DOptional<typeof type>;
-    DTypeObj.Union = (anyOf, options) => Type.Union(anyOf, options) as DUnion<typeof anyOf>;
-    DTypeObj.Intersection = (allOf, options) => Type.Intersect(allOf, options) as DIntersection<typeof allOf>;
+    DTypeObj.Union = (anyOf, options) => Type.Union(anyOf, options as TSchemaOptions) as DUnion<typeof anyOf>;
+    DTypeObj.Intersection = (allOf, options) => Type.Intersect(allOf, options as TSchemaOptions) as DIntersection<typeof allOf>;
 
     DTypeObj.Epoch = () => DTypeObj.Number({
         minimum: 0,
@@ -175,7 +196,7 @@ export const DType = /* @__PURE__ */ (() => {
         description: 'UUID v7 string',
         examples: ['01a015bd-eef4-706a-bb7d-6320b45fb90f', '01a015be-3aa6-738c-8b83-f252b80a223a']
     });
-    DTypeObj.Hlc = () => DTypeObj.String({
+    DTypeObj.Hlc = () => Type.String({
         pattern: /^[0-9a-z]{9}-[0-9a-z]{4}-[0-9a-z]{15}$/,
         description: 'Hybrid Logical Clock string',
         examples: ['0mu8g758p-f42m-r8qj2l7k5m3n9p4', '0mu8hk6gt-t0pq-9v5j2l534m3nm8h']
@@ -188,7 +209,7 @@ export const DType = /* @__PURE__ */ (() => {
         ], { default: defaultValue });
     };
     DTypeObj.DbTable = ((schema, options) => {
-        return DTypeObj.Intersection([
+        return Type.Intersect([
             DTypeObj.Object({
                 id: DTypeObj.Uuid(),
                 createdAt: DTypeObj.Epoch(),
@@ -196,7 +217,7 @@ export const DType = /* @__PURE__ */ (() => {
                 hlc: DTypeObj.Hlc()
             }),
             schema
-        ], options);
+        ], options as TSchemaOptions);
     }) as DType['DbTable'];
 
     return Object.freeze(DTypeObj);

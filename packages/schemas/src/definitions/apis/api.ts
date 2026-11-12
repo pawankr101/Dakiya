@@ -1,4 +1,4 @@
-import { type DArray, type DBoolean, type DHlc, type DNonEmptyObject, type DObject, type DObjectOptionsWithId, type DOptional, type DProperties, type DSchema, type DSchemaWith$id, type DString, DType, type DUuid } from "../../core";
+import { type DArray, type DBoolean, type DHlc, type DNonEmptyObject, type DObject, type DObjectOptionsWithId, type DOptional, type DProperties, type DSchema, type DSchemaWith$id, type DString, DType, type DTypeOf, type DUuid } from "../../core";
 
 export interface DApiError extends DSchemaWith$id, DObject<{
     requestId: DUuid;
@@ -25,7 +25,7 @@ export interface DApiResponse<D extends DSchema, M extends DSchema = DSchema> ex
 export interface DApiQuery<P extends DProperties> extends DSchemaWith$id, DObject<P> {}
 
 export interface ApiSchema {
-    query<P extends DProperties>(properties: DNonEmptyObject<P>, options: DObjectOptionsWithId): DApiQuery<P>;
+    query<P extends DProperties>(properties: DNonEmptyObject<P>, options: DObjectOptionsWithId<DTypeOf<DApiQuery<P>>>): DApiQuery<P>;
     success<D extends DSchema, M extends DSchema>(dataSchema: D, options: { $id: string; metaSchema?: M; pagination?: boolean; description?: string }): DApiResponse<D, M>;
     error<W extends boolean = false>(options: { $id: string; withValidationIssues?: W; description?: string }): W extends true ? DApiErrorWithIssues : DApiError;
 }
@@ -33,8 +33,8 @@ export interface ApiSchema {
 export const ApiSchema: ApiSchema = /* @__PURE__ */ (() => {
     const api: ApiSchema = Object.create(null);
 
-    api.query = <P extends DProperties>(properties: DNonEmptyObject<P>, options: DObjectOptionsWithId) => {
-        return DType.Object(properties, options) as DApiQuery<P>;
+    api.query = <P extends DProperties>(properties: DNonEmptyObject<P>, options: DObjectOptionsWithId<DTypeOf<DApiQuery<P>>>) => {
+        return DType.Object(properties, options);
     };
 
     api.success = <D extends DSchema, M extends DSchema>(dataSchema: D, options: { $id: string; metaSchema?: M; pagination?: boolean; description?: string }) => {
@@ -43,7 +43,7 @@ export const ApiSchema: ApiSchema = /* @__PURE__ */ (() => {
             data: dataSchema,
             ...(pagination && { pagination: DType.Optional(DType.Object({ cursor: DType.Hlc(), hasMore: DType.Boolean() })) }),
             ...(metaSchema && { meta: DType.Optional(metaSchema) })
-        }, { $id, description }) as DApiResponse<D, M>;
+        }, { $id, description });
     };
 
     api.error = <W extends boolean = false>(options: { $id: string; withValidationIssues?: W; description?: string }): W extends true ? DApiErrorWithIssues : DApiError => {
@@ -61,7 +61,7 @@ export const ApiSchema: ApiSchema = /* @__PURE__ */ (() => {
                         })
                     )
                 )
-            }, { $id, description }) as DApiErrorWithIssues;
+            }, { $id, description });
         }
         return DType.Object({
             requestId: DType.Uuid(),
