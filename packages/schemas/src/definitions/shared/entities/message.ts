@@ -116,5 +116,5 @@ export const MessageReactionSchema = DType.DbTable(DType.Object({
     messageId: DType.Uuid(),
     userId: DType.Uuid(),
     reaction: DType.String(),
-    isRemoved: DType.Boolean({ default: false })
+    isDeleted: DType.Boolean({ default: false })
 }), { $id: 'MessageReactionSchema' });

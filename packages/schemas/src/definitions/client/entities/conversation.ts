@@ -5,7 +5,7 @@ export const ClientConversationSchema = DType.DbTable(DType.Intersection([
     DType.Object({
         pinnedMessageRootId: DType.Optional(DType.Uuid()),
         pinnedMessageRootIdForMe: DType.Optional(DType.Uuid()),
-        mutedUntil: DType.Optional(DType.Epoch()),
+        muteUntil: DType.Optional(DType.Epoch()),
 
         labelIds: DType.Array(DType.Uuid(), { default: [] }),
 

@@ -426,7 +426,7 @@ Database Design Document
 
         //-- Reaction Content
         => reaction: "String, NOT NULL (Unicode character) e.g., emoji or reaction type"
-        => is_removed: "Boolean, NOT NULL, Default: false (The 'Tombstone' flag)"
+        => is_deleted: "Boolean, NOT NULL, Default: false (The 'Tombstone' flag)"
 
         //-- Audit & Sync
         => created_at: "Timestamp, Immutable"
@@ -771,7 +771,7 @@ Database Design Document
 
         //-- Reaction Content
         => reaction: "String, NOT NULL (Unicode character) e.g., emoji or reaction type"
-        => is_removed: "Boolean, NOT NULL, Default: false (The 'Tombstone' flag)"
+        => is_deleted: "Boolean, NOT NULL, Default: false (The 'Tombstone' flag)"
 
         //-- Audit & Sync
         => created_at: "Timestamp, Immutable"

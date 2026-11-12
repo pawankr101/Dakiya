@@ -25,5 +25,5 @@ export const SyncPullResponseSchema = ApiSchema.success(SyncChangeSchema, {
 });
 
 export const SyncPullQuerySchema = ApiSchema.query({
-    last_hlc: DType.Optional(DType.String())
+    last_hlc: DType.Optional(DType.Hlc())
 }, { $id: 'SyncPullQuerySchema' });

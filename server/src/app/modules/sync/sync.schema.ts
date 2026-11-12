@@ -21,10 +21,10 @@ export const PushChangesSchema: FastifySchema = Schemas.route({
     summary: 'Push changes',
     description: 'Push local changes to the server and receive any new changes since the last pull time.',
     request: {
-        body: 'SyncPullResponseSchema'
+        body: 'SyncPullResponseSchema' // placeholder for now, will be replaced with a proper schema for push changes
     },
     response: {
-        200: 'SyncPullQuerySchema',
+        200: 'SyncPullQuerySchema', // placeholder for now, will be replaced with a proper schema for push response
         401: 'ApiErrorSchema'
     }
 });

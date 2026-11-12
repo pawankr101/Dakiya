@@ -4,7 +4,7 @@ import https from 'node:https';
 import type { ListenOptions } from 'node:net';
 import type { Duplex } from 'node:stream';
 import { Exception, getUuid } from '@dakiya/utils';
-import { WSSERVER } from './websocket';
+import { WsServer } from './websocket';
 
 /* ***** Type Declarations: Start ***** */
 
@@ -128,10 +128,10 @@ export class HttpServer<hv extends HttpVersion = 'http1', hs extends HttpSecurit
      * WebSocket protocol, the request is handed off to the `WSServer.handleWsUpgrade`
      * method to complete the connection handshake.
      *
-     * @see {@link WSServer.handleWsUpgrade}
+     * @see {@link WsServer.handleWsUpgrade}
      */
     enableWebSocketConnection() {
-        this.#server.on('upgrade', WSSERVER.handleWsUpgrade);
+        this.#server.on('upgrade', WsServer.handleWsUpgrade);
     }
 
     /**
