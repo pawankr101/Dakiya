@@ -6,8 +6,6 @@ export const UserSchema = DType.DbTable(DType.Object({
     mobile: DType.String(),
     email: DType.Optional(DType.String({ format: 'email' })),
 
-    password: DType.Optional(DType.String()),
-
     name: DType.Optional(DType.String()),
     dob: DType.Optional(DType.String({ format: 'date' })),
     gender: DType.Optional(GenderSchema),
@@ -18,7 +16,7 @@ export const UserSchema = DType.DbTable(DType.Object({
     bio: DType.Optional(DType.String()),
 
     isDeleted: DType.Boolean({ default: false }),
-    deletedAt: DType.Optional(DType.Epoch())
+    deletedAt: DType.Optional(DType.Iso())
 }), { $id: 'UserSchema' });
 
 export const UserSettingsNotificationsSchema = DType.Object({
@@ -59,7 +57,7 @@ export const DeviceSchema = DType.DbTable(DType.Object({
     ipAddress: DType.Optional(DType.String()),
     fcmToken: DType.Optional(DType.String()),
     isActive: DType.Boolean({ default: true }),
-    lastActiveAt: DType.Optional(DType.Epoch()),
+    lastActiveAt: DType.Optional(DType.Iso()),
     chatPrefs: DType.JsonB(DeviceChatPrefsSchema),
     notificationPrefs: DType.JsonB(DeviceNotificationPrefsSchema)
 }), { $id: 'DeviceSchema' });

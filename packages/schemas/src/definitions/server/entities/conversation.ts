@@ -34,13 +34,13 @@ export const ConversationMemberSchema = DType.DbTable(DType.Object({
     userId: DType.Uuid(),
     role: ConversationMemberRoleSchema,
     chatPrefs: DType.JsonB(ConversationMemberChatPrefsSchema),
-    muteUntil: DType.Optional(DType.Epoch()),
+    muteUntil: DType.Optional(DType.Iso()),
     pinnedMessageRootId: DType.Optional(DType.Uuid()),
     labelIds: DType.Array(DType.Uuid(), { maxItems: 4, default: [] }),
     isActive: DType.Boolean({ default: true }),
-    joinedAt: DType.Epoch(),
-    leftAt: DType.Optional(DType.Epoch()),
-    clearedAt: DType.Optional(DType.Epoch()),
+    joinedAt: DType.Iso(),
+    leftAt: DType.Optional(DType.Iso()),
+    clearedAt: DType.Optional(DType.Iso()),
     lastReadMessageId: DType.Optional(DType.Uuid()),
-    lastReadAt: DType.Optional(DType.Epoch())
+    lastReadAt: DType.Optional(DType.Iso())
 }), { $id: 'ConversationMemberSchema' });

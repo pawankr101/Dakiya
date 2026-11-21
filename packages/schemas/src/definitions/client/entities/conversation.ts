@@ -5,17 +5,17 @@ export const ClientConversationSchema = DType.DbTable(DType.Intersection([
     DType.Object({
         pinnedMessageRootId: DType.Optional(DType.Uuid()),
         pinnedMessageRootIdForMe: DType.Optional(DType.Uuid()),
-        muteUntil: DType.Optional(DType.Epoch()),
+        muteUntil: DType.Optional(DType.Iso()),
 
         labelIds: DType.Array(DType.Uuid(), { default: [] }),
 
         isActive: DType.Boolean({ default: true }),
-        joinedAt: DType.Epoch(),
-        leftAt: DType.Optional(DType.Epoch()),
-        clearedAt: DType.Optional(DType.Epoch()),
+        joinedAt: DType.Iso(),
+        leftAt: DType.Optional(DType.Iso()),
+        clearedAt: DType.Optional(DType.Iso()),
 
         lastReadMessageId: DType.Optional(DType.Uuid()),
-        lastReadAt: DType.Optional(DType.Epoch()),
+        lastReadAt: DType.Optional(DType.Iso()),
 
         chatPrefs: DType.JsonB(ConversationMemberChatPrefsSchema)
     }),

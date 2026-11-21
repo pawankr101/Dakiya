@@ -67,14 +67,23 @@ export const PG = (() => {
                         serialize: (value: string) => value,
                         parse: (raw: string) => raw // Keep 'YYYY-MM-DD' as a string
                     },
-                    timestamptz: {
-                        to: 1184,
-                        from: [1184],
-                        // INBOUND (Node -> Postgres): Passing ISO string as it is.
-                        serialize: (value: number) => value,
-                        // OUTBOUND (Postgres -> Node): Convert ISO string to Node.js Date timestamp
-                        parse: (raw: string) => Date.parse(raw)
-                    }
+                    timestamptz: (() => {
+                        const sharedDate = new Date(0);
+                        return {
+                            to: 1184,
+                            from: [1184],
+                            // INBOUND (Node -> Postgres): Expects ISO string (or Date/epoch if normalized)
+                            serialize: (value: number | string | Date) => {
+                                if (typeof value === 'number') {
+                                    sharedDate.setTime(value);
+                                    return sharedDate.toISOString();
+                                }
+                                return value instanceof Date ? value.toISOString() : value;
+                            },
+                            // OUTBOUND (Postgres -> Node): Convert Postgres TIMESTAMPTZ text space separator to 'T'
+                            parse: (raw: string) => raw.replace(' ', 'T')
+                        };
+                    })()
                 }
             });
             isConnected = true;

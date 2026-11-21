@@ -33,7 +33,7 @@ export const UserSettingsBackupSchema = DType.Object({
     backupLocation: DType.Optional(DType.String()),
     backupFrequency: BackupFrequencySchema,
     overWifiOnly: DType.Boolean({ default: true }),
-    lastBackupAt: DType.Optional(DType.Epoch())
+    lastBackupAt: DType.Optional(DType.Iso())
 }, { $id: 'UserSettingsBackupSchema' });
 
 export const UserSettingsAccountSchema = DType.Object({
@@ -45,5 +45,5 @@ export const UserSettingsAccountSchema = DType.Object({
         totp: DType.Optional(DType.String())
     }),
     recoveryCodesHash: DType.Optional(DType.Array(DType.String())),
-    lastPasswordChange: DType.Optional(DType.Epoch())
+    lastPasswordChange: DType.Optional(DType.Iso())
 }, { $id: 'UserSettingsAccountSchema' });

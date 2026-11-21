@@ -23,6 +23,7 @@ export interface DIntersection<T extends DArrayOfMin2<DSchema>> extends TInterse
 
 export interface DUuid extends DString {}
 export interface DEpoch extends DNumber {}
+export interface DIso extends DString {}
 export interface DHlc extends DString {}
 
 type DJsonBBodySchema = DSchemaWith$id | DUnion<DArrayOfMin2<DSchemaWith$id>> | DIntersection<DArrayOfMin2<DSchemaWith$id>>;
@@ -30,8 +31,8 @@ export interface DJsonB<T extends DJsonBBodySchema> extends DUnion<[DString, T]>
 
 export type DDbTableBaseProperties = {
     id: DUuid;
-    createdAt: DEpoch;
-    updatedAt: DEpoch;
+    createdAt: DIso;
+    updatedAt: DIso;
     hlc: DHlc;
 };
 
@@ -164,6 +165,7 @@ export interface DType {
     Intersection<T extends DArrayOfMin2<DSchema>>(allOf: T, options?: DSchemaOptions<Static<DIntersection<T>>>): DIntersection<T>;
 
     Epoch(): DEpoch;
+    Iso(): DIso;
     Uuid(): DUuid;
     Hlc(): DHlc;
     JsonB<S extends (DArray & DSchemaWith$id)>(schema: S, options?: DJsonBOptions<S>): DJsonB<S>;
@@ -191,6 +193,11 @@ export const DType = /* @__PURE__ */ (() => {
         description: 'Epoch timestamp in milliseconds',
         examples: [1620034828000, 1739168283000, 1783137704453]
     });
+    DTypeObj.Iso = () => DTypeObj.String({
+        format: 'date-time',
+        description: 'ISO 8601 date-time string',
+        examples: ['2023-08-15T14:30:00Z', '2024-01-01T00:00:00+05:30', '2022-12-31T23:59:59-08:00']
+    });
     DTypeObj.Uuid = () => DTypeObj.String({
         format: 'uuid',
         description: 'UUID v7 string',
@@ -212,8 +219,8 @@ export const DType = /* @__PURE__ */ (() => {
         return Type.Intersect([
             DTypeObj.Object({
                 id: DTypeObj.Uuid(),
-                createdAt: DTypeObj.Epoch(),
-                updatedAt: DTypeObj.Epoch(),
+                createdAt: DTypeObj.Iso(),
+                updatedAt: DTypeObj.Iso(),
                 hlc: DTypeObj.Hlc()
             }),
             schema
