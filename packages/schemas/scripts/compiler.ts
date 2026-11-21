@@ -317,7 +317,7 @@ const ValidatorCompiler = (() => {
     ]);
     const ANNOTATION_KEYWORDS: ReadonlySet<string> = new Set([
         "$id", "title", "description", "default", "examples", "format", "pattern",
-        "minLength", "maxLength", "minimum", "maximum", "minItems", "maxItems", "uniqueItems"
+        "minLength", "maxLength", "minimum", "maximum", "minItems", "maxItems", "uniqueItems", "readOnly"
     ]);
     const SUPPORTED_TYPES: ReadonlySet<string> = new Set(["string", "number", "boolean", "object", "array"]);
 
