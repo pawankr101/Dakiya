@@ -1,20 +1,19 @@
-import { loop, mapLoop } from "@dakiya/utils";
+import { loop } from "@dakiya/utils";
+import type { PullSyncRawData } from "../../../storage/db/pg";
 import { pullSyncData } from "../../../storage/db/repositories";
-import type { DatabaseTables } from "../../../types";
 import { ApiException } from "../../exception";
 import type { SyncPullResponse } from "./sync.type";
-import type { MessageExclusion } from "../../../schemas";
 
 interface SyncRecord {
     id: string;
-    hlc: string;
     isDeleted?: boolean;
     isActive?: boolean;
 }
 
 const categorizeChanges = (() => {
-    const buildChangeSet = <T extends SyncRecord>(records: T[]) => {
-        const modified: T[] = [], deleted: string[] = [];
+    const buildChangeSet = <T extends SyncRecord>(records: T[], extraDeletedIds?: string[]) => {
+        const modified: T[] = [];
+        const deleted: string[] = [];
 
         loop(records, (record) => {
             if (record.isDeleted === true || record.isActive === false) {
@@ -24,61 +23,49 @@ const categorizeChanges = (() => {
             }
         });
 
+        if (extraDeletedIds && extraDeletedIds.length > 0) {
+            if (deleted.length === 0) {
+                return { modified, deleted: extraDeletedIds };
+            }
+            return {
+                modified,
+                deleted: Array.from(new Set([...deleted, ...extraDeletedIds]))
+            };
+        }
+
         return { modified, deleted };
     };
 
-    return (rawData: Partial<DatabaseTables & { message_exclusions?: MessageExclusion[] }>) => {
+    return (rawData: PullSyncRawData): SyncPullResponse['data'] => {
         const {
-            users = [],
-            user_relationships = [],
-            conversations = [],
-            conversation_members = [],
-            messages = [],
-            message_reactions = [],
-            message_exclusions = []
+            users,
+            user_relationships,
+            conversations,
+            conversation_members,
+            messages,
+            message_reactions,
+            excludedMessageIds,
+            excludedReactionIds
         } = rawData;
 
-        const messagesChangeSet = buildChangeSet(messages as SyncRecord[]);
-        const reactionsChangeSet = buildChangeSet(message_reactions as SyncRecord[]);
-
-        loop(message_exclusions, (exclusion) => {
-            const removedMessageRootId = exclusion.messageRootId;
-
-            const removedMessageIds = mapLoop(messages, (msg) => {
-                if(msg.rootId === removedMessageRootId) {
-                    return msg.id;
-                }
-            });
-            messagesChangeSet.deleted.push(...removedMessageIds);
-
-            const removedReactionIds = mapLoop(message_reactions, (reaction) => {
-                if(reaction.messageRootId === removedMessageRootId) {
-                    return reaction.id;
-                }
-            });
-            reactionsChangeSet.deleted.push(...removedReactionIds);
-        });
-        messagesChangeSet.deleted = Array.from(new Set([...messagesChangeSet.deleted]));
-        reactionsChangeSet.deleted = Array.from(new Set([...reactionsChangeSet.deleted]));
-
         return {
-            users: buildChangeSet(users as SyncRecord[]),
-            user_relationships: buildChangeSet(user_relationships as SyncRecord[]),
-            conversations: buildChangeSet(conversations as SyncRecord[]),
-            conversation_members: buildChangeSet(conversation_members as SyncRecord[]),
-            messages: messagesChangeSet,
-            message_reactions: reactionsChangeSet
+            users: buildChangeSet(users),
+            user_relationships: buildChangeSet(user_relationships),
+            conversations: buildChangeSet(conversations),
+            conversation_members: buildChangeSet(conversation_members),
+            messages: buildChangeSet(messages, excludedMessageIds),
+            message_reactions: buildChangeSet(message_reactions, excludedReactionIds)
         };
     };
 })();
 
 export const pullChangesService = async (userId: string, lastHlc?: string): Promise<SyncPullResponse> => {
     try {
-        const data = await pullSyncData(userId, lastHlc);
+        const { rawData, serverHlc } = await pullSyncData(userId, lastHlc);
         return {
-            data: categorizeChanges(data.rawData) as unknown as SyncPullResponse['data'],
+            data: categorizeChanges(rawData),
             pagination: {
-                cursor: data.serverHlc,
+                cursor: serverHlc,
                 hasMore: false
             }
         };

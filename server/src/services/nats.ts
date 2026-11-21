@@ -74,7 +74,7 @@ const closeConnection = async (connection: NatsConnection): Promise<void> => {
     }
 };
 
-export const Nats = (() => {
+export const Nats: Nats = (() => {
     const Nats: Nats = Object.create(null);
     let nc: NatsConnection | undefined;
 
@@ -139,5 +139,5 @@ export const Nats = (() => {
         return Promise.resolve();
     };
 
-    return Nats;
+    return Object.freeze(Nats);
 })();

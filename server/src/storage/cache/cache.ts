@@ -168,5 +168,5 @@ export const Cache: Cache = (() => {
         throw new Exception('NATS Disconnected or KV store is not established', { code: 'DAKIYA_CACHE_ERROR' });
     }
 
-    return Cache;
+    return Object.freeze(Cache);
 })();

@@ -35,7 +35,7 @@ export interface PG {
     close(): Promise<void>;
 }
 
-export const PG = (() => {
+export const PG: PG = (() => {
     let connection = null as unknown as Sql, isConnected = false;
     const PG: PG = Object.create(null);
 
@@ -123,5 +123,5 @@ export const PG = (() => {
         }
     };
 
-    return PG;
+    return Object.freeze(PG);
 })();

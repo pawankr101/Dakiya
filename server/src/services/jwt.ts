@@ -88,7 +88,7 @@ export interface Jwt {
     verifyAndDecode<T= unknown>(token: string): Promise<T>;
 }
 
-export const Jwt = (() => {
+export const Jwt: Jwt = (() => {
     const Jwt: Jwt = Object.create(null);
 
     Jwt.generateToken = async (payload) => {
@@ -115,5 +115,5 @@ export const Jwt = (() => {
         throw new Exception("Invalid token", { code: 'DAKIYA_JWT_ERROR' });
     };
 
-    return Jwt;
+    return Object.freeze(Jwt);
 })();

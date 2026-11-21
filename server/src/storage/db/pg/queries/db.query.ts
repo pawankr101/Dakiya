@@ -478,6 +478,7 @@ const createIndexes = async (connection: Sql) => {
         // 2. COMPOSED SYNC INDEXES (High Performance)
         // ==========================================
         await connection`CREATE INDEX IF NOT EXISTS idx_messages_conv_hlc ON messages(conversation_id, hlc DESC);`;
+        await connection`CREATE INDEX IF NOT EXISTS idx_message_exclusions_deleted_for_hlc ON message_exclusions(deleted_for, hlc)`;
         await connection`CREATE INDEX IF NOT EXISTS idx_conversation_members_conv_hlc ON conversation_members(conversation_id, hlc DESC);`;
 
         // ==========================================
