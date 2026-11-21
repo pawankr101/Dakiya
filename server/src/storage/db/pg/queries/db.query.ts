@@ -466,6 +466,8 @@ const createIndexes = async (connection: Sql) => {
         // ==========================================
         // 1. LOCAL-FIRST SYNC INDEXES`
         // ==========================================
+        await connection`CREATE INDEX IF NOT EXISTS idx_users_hlc ON users(hlc);`;
+        await connection`CREATE INDEX IF NOT EXISTS idx_user_relationships_hlc ON user_relationships(hlc);`;
         await connection`CREATE INDEX IF NOT EXISTS idx_conversations_hlc ON conversations(hlc);`;
         await connection`CREATE INDEX IF NOT EXISTS idx_conversation_members_hlc ON conversation_members(hlc);`;
         await connection`CREATE INDEX IF NOT EXISTS idx_messages_hlc ON messages(hlc);`;
