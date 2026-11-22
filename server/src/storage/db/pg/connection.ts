@@ -80,8 +80,8 @@ export const PG: PG = (() => {
                                 }
                                 return value instanceof Date ? value.toISOString() : value;
                             },
-                            // OUTBOUND (Postgres -> Node): Convert Postgres TIMESTAMPTZ text space separator to 'T'
-                            parse: (raw: string) => raw.replace(' ', 'T')
+                            // OUTBOUND (Postgres -> Node): Convert Postgres TIMESTAMPTZ text to Node.js Date timestamp
+                            parse: (raw: string) => Date.parse(raw)
                         };
                     })()
                 }

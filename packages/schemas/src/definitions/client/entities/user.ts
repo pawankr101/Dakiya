@@ -17,8 +17,8 @@ export const ProfileInfoSchema = DType.Object({
     dp: DType.Optional(DType.String( { format: 'uri' })),
     bio: DType.Optional(DType.String()),
 
-    createdAt: DType.Iso(),
-    updatedAt: DType.Iso(),
+    createdAt: DType.Epoch(),
+    updatedAt: DType.Epoch(),
     hlc: DType.Hlc()
 }, { $id: 'ProfileInfoSchema' });
 
@@ -46,8 +46,8 @@ export const ProfileSettingsSchema = DType.Object({
     backup: UserSettingsBackupSchema,
     account: UserSettingsAccountSchema,
 
-    createdAt: DType.Iso(),
-    updatedAt: DType.Iso(),
+    createdAt: DType.Epoch(),
+    updatedAt: DType.Epoch(),
     hlc: DType.Hlc()
 }, { $id: 'ProfileSettingsSchema' });
 
@@ -61,8 +61,8 @@ export const ProfileDevicesSchema = DType.Array(DType.Object({
     appVersion: DType.String(),
     lastActiveAt: DType.Epoch(),
 
-    createdAt: DType.Iso(),
-    updatedAt: DType.Iso(),
+    createdAt: DType.Epoch(),
+    updatedAt: DType.Epoch(),
     hlc: DType.Hlc()
 }), { $id: 'ProfileDevicesSchema' });
 
@@ -75,8 +75,8 @@ export const ProfileRelationshipsSchema = DType.Array(DType.Object({
     isBlocked: DType.Boolean({ default: false }),
     circleIds: DType.Array(DType.Uuid(), { maxItems: 4, default: [] }),
 
-    createdAt: DType.Iso(),
-    updatedAt: DType.Iso(),
+    createdAt: DType.Epoch(),
+    updatedAt: DType.Epoch(),
     hlc: DType.Hlc()
 }), { $id: 'ProfileRelationshipsSchema' });
 
