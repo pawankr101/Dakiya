@@ -46,6 +46,9 @@ export class Application<hv extends HttpVersion = AppHttpVersion, hs extends Htt
                 socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
             }
         });
+
+        // Enable WebSocket connections on the server
+        this.#httpServer.enableWebSocketConnection();
     }
 
     async #setupApplication() {

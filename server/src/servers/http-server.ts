@@ -58,7 +58,6 @@ export class HttpServer<hv extends HttpVersion = 'http1', hs extends HttpSecurit
         this.#server = this.#buildServer(httpVer, httpSec, options);
     }
 
-
     /**
      * Creates or returns the singleton HttpServer instance configured for the specified HTTP version and security.
      *
