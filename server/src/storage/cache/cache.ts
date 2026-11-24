@@ -31,6 +31,24 @@ export interface Cache {
     set(key: string, value: string, maxAge?: number): Promise<boolean>;
 
     /**
+    * Retrieves a value from the cache and parses it as JSON.
+    * @param key The key to retrieve.
+    * @returns A promise resolving to the parsed value if found, or null if not found.
+    * @note Use {@link get} if you want to retrieve the raw string value instead of parsing it as JSON.
+    */
+    getData<T>(key: string): Promise<T | null>;
+
+    /**
+    * Sets a value in the cache after serializing it to JSON.
+    * @param key The key to set.
+    * @param value The value to set.
+    * @param maxAge The maximum age of the value in seconds.
+    * @returns A promise resolving to true if the value was set successfully, or false otherwise.
+    * @note Use {@link set} if you want to set a raw string value instead of serializing it to JSON.
+    */
+    setData<T>(key: string, value: T, maxAge?: number): Promise<boolean>;
+
+    /**
     * Checks if a key exists in the cache.
     * @param key The key to check.
     * @returns A promise resolving to true if the key exists, or false otherwise.
@@ -52,21 +70,21 @@ export interface Cache {
 }
 
 const createStore = (nc: NatsConnection) => {
-    const kvm = new Kvm(jetstream(nc));
-    return kvm.create(CACHE.database, {
+    const km = new Kvm(jetstream(nc));
+    return km.create(CACHE.database, {
         history: 1, // Only keep the latest value for a key
         storage: StorageType.File,
         ttl: CACHE.maxTTL * 1000
     });
 };
 
-const getKey = async (store: KV, key: string) => {
+const getKey = async <T=string>(store: KV, key: string) => {
     try {
         const entry = await store.get(key);
         if (!entry || entry.operation === 'DEL' || entry.operation === 'PURGE') return null;
 
-         //wrapped payloads: [ e: number, v: string ] where e is maxAge in seconds. We need to handle TTL expiry manually since NATS KV doesn't support per-key TTL
-        const [e, v] = entry.json<[e: number, v: string]>();
+         //wrapped payloads: [ e: number, v: T ] where e is maxAge in seconds. We need to handle TTL expiry manually since NATS KV doesn't support per-key TTL
+        const [e, v] = entry.json<[e: number, v: T]>();
 
         if(e>0 && (Date.now() - entry.created.getTime()) > (e * 1000)) {  // e == 0 means no expiry
             store.delete(entry.key).catch((err: Error) => {
@@ -81,10 +99,10 @@ const getKey = async (store: KV, key: string) => {
     }
 };
 
-const setKey = async (store: KV, key: string, value: string, maxAge: number) => {
+const setKey = async <T=string>(store: KV, key: string, value: T, maxAge: number) => {
     try {
         const e = maxAge <= 0 ? CACHE.maxTTL : Math.min(maxAge, CACHE.maxTTL); // enforce max TTL limit
-        await store.put(key, JSON.stringify([e, value])); // wapping value with its maxAge to handle TTL expiry manually since NATS KV doesn't support per-key TTL
+        await store.put(key, JSON.stringify([e, value])); // wrapping value with its maxAge to handle TTL expiry manually since NATS KV doesn't support per-key TTL
         return true;
     } catch (error) {
         console.error(Exception.from(error as Error, { code: 'DAKIYA_CACHE_ERROR' }));
@@ -137,8 +155,21 @@ export const Cache: Cache = (() => {
 
     Cache.set = async (key: string, value: string, maxAge: number = 0) => {
         if(kvStore && nats.isConnected()) {
-            if (Guards.isString(key) && Guards.isString(value)) return setKey(kvStore, key, value, maxAge);
-            throw new Exception('Invalid key or value. Both must be strings.', { code: 'DAKIYA_CACHE_ERROR' });
+            if (Guards.isString(key) && Guards.isString(value) && Guards.isNumber(maxAge) && maxAge >= 0) return setKey(kvStore, key, value, maxAge);
+            throw new Exception('Invalid key, value, or maxAge. Key and value must be strings, and maxAge(if provided) must be a non-negative number.', { code: 'DAKIYA_CACHE_ERROR' });
+        }
+        throw new Exception('NATS Disconnected or KV store is not established', { code: 'DAKIYA_CACHE_ERROR' });
+    }
+
+    Cache.getData = async <T=unknown>(key: string) => {
+        if(kvStore && nats.isConnected()) return getKey<T>(kvStore, key);
+        throw new Exception('NATS Disconnected or KV store is not established', { code: 'DAKIYA_CACHE_ERROR' });
+    }
+
+    Cache.setData = async <T=unknown>(key: string, value: T, maxAge: number = 0) => {
+        if(kvStore && nats.isConnected()) {
+            if (Guards.isString(key) && Guards.isDefinedAndNotNull(value) && Guards.isNumber(maxAge) && maxAge >= 0) return setKey(kvStore, key, value, maxAge);
+            throw new Exception('Invalid key, value, or maxAge. Key must be a string, value cannot be null or undefined, and maxAge(if provided) must be a non-negative number.', { code: 'DAKIYA_CACHE_ERROR' });
         }
         throw new Exception('NATS Disconnected or KV store is not established', { code: 'DAKIYA_CACHE_ERROR' });
     }

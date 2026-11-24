@@ -46,7 +46,13 @@ export const THREADING = {
 }
 
 export const AUTH = {
-    jwtSecret: process.env.DAKIYA_JWT_SECRET
+    jwtSecret: process.env.DAKIYA_JWT_SECRET,
+    cacheKeyPrefix: '__dakiya_session__',
+    sessionTTLInSeconds: 60 * 60 * 24 * 7, // 7 days in seconds
+    passwordHashing: {
+        saltLength: 32,
+        keyLength: 64
+    }
 }
 
 export const DB = {

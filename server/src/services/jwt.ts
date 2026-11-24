@@ -1,7 +1,13 @@
 import type { Readable } from "node:stream";
 import { Exception, Guards, type ObjectOf } from "@dakiya/utils";
-import { type Algorithm, type DecodeOptions, decode, type Signature, type SignOptions, sign, verify } from "jws";
+import { type Algorithm, type DecodeOptions, decode, type Header, type SignOptions, sign, verify } from "jws";
 import { AUTH } from "../config";
+
+interface Signature<T = unknown> {
+    header: Header;
+    payload: T;
+    signature: string;
+}
 
 /**
  * Asynchronously signs a JWT signature.
@@ -45,10 +51,10 @@ const verifyAsync = (signature: string, algorithm: Algorithm, secretOrKey: strin
  * @returns A Promise that resolves with the decoded signature.
  * @throws Will reject with a DAKIYA_JWT_ERROR if the decoding process fails.
  */
-const decodeAsync = (signature: string, options?: DecodeOptions) => {
+const decodeAsync = <T>(signature: string, options?: DecodeOptions) => {
     return new Promise<Signature>((resolve, reject) => {
         try {
-            const decoded = decode(signature, options);
+            const decoded: Signature<T> | null = decode(signature, options);
             if (Guards.isNull(decoded)) {
                 reject(new Exception("JWT signature is invalid or malformed", { code: "DAKIYA_JWT_ERROR"}))
             } else resolve(decoded);
@@ -101,15 +107,15 @@ export const Jwt: Jwt = (() => {
         return verifyAsync(token, 'HS256', AUTH.jwtSecret);
     };
 
-    Jwt.decode = async <T = unknown>(token: string): Promise<T> => {
-        const decoded = await decodeAsync(token);
+    Jwt.decode = async <T=unknown>(token: string) => {
+        const decoded = await decodeAsync<T>(token);
         return decoded.payload as T;
     };
 
-    Jwt.verifyAndDecode = async <T = unknown>(token: string): Promise<T> => {
+    Jwt.verifyAndDecode = async <T = unknown>(token: string) => {
         const isValid = await Jwt.isValid(token);
         if(isValid) {
-            const decoded = await decodeAsync(token);
+            const decoded = await decodeAsync<T>(token);
             return decoded.payload as T;
         }
         throw new Exception("Invalid token", { code: 'DAKIYA_JWT_ERROR' });
