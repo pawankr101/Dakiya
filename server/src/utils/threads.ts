@@ -1,6 +1,6 @@
 import { cpus } from 'node:os';
 import { Worker } from "node:worker_threads";
-import { Dictionary, Exception, getUuid, LinkedList, type List, Queue } from '@dakiya/utils';
+import { Dictionary, Exception, getUuid, Guards, LinkedList, type List, Queue } from '@dakiya/utils';
 import { THREADING } from "../config";
 
 interface Task {
@@ -17,14 +17,17 @@ interface WorkerResult {
 }
 
 export const ThreadStatus = (() => {
-    const ts: { starting: symbol, idle: symbol, busy: symbol, terminating: symbol, dead: symbol, error: symbol } = Object.create(null);
+    type ThreadStatus = { starting: symbol; idle: symbol; busy: symbol; terminating: symbol; dead: symbol; error: symbol; }
+
+    const ts: ThreadStatus = Object.create(null);
     ts.starting = Symbol('___STARTING');
     ts.idle = Symbol('___IDLE');
     ts.busy = Symbol('___BUSY');
     ts.terminating = Symbol('___TERMINATING');
     ts.dead = Symbol('___DEAD');
     ts.error = Symbol('___ERROR');
-    return ts;
+
+    return Object.freeze(ts) as ThreadStatus;
 })();
 export type ThreadStatus = typeof ThreadStatus[keyof typeof ThreadStatus];
 
@@ -36,6 +39,10 @@ const [ WORKER_FILE, MAX_THREADS, MAX_IDLE_TIME, MAX_TRY_ATTEMPT ] = [
 ];
 class ThreadStack {
     readonly #threads: List<Thread> = new LinkedList<Thread>();
+
+    get size() {
+        return this.#threads.size;
+    }
 
     push(thread: Thread) {
         this.#threads.addOne(thread);
@@ -106,7 +113,7 @@ export class Thread {
             this.status = ThreadStatus.idle;
             const { error, result } = data;
             if (task) {
-                if (error) {
+                if (Guards.isDefined(error)) {
                     queueMicrotask(() => {
                         task.onError(new Exception(error, { code: 'DAKIYA_WORKER_ERROR' }));
                     });
@@ -119,12 +126,27 @@ export class Thread {
             this.#executeNextTask();
         },
         onWorkerMessageError = (error: Error) => {
-            console.error(Exception.from(error, { code: 'DAKIYA_WORKER_ERROR' }));
+            const exception = Exception.from(error, { code: 'DAKIYA_WORKER_ERROR' });
+            console.error(exception);
+
+            const task = this.#activeTask;
+            this.#activeTask = null;
+            this.status = ThreadStatus.idle;
+
+            if (task) {
+                queueMicrotask(() => {
+                    task.onError(exception);
+                });
+            }
+
+            this.#executeNextTask();
         },
         onWorkerError = (error: Error) => {
             console.error(Exception.from(error, { code: 'DAKIYA_WORKER_ERROR' }));
-            this.status = ThreadStatus.terminating;
-            if (this.#worker) this.#worker.terminate().catch(console.error).finally(() => this.#cleanup(error));
+            const worker = this.#worker;
+            this.status = ThreadStatus.error;
+            this.#cleanup(error);
+            if (worker) worker.terminate().catch(console.error);
         },
         onWorkerExit = (exitCode: number) => {
             if (exitCode) {
@@ -155,28 +177,35 @@ export class Thread {
         }
     }
 
-    #sendTaskToWorker(worker: Worker, task: Task) {
+    #sendTaskToWorker(worker: Worker, task: Task): 'sent' | 'rejected' | 'failed' {
         const threadId = this.id;
         try {
             const { method: { name: method, args } } = task;
             worker.postMessage({ method, args });
             this.#activeTask = task;
-            if (!Thread.#threadPool.get((threadId))) {
+            if (!Thread.#threadPool.get(threadId)) {
                 const th = Thread.#sleepingThreads.delete(threadId) ?? this;
                 Thread.#threadPool.set(threadId, th);
             }
-            return true;
+            return 'sent';
         } catch (error) {
+            if (error instanceof Error && error.name === 'DataCloneError') {
+                queueMicrotask(() => {
+                    task.onError(new Exception(`Task ${task.id} contains non-cloneable arguments.`, { cause: error, code: 'DAKIYA_WORKER_ERROR' }));
+                });
+                return 'rejected';
+            }
+
             task.attempt++;
             if (task.attempt < MAX_TRY_ATTEMPT) {
                 Thread.#pendingTasksQueue.enqueue(task);
-                console.warn(new Exception(`Failed to send task to Worker with id: ${threadId}. Re-queueing task ${task.id} (Attempt ${task.attempt})`, { cause: error as Error, code : 'DAKIYA_WORKER_ERROR' }));
+                console.warn(new Exception(`Failed to send task to Worker with id: ${threadId}. Re-queuing task ${task.id} (Attempt ${task.attempt})`, { cause: error as Error, code: 'DAKIYA_WORKER_ERROR' }));
             } else {
                 queueMicrotask(() => {
                     task.onError(new Exception(`Failed to send task to Worker with id: ${threadId}. Task ${task.id} has reached max retry attempts.`, { cause: error as Error, code: 'DAKIYA_WORKER_ERROR' }));
-                })
+                });
             }
-            return false;
+            return 'failed';
         }
     }
 
@@ -184,9 +213,7 @@ export class Thread {
         const worker = this.#worker;
         if (!worker) {
             if (this.status !== ThreadStatus.error) this.status = ThreadStatus.dead;
-            if (this.status === ThreadStatus.dead) {
-                this.#cleanup();
-            }
+            if (this.status === ThreadStatus.dead) this.#cleanup();
             return;
         }
 
@@ -197,10 +224,11 @@ export class Thread {
 
             const task = Thread.#pendingTasksQueue.dequeue();
             this.status = ThreadStatus.busy;
-            if (this.#sendTaskToWorker(worker, task)) return;
+            const result = this.#sendTaskToWorker(worker, task);
+            if (result === 'sent') return;
 
             this.status = ThreadStatus.idle;
-            consecutiveFailures++;
+            if (result === 'failed') consecutiveFailures++;
         }
         worker.terminate().catch(console.error);
     }
@@ -217,7 +245,7 @@ export class Thread {
             task.attempt++;
             if (task.attempt < MAX_TRY_ATTEMPT) {
                 Thread.#pendingTasksQueue.enqueue(task);
-                console.warn(new Exception(`Worker ${this.id} died. Re-queueing task ${task.id} (Attempt ${task.attempt})`, { cause: error, code : 'DAKIYA_WORKER_ERROR' }));
+                console.warn(new Exception(`Worker ${this.id} died. Re-queuing task ${task.id} (Attempt ${task.attempt})`, { cause: error, code : 'DAKIYA_WORKER_ERROR' }));
             } else {
                 queueMicrotask(() => {
                     task.onError(new Exception(`Task ${task.id} failed after ${MAX_TRY_ATTEMPT} attempts.`, { cause: error, code: 'DAKIYA_WORKER_ERROR' }));
@@ -229,14 +257,8 @@ export class Thread {
             this.#worker.removeAllListeners();
             this.#worker = null;
         }
-        if (!Thread.#threadPool.delete(this.id)) {
-            Thread.#sleepingThreads.delete(this.id)
-        }
-        if (!Thread.#pendingTasksQueue.isEmpty()) {
-            if (!Thread.#awakenSleepingThread()) {
-                Thread.#createNewThread();
-            }
-        }
+        if (!Thread.#threadPool.delete(this.id)) Thread.#sleepingThreads.delete(this.id);
+        if (!Thread.#pendingTasksQueue.isEmpty() && !Thread.#awakenSleepingThread()) Thread.#createNewThread();
     }
 
     #standbyIfEmptyQueue () {
@@ -245,13 +267,17 @@ export class Thread {
 
         const th = Thread.#threadPool.delete(this.id) ?? this;
         this.#terminationTimeout = setTimeout(() => {
+            this.#terminationTimeout = null;
             this.status = ThreadStatus.terminating;
-            if (this.#worker) {
-                if (!this.#sendExitSignalToWorker((this.#worker))) {
-                    this.#worker.terminate().catch(console.error);
-                }
+            if (this.#worker && !this.#sendExitSignalToWorker((this.#worker))) {
+                this.#worker.terminate().catch(console.error);
             }
         }, MAX_IDLE_TIME);
+
+        // Allow the Node.js process to exit naturally if only idle workers remain
+        this.#terminationTimeout.unref();
+        if (this.#worker) this.#worker.unref();
+
         Thread.#sleepingThreads.push(th);
         return true;
     }
@@ -261,6 +287,8 @@ export class Thread {
             clearTimeout(this.#terminationTimeout);
             this.#terminationTimeout = null;
         }
+        // Keep the event loop alive while this worker is about to run a task
+        if (this.#worker) this.#worker.ref();
         this.#executeNextTask();
     }
 
@@ -281,9 +309,9 @@ export class Thread {
     // static members and methods related to managing the pool of threads and task distribution.
 
     static #awakenSleepingThread() {
-        const th = Thread.#sleepingThreads.pop();
-        if (th) {
-            if (th.status === ThreadStatus.idle) {
+        while (Thread.#sleepingThreads.size > 0) {
+            const th = Thread.#sleepingThreads.pop();
+            if (th && th.status === ThreadStatus.idle) {
                 th.wakeUp();
                 return true;
             }
@@ -292,7 +320,7 @@ export class Thread {
     }
 
     static #createNewThread() {
-        if (Thread.#threadPool.size < MAX_THREADS) {
+        if (Thread.#threadPool.size + Thread.#sleepingThreads.size < MAX_THREADS) {
             const th = new Thread(WORKER_FILE, Thread.#staticHash);
             Thread.#threadPool.set(th.id, th);
         }
@@ -314,10 +342,7 @@ export class Thread {
                 attempt: 0
             };
             Thread.#pendingTasksQueue.enqueue(task);
-
-            if (!Thread.#awakenSleepingThread()) {
-                Thread.#createNewThread();
-            }
+            if (!Thread.#awakenSleepingThread()) Thread.#createNewThread();
         });
     }
     /**************************** Static methods: End ********************************/
